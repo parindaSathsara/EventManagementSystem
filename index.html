@@ -29,6 +29,7 @@
     <nav class="site-nav" id="site-nav">
       <a href="#overview">Overview</a>
       <a href="#modules">Modules</a>
+      <a href="#use-cases">Use Cases</a>
       <a href="#architecture">Architecture</a>
       <a href="#roadmap">Roadmap</a>
       <a href="#deliverables">Deliverables</a>
@@ -50,7 +51,13 @@
           <button class="btn btn-secondary" id="print-btn" type="button">Export / Print</button>
         </div>
       </div>
-      <div class="hero-stats reveal">
+      <div class="hero-illustration reveal">
+        <div class="hero-3d-frame">
+          <img src="customer.png" alt="Customer browsing events" class="hero-3d-img" />
+          <div class="hero-3d-shadow"></div>
+        </div>
+      </div>
+      <div class="hero-stats-row reveal">
         <article class="stat-card">
           <h3>8 Weeks</h3>
           <p>Delivery Timeline</p>
@@ -67,6 +74,16 @@
           <h3>API Ready</h3>
           <p>Web + Mobile Expansion</p>
         </article>
+      </div>
+    </section>
+
+    <section class="section cover-section" id="cover-image">
+      <div class="cover-image-wrapper reveal">
+        <img src="image.png" alt="Event Management & Ticketing System - Use Case Diagram" class="cover-img" />
+        <div class="cover-caption">
+          <span class="pill">Use Case Diagram</span>
+          <p>Real-world system interaction model showing how Customers, Suppliers, and Admins connect through the platform.</p>
+        </div>
       </div>
     </section>
 
@@ -154,6 +171,257 @@
             <li>Admin and supplier export-ready dashboards</li>
           </ul>
         </article>
+      </div>
+    </section>
+
+    <section class="section" id="use-cases">
+      <div class="section-head reveal">
+        <p class="eyebrow">Use Case Specification</p>
+        <h2>System Actors & Use Cases</h2>
+      </div>
+
+      <!-- System Actors -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">System Actors</h3>
+        <div class="card-grid two">
+          <article class="actor-card reveal">
+            <div class="actor-icon">👤</div>
+            <h3>Customer</h3>
+            <p>A user who browses events and purchases tickets using the mobile application.</p>
+          </article>
+          <article class="actor-card reveal">
+            <div class="actor-icon">🎵</div>
+            <h3>Supplier</h3>
+            <p>An event organizer or musician who creates and manages events via the supplier dashboard.</p>
+          </article>
+          <article class="actor-card reveal">
+            <div class="actor-icon">🛡️</div>
+            <h3>Admin</h3>
+            <p>A system controller who manages users, events, promotions, reports, and platform configurations.</p>
+          </article>
+          <article class="actor-card reveal">
+            <div class="actor-icon">⚡</div>
+            <h3>Super Admin</h3>
+            <p>An advanced administrative role with additional privileges including admin account management and role control.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Customer Use Cases -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">Customer Use Cases</h3>
+        <div class="uc-grid">
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-01</span>
+            <h3>Register Account</h3>
+            <p>User creates a new account using email or phone number.</p>
+            <div class="uc-meta">
+              <span class="uc-tag">Pre: User is not registered</span>
+              <span class="uc-tag">Post: Account created successfully</span>
+            </div>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-02</span>
+            <h3>Login</h3>
+            <p>User logs into the mobile application.</p>
+            <div class="uc-meta">
+              <span class="uc-tag">Pre: Account exists</span>
+              <span class="uc-tag">Post: User session created</span>
+            </div>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-03</span>
+            <h3>Browse Events</h3>
+            <p>User views available events listed on the platform.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-04</span>
+            <h3>Search & Filter Events</h3>
+            <p>User searches events by category, date, location, or keyword.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-05</span>
+            <h3>View Event Details</h3>
+            <p>User views full event description, date, location, pricing, and availability.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-06</span>
+            <h3>Select Ticket Type</h3>
+            <p>User selects ticket category and quantity.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-07</span>
+            <h3>Apply Promotion Code</h3>
+            <p>User applies a valid discount code during checkout.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-08</span>
+            <h3>Make Payment</h3>
+            <p>User completes payment using supported methods (Card, Wallet, Bank, Koko Pay).</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-09</span>
+            <h3>Receive E-Ticket (QR Code)</h3>
+            <p>After successful payment, system generates a QR-based ticket.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-10</span>
+            <h3>View Booking History</h3>
+            <p>User views previously purchased tickets.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-11</span>
+            <h3>Receive Notifications</h3>
+            <p>User receives booking confirmations and event reminders.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Supplier Use Cases -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">Supplier Use Cases</h3>
+        <div class="uc-grid">
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-12</span>
+            <h3>Supplier Registration</h3>
+            <p>Supplier registers for platform access.</p>
+            <div class="uc-meta">
+              <span class="uc-tag">Requires admin approval</span>
+            </div>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-13</span>
+            <h3>Create Event</h3>
+            <p>Supplier creates a new event including details and ticket categories.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-14</span>
+            <h3>Edit Event</h3>
+            <p>Supplier updates event information.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-15</span>
+            <h3>Upload Event Media</h3>
+            <p>Supplier uploads images/videos for event promotion.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-16</span>
+            <h3>Manage Ticket Categories</h3>
+            <p>Supplier defines ticket tiers and pricing.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-17</span>
+            <h3>View Sales & Revenue</h3>
+            <p>Supplier tracks ticket sales and revenue analytics.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-18</span>
+            <h3>Request Payout</h3>
+            <p>Supplier requests withdrawal of earned revenue.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-19</span>
+            <h3>Receive Notifications</h3>
+            <p>Supplier receives updates about bookings and approvals.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Admin Use Cases -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">Admin Use Cases</h3>
+        <div class="uc-grid">
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-20</span>
+            <h3>Approve Supplier</h3>
+            <p>Admin approves or rejects supplier registrations.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-21</span>
+            <h3>Approve Event</h3>
+            <p>Admin reviews and approves events before publishing.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-22</span>
+            <h3>Manage Users</h3>
+            <p>Admin manages customer and supplier accounts.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-23</span>
+            <h3>Manage Promotions</h3>
+            <p>Admin creates and manages discount campaigns.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-24</span>
+            <h3>View Reports & Analytics</h3>
+            <p>Admin monitors platform revenue, sales, and performance.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-25</span>
+            <h3>Manage Refunds</h3>
+            <p>Admin handles ticket cancellations and refund processing.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-26</span>
+            <h3>Commission Management</h3>
+            <p>Admin defines commission percentages per event or supplier.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-27</span>
+            <h3>Configure Payment Gateway</h3>
+            <p>Admin configures payment gateway integration.</p>
+          </article>
+          <article class="uc-card reveal">
+            <span class="uc-id">UC-28</span>
+            <h3>Platform Settings</h3>
+            <p>Admin updates global platform configurations.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Super Admin Use Cases -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">Super Admin Use Cases</h3>
+        <div class="uc-grid">
+          <article class="uc-card uc-card-super reveal">
+            <span class="uc-id">UC-29</span>
+            <h3>Manage Admin Accounts</h3>
+            <p>Create, update, or deactivate admin users.</p>
+          </article>
+          <article class="uc-card uc-card-super reveal">
+            <span class="uc-id">UC-30</span>
+            <h3>Role & Permission Management</h3>
+            <p>Define system roles and permissions.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- External System Interactions -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">External System Interactions</h3>
+        <div class="card-grid two">
+          <article class="info-card reveal">
+            <h3>Payment Gateway</h3>
+            <p>Handles secure payment processing and webhook confirmations.</p>
+          </article>
+          <article class="info-card reveal">
+            <h3>Notification Service</h3>
+            <p>Handles email, push notifications, and SMS alerts.</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="uc-subsection reveal">
+        <h3 class="uc-subsection-title">Use Case Model Summary</h3>
+        <div class="pill-row">
+          <span class="pill">Clear Role Separation</span>
+          <span class="pill">Controlled Access Management</span>
+          <span class="pill">Secure Ticket Purchasing</span>
+          <span class="pill">Event Lifecycle Management</span>
+          <span class="pill">Revenue & Commission Tracking</span>
+          <span class="pill">System Scalability</span>
+        </div>
       </div>
     </section>
 

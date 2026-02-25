@@ -199,16 +199,76 @@ main {
 .hero {
   margin-top: 28px;
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-rows: auto auto;
   gap: 26px;
 }
 
 .hero-copy {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: linear-gradient(145deg, rgba(12, 20, 34, 0.92), rgba(13, 34, 52, 0.62));
   padding: clamp(24px, 4vw, 42px);
   box-shadow: var(--shadow);
+  align-self: center;
+}
+
+.hero-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 900px;
+}
+
+.hero-3d-frame {
+  position: relative;
+  transform: rotateY(-8deg) rotateX(4deg);
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.hero-3d-frame:hover {
+  transform: rotateY(-2deg) rotateX(1deg) scale(1.03);
+}
+
+.hero-3d-img {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  border-radius: var(--radius);
+  border: 2px solid rgba(6, 182, 212, 0.35);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(6, 182, 212, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  filter: drop-shadow(0 10px 30px rgba(6, 182, 212, 0.2));
+  animation: heroFloat 5s ease-in-out infinite;
+}
+
+.hero-3d-shadow {
+  position: absolute;
+  bottom: -18px;
+  left: 10%;
+  width: 80%;
+  height: 24px;
+  background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.18) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(8px);
+  transform: translateZ(-30px);
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.hero-stats-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .eyebrow {
@@ -295,12 +355,6 @@ button:focus-visible {
 
 .btn:hover {
   transform: translateY(-2px);
-}
-
-.hero-stats {
-  display: grid;
-  gap: 12px;
-  align-content: start;
 }
 
 .stat-card {
@@ -474,6 +528,163 @@ li {
   background: rgba(15, 23, 42, 0.65);
 }
 
+/* Cover Image Section */
+.cover-section {
+  margin-top: 48px;
+}
+
+.cover-image-wrapper {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.cover-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  background: #0d1526;
+}
+
+.cover-caption {
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.cover-caption p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+/* Use Case Sections */
+.uc-subsection {
+  margin-top: 36px;
+}
+
+.uc-subsection-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.15rem;
+  color: #67e8f9;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+
+.actor-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  backdrop-filter: blur(9px);
+  box-shadow: var(--shadow-soft);
+  padding: 22px;
+  text-align: center;
+}
+
+.actor-icon {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+}
+
+.uc-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.uc-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  backdrop-filter: blur(9px);
+  box-shadow: var(--shadow-soft);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 280ms ease, transform 280ms ease;
+}
+
+.uc-card:hover {
+  border-color: rgba(6, 182, 212, 0.45);
+  transform: translateY(-2px);
+}
+
+.uc-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--accent), var(--accent-alt));
+}
+
+.uc-card-super::before {
+  background: linear-gradient(180deg, #f59e0b, #ef4444);
+}
+
+.uc-id {
+  display: inline-block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #67e8f9;
+  background: rgba(6, 182, 212, 0.14);
+  border: 1px solid rgba(6, 182, 212, 0.28);
+  border-radius: 6px;
+  padding: 3px 8px;
+  margin-bottom: 8px;
+}
+
+.uc-card-super .uc-id {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.uc-meta {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.uc-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #a5b4c8;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+@media (max-width: 1100px) {
+  .uc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .uc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cover-caption {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
 .site-footer {
   width: min(var(--max), calc(100% - 40px));
   margin: 0 auto 30px;
@@ -501,6 +712,18 @@ li {
 @media (max-width: 1100px) {
   .hero {
     grid-template-columns: 1fr;
+  }
+
+  .hero-illustration {
+    order: -1;
+  }
+
+  .hero-3d-img {
+    max-width: 280px;
+  }
+
+  .hero-stats-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .card-grid.three,
@@ -567,6 +790,14 @@ li {
     grid-template-columns: 1fr;
   }
 
+  .hero-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-3d-img {
+    max-width: 200px;
+  }
+
   .future {
     padding: 20px;
   }
@@ -601,6 +832,22 @@ li {
     grid-template-columns: 1fr;
   }
 
+  .hero-3d-frame {
+    transform: none;
+  }
+
+  .hero-3d-img {
+    max-width: 200px;
+    animation: none;
+    filter: none;
+    box-shadow: none;
+    border-color: #cbd5e1;
+  }
+
+  .hero-3d-shadow {
+    display: none;
+  }
+
   .info-card,
   .module-card,
   .arch-card,
@@ -608,11 +855,29 @@ li {
   .contact-card,
   .hero-copy,
   .stat-card,
-  .future {
+  .future,
+  .uc-card,
+  .actor-card,
+  .cover-image-wrapper {
     color: #0f172a;
     border-color: #cbd5e1;
     background: #ffffff;
     box-shadow: none;
+  }
+
+  .uc-id {
+    color: #0e7490;
+    background: rgba(6, 182, 212, 0.1);
+    border-color: #0e7490;
+  }
+
+  .uc-subsection-title {
+    color: #0e7490;
+    border-color: #cbd5e1;
+  }
+
+  .cover-img {
+    background: #ffffff;
   }
 
   .reveal {
