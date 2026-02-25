@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Event Management System - Futuristic web proposal for an Event Management and Ticketing platform.">
+  <title>Event Management System | Web Proposal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-top" aria-hidden="true"></div>
+  <div class="ambient ambient-bottom" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#hero">
+      <span class="brand-mark">EMS</span>
+      <span class="brand-text">Event Management System</span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="site-nav">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="site-nav" id="site-nav">
+      <a href="#overview">Overview</a>
+      <a href="#modules">Modules</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#deliverables">Deliverables</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section hero" id="hero">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Futuristic Project Proposal</p>
+        <h1>Event Management & Ticketing System</h1>
+        <p>
+          A secure, scalable, and conversion-focused digital event platform that connects customers,
+          suppliers, and administrators through one high-performance mobile + web ecosystem.
+        </p>
+        <div class="hero-actions">
+          <!-- <a class="btn btn-primary" href="#contact">Approve Proposal</a> -->
+          <button class="btn btn-secondary" id="print-btn" type="button">Export / Print</button>
+        </div>
+      </div>
+      <div class="hero-stats reveal">
+        <article class="stat-card">
+          <h3>8 Weeks</h3>
+          <p>Delivery Timeline</p>
+        </article>
+        <article class="stat-card">
+          <h3>3 Platforms</h3>
+          <p>Mobile App, Supplier Web, Admin Web</p>
+        </article>
+        <article class="stat-card">
+          <h3>99.9%</h3>
+          <p>Uptime Target</p>
+        </article>
+        <article class="stat-card">
+          <h3>API Ready</h3>
+          <p>Web + Mobile Expansion</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="overview">
+      <div class="section-head reveal">
+        <p class="eyebrow">01 - Executive Overview</p>
+        <h2>Mobile + Web Proposal Vision</h2>
+      </div>
+      <div class="card-grid three">
+        <article class="info-card reveal">
+          <h3>Customer Experience</h3>
+          <p>
+            Event discovery, smart filtering, seamless checkout, promo code application, booking history,
+            and QR e-ticket access from a unified customer mobile app.
+          </p>
+        </article>
+        <article class="info-card reveal">
+          <h3>Supplier Workspace</h3>
+          <p>
+            Musicians, organizers, and managers can create events, configure ticket tiers, monitor sales,
+            and request payouts with complete visibility.
+          </p>
+        </article>
+        <article class="info-card reveal">
+          <h3>Admin Command Center</h3>
+          <p>
+            Super Admin and Admin role controls for approvals, commission settings, refund handling,
+            promotions, and operational analytics.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="modules">
+      <div class="section-head reveal">
+        <p class="eyebrow">02 - Functional Scope</p>
+        <h2>Core System Modules</h2>
+      </div>
+      <div class="module-list">
+        <article class="module-card reveal">
+          <h3>Identity & Access</h3>
+          <ul>
+            <li>JWT authentication and role-based access</li>
+            <li>Password reset and account verification</li>
+            <li>Session controls and audit-ready access security</li>
+          </ul>
+        </article>
+        <article class="module-card reveal">
+          <h3>Event Lifecycle</h3>
+          <ul>
+            <li>Create, edit, review, approve, publish workflows</li>
+            <li>Event categories, schedules, media, and status control</li>
+            <li>Ticket tiering and optional seat allocation</li>
+          </ul>
+        </article>
+        <article class="module-card reveal">
+          <h3>Ticketing Engine</h3>
+          <ul>
+            <li>Unique ticket IDs and QR code generation</li>
+            <li>E-ticket delivery and validation state tracking</li>
+            <li>Cancellation and refund logic with traceability</li>
+          </ul>
+        </article>
+        <article class="module-card reveal">
+          <h3>Payments</h3>
+          <ul>
+            <li>Cards, bank transfer, wallets, and Koko Pay</li>
+            <li>Webhook-based payment confirmations</li>
+            <li>Refund pipeline, logs, and reconciliation support</li>
+          </ul>
+        </article>
+        <article class="module-card reveal">
+          <h3>Promotions</h3>
+          <ul>
+            <li>Fixed and percentage promo code models</li>
+            <li>Early bird offers and event-specific campaigns</li>
+            <li>Usage limits, expiry, and fraud-resistant rules</li>
+          </ul>
+        </article>
+        <article class="module-card reveal">
+          <h3>Analytics & Reports</h3>
+          <ul>
+            <li>Revenue, tickets sold, and conversion data</li>
+            <li>Supplier earnings and commission performance</li>
+            <li>Admin and supplier export-ready dashboards</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="architecture">
+      <div class="section-head reveal">
+        <p class="eyebrow">03 - Architecture</p>
+        <h2>Proposed Technical Stack</h2>
+      </div>
+      <div class="architecture">
+        <article class="arch-card reveal">
+          <h3>Frontend Layer</h3>
+          <p>React JS for web dashboards and React Native for Android/iOS mobile apps with shared API integration.</p>
+        </article>
+        <article class="arch-card reveal">
+          <h3>API & Services</h3>
+          <p>Laravel backend architecture with modular REST APIs, secure webhook handling, and service-level business logic.</p>
+        </article>
+        <article class="arch-card reveal">
+          <h3>Data & Infra</h3>
+          <p>MySQL primary database, Redis caching, media object storage, CI/CD pipeline, and cloud deployment on AWS/Azure/GCP.</p>
+        </article>
+      </div>
+      <div class="pill-row reveal">
+        <span class="pill">HTTPS Enforcement</span>
+        <span class="pill">OWASP Best Practices</span>
+        <span class="pill">Rate Limiting</span>
+        <span class="pill">Audit Logs</span>
+        <span class="pill">Disaster Recovery</span>
+      </div>
+    </section>
+
+    <section class="section" id="roadmap">
+      <div class="section-head reveal">
+        <p class="eyebrow">04 - Execution Plan</p>
+        <h2>8-Week Delivery Roadmap</h2>
+      </div>
+      <div class="timeline">
+        <article class="timeline-item reveal">
+          <h3>Week 1</h3>
+          <p>Requirement finalization, architecture decisions, backlog lock, and execution plan sign-off.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 2</h3>
+          <p>UI/UX completion for customer mobile app, supplier dashboard, and admin command center.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 3</h3>
+          <p>Core backend setup: auth, users, supplier onboarding, event base services.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 4</h3>
+          <p>Advanced backend: ticketing engine, payments, promotions, and notifications.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 5</h3>
+          <p>Customer mobile app development including browse, cart, checkout, booking history, and QR tickets.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 6</h3>
+          <p>Admin and supplier dashboards with event approvals, reporting, and monitoring.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 7</h3>
+          <p>QA hardening: functional, integration, regression, and security testing with UAT.</p>
+        </article>
+        <article class="timeline-item reveal">
+          <h3>Week 8</h3>
+          <p>Deployment, production readiness, documentation handover, and go-live support.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="section-head reveal">
+        <p class="eyebrow">05 - Team Structure</p>
+        <h2>Project Roles</h2>
+      </div>
+      <div class="card-grid three">
+        <article class="info-card reveal">
+          <h3>Project Manager & BA</h3>
+          <p><strong>Dilshan Perera</strong></p>
+          <p>Requirement governance, stakeholder alignment, timeline control, and UAT coordination.</p>
+        </article>
+        <article class="info-card reveal">
+          <h3>Mobile & Web Engineer</h3>
+          <p><strong>Parinda Sathsara Maduwantha</strong></p>
+          <p>Web development, API integration, payment setup, QR ticket implementation, and deployment support.</p>
+        </article>
+        <article class="info-card reveal">
+          <h3>Internal QA Team</h3>
+          <p><strong>Validation & Assurance</strong></p>
+          <p>Functional, integration, regression, security testing, and release quality certification.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="deliverables">
+      <div class="section-head reveal">
+        <p class="eyebrow">06 - Commitments</p>
+        <h2>Deliverables & KPIs</h2>
+      </div>
+      <div class="card-grid two">
+        <article class="info-card reveal">
+          <h3>Delivery Scope</h3>
+          <ul>
+            <li>Customer mobile application (Android/iOS)</li>
+            <li>Supplier dashboard</li>
+            <li>Admin dashboard with role hierarchy</li>
+            <li>Backend API suite and database schema</li>
+            <li>Payment and QR ticket lifecycle</li>
+            <li>Deployment and technical documentation</li>
+          </ul>
+        </article>
+        <article class="info-card reveal">
+          <h3>Success Targets</h3>
+          <ul>
+            <li>99.9% uptime target</li>
+            <li>Sub-2.5s load for core journeys</li>
+            <li>98%+ payment success rate target</li>
+            <li>Zero critical security findings at launch</li>
+            <li>Operational readiness within 8 weeks</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section future" id="future">
+      <div class="section-head reveal">
+        <p class="eyebrow">07 - Beyond Launch</p>
+        <h2>Future-Ready Enhancements</h2>
+      </div>
+      <div class="pill-row reveal">
+        <span class="pill">AI Event Recommendations</span>
+        <span class="pill">Dynamic Ticket Pricing</span>
+        <span class="pill">Fraud Pattern Detection</span>
+        <span class="pill">Supplier Performance Scoring</span>
+        <span class="pill">Native Mobile App Expansion</span>
+      </div>
+    </section>
+
+    <section class="section contact" id="contact">
+      <div class="contact-card reveal">
+        <p class="eyebrow">Ready For Approval</p>
+        <h2>Event Management System Proposal</h2>
+        <p>
+          This web proposal is prepared for client review and can be hosted directly as a static website.
+          Approval confirms scope, timeline, and delivery governance for the 8-week implementation cycle.
+        </p>
+        <div class="contact-meta">
+          <span>Version 1.0</span>
+          <span>Prepared for Client Presentation</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Event Management System | Event Management & Ticketing System Proposal</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
