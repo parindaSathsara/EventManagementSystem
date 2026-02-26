@@ -1,0 +1,61 @@
+flowchart LR
+    ROOT[EventSocial]
+
+    ROOT --> CAPP[Customer App]
+    ROOT --> AAPP[Artist App]
+    ROOT --> ADMIN[Admin Web]
+    ROOT --> WEB[Public Deep Link Web]
+
+    CAPP --> C_FEED[Feed]
+    CAPP --> C_CAL[Calendar]
+    CAPP --> C_SEARCH[Search]
+    CAPP --> C_TICKETS[Tickets]
+    CAPP --> C_PROFILE[Profile]
+
+    C_FEED --> C_REEL[Reel Interactions]
+    C_FEED --> C_ARTIST[Artist Profile]
+    C_FEED --> C_EVENT[Event Detail]
+    C_FEED --> C_REPORT[Report Content]
+
+    C_CAL --> C_MONTH[Month View]
+    C_CAL --> C_DAY[Day List View]
+    C_CAL --> C_FILTERS[Location + Category Filters]
+
+    C_SEARCH --> C_SR_ARTIST[Artist Results]
+    C_SEARCH --> C_SR_EVENT[Event Results]
+    C_SEARCH --> C_SR_VENUE[Venue/City Results]
+
+    C_TICKETS --> C_T_LIST[My Tickets]
+    C_TICKETS --> C_T_DETAIL[Ticket Detail + QR]
+
+    C_PROFILE --> C_MYVIBES[My Vibes]
+    C_PROFILE --> C_SAVED[Saved Events/Reels]
+    C_PROFILE --> C_FOLLOWED[Followed Artists]
+    C_PROFILE --> C_SETTINGS[Privacy + Notifications]
+
+    AAPP --> A_HOME[Artist Home]
+    AAPP --> A_CREATE[Create]
+    AAPP --> A_EVENTS[My Events]
+    AAPP --> A_INSIGHTS[Insights]
+    AAPP --> A_PROFILE[Artist Profile]
+    AAPP --> A_VERIFY[Verification]
+
+    A_CREATE --> A_REEL[Create Reel]
+    A_CREATE --> A_EVENT[Create Event]
+
+    A_EVENTS --> A_DRAFTS[Drafts]
+    A_EVENTS --> A_PUB[Published]
+    A_EVENTS --> A_EDIT[Edit/Reschedule/Cancel]
+
+    ADMIN --> D_DASH[Dashboard]
+    ADMIN --> D_USERS[Users]
+    ADMIN --> D_VERIFY[Artist Verification Queue]
+    ADMIN --> D_EVENTS[Events Ops]
+    ADMIN --> D_VENUES[Venues]
+    ADMIN --> D_MOD[Moderation]
+    ADMIN --> D_ANALYTICS[Analytics/Exports]
+    ADMIN --> D_SETTINGS[Policies/Config]
+
+    WEB --> W_REEL[/reel/:id]
+    WEB --> W_EVENT[/event/:id]
+    WEB --> W_ARTIST[/artist/:handle]

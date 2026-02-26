@@ -1,17 +1,32 @@
-# Event Management System - Proposal Web App
+# EventSocial UI Prototype Website
 
-This repository contains a hostable web application version of the Event Management & Ticketing System proposal.
+This repository now includes a requirement-driven UI prototype website for EventSocial.
+
+## Scope covered
+
+The prototype is aligned to the docs under `RequirementDocs/`, especially:
+- `RequirementDocs/MAIN.md`
+- `RequirementDocs/eventsocial_full_requirements.md`
+- `RequirementDocs/Diagrams/UI UX/eventsocial_uiux_master_plan.md`
+- `RequirementDocs/Diagrams/UI UX/eventsocial_design_system.md`
+- `RequirementDocs/Diagrams/UI UX/eventsocial_screen_structure_spec.md`
+- `RequirementDocs/Diagrams/UI UX/eventsocial_ui_tokens.json`
+
+Prototype surfaces included:
+- Customer app screens
+- Artist app screens
+- Admin dashboard screens
+- Deep-link web preview screens
 
 ## Files
 
-- `index.html` - Main proposal page
-- `styles.css` - Futuristic responsive styling
-- `app.js` - UI interactions (scroll progress, reveal animations, mobile nav, print)
-- `PROJECT_PROPOSAL_WEB.md` - Markdown source proposal
+- `index.html` - Prototype website with role-based screen templates
+- `styles.css` - Design-token-based styling (monochrome + `#FF5482` and `#00FFA1`)
+- `app.js` - Interaction logic (role tabs, screen switching, mobile nav, reveal effects)
 
-## Run Locally
+## Run locally
 
-You can open `index.html` directly, but using a local server is recommended.
+You can open `index.html` directly, but a local server is recommended.
 
 ### Option 1: Python
 
@@ -25,25 +40,8 @@ Then open: `http://localhost:8080`
 
 Open the folder in VS Code and run **Live Server** on `index.html`.
 
-## Deploy / Host
+## Notes
 
-### Netlify (Fastest)
-1. Go to Netlify and create a new site from local files.
-2. Drag and drop this project folder.
-3. Share the generated URL with your client.
-
-### Vercel
-1. Import this folder as a project.
-2. Framework preset: `Other`.
-3. Deploy and share the public URL.
-
-### GitHub Pages
-1. Push this repo to GitHub.
-2. Enable GitHub Pages from branch root.
-3. Share the published URL.
-
-## Customize Before Sending
-
-- Update team names and contact block in `index.html`.
-- Adjust colors/typography in `styles.css` if your brand palette changes.
-- Use the `Export / Print` button to create a PDF copy for formal submission.
+- Prototype focuses on Phase 1 priorities with Phase 2-ready context.
+- No customer comment UI is included by design.
+- Visual direction follows the locked EventSocial design system.

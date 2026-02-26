@@ -1,0 +1,212 @@
+﻿erDiagram
+    REF_ROLES {
+      text role_code PK
+      boolean is_admin_role
+    }
+    IAM_USERS {
+      uuid user_id PK
+      text phone_e164
+      citext email
+      text account_status
+      uuid first_touch_id
+      uuid last_touch_id
+    }
+    IAM_USER_ROLES {
+      uuid user_id FK
+      text role_code FK
+      timestamptz assigned_at
+      timestamptz revoked_at
+    }
+    ARTIST_PROFILES {
+      uuid user_id PK
+      citext stage_handle
+      text verified_status
+      boolean can_publish
+    }
+    ARTIST_VERIFICATION_REQUESTS {
+      uuid verification_request_id PK
+      uuid artist_user_id FK
+      text request_status
+      timestamptz submitted_at
+    }
+    MEDIA_ASSETS {
+      uuid asset_id PK
+      uuid owner_user_id FK
+      text asset_type
+      text object_key
+    }
+    VENUE_VENUES {
+      uuid venue_id PK
+      text venue_name
+      geography location
+      integer capacity
+    }
+    EVENTS_EVENTS {
+      uuid event_id PK
+      uuid created_by_user_id FK
+      uuid organizer_artist_user_id FK
+      uuid venue_id FK
+      uuid banner_asset_id FK
+      text status_code
+      text approval_status
+    }
+    EVENTS_EVENT_ARTISTS {
+      uuid event_id FK
+      uuid artist_user_id FK
+      boolean is_headliner
+    }
+    EVENTS_EVENT_CHANGES {
+      uuid event_change_id PK
+      uuid event_id FK
+      text change_type
+      text change_severity
+    }
+    SOCIAL_REELS {
+      uuid reel_id PK
+      uuid artist_user_id FK
+      uuid video_asset_id FK
+      uuid linked_event_id FK
+      text status_code
+    }
+    SOCIAL_REEL_REACTIONS {
+      uuid reel_id FK
+      uuid user_id FK
+      text reaction_code
+    }
+    SOCIAL_REPOSTS {
+      uuid repost_id PK
+      uuid user_id FK
+      uuid reel_id FK
+      text visibility
+      text status_code
+    }
+    SOCIAL_FOLLOWS {
+      uuid follower_user_id FK
+      uuid artist_user_id FK
+      timestamptz created_at
+    }
+    SOCIAL_SAVES {
+      uuid save_id PK
+      uuid user_id FK
+      uuid reel_id FK
+      uuid event_id FK
+    }
+    MARKETING_ATTRIBUTION_TOUCHES {
+      uuid touch_id PK
+      uuid user_id FK
+      text source
+      text campaign
+      timestamptz occurred_at
+    }
+    MARKETING_SHORT_LINKS {
+      uuid short_link_id PK
+      text short_code
+      uuid target_reel_id FK
+      uuid target_event_id FK
+    }
+    MODERATION_REPORTS {
+      uuid report_id PK
+      uuid reporter_user_id FK
+      uuid target_reel_id FK
+      uuid target_event_id FK
+      uuid target_repost_id FK
+      text status_code
+    }
+    MODERATION_ACTIONS {
+      uuid moderation_action_id PK
+      uuid report_id FK
+      uuid performed_by_user_id FK
+      text action_type
+    }
+    NOTIFY_NOTIFICATIONS {
+      uuid notification_id PK
+      uuid user_id FK
+      text channel
+      text status_code
+    }
+    TICKETING_TICKET_TYPES {
+      uuid ticket_type_id PK
+      uuid event_id FK
+      numeric price_amount
+      integer capacity
+    }
+    TICKETING_BOOKINGS {
+      uuid booking_id PK
+      uuid user_id FK
+      uuid event_id FK
+      uuid attribution_touch_id FK
+      text booking_status
+    }
+    TICKETING_TICKETS {
+      uuid ticket_id PK
+      uuid booking_id FK
+      uuid ticket_type_id FK
+      uuid owner_user_id FK
+      text status_code
+    }
+    PAYMENTS_PAYMENT_ATTEMPTS {
+      uuid payment_attempt_id PK
+      uuid booking_id FK
+      text gateway_code
+      text status_code
+    }
+    ANALYTICS_APP_EVENTS {
+      bigint app_event_id PK
+      uuid user_id FK
+      uuid session_id FK
+      text event_name
+    }
+
+    REF_ROLES ||--o{ IAM_USER_ROLES : grants
+    IAM_USERS ||--o{ IAM_USER_ROLES : has
+
+    IAM_USERS ||--|| ARTIST_PROFILES : "can be artist"
+    ARTIST_PROFILES ||--o{ ARTIST_VERIFICATION_REQUESTS : submits
+
+    IAM_USERS ||--o{ MEDIA_ASSETS : owns
+    VENUE_VENUES ||--o{ EVENTS_EVENTS : hosts
+    MEDIA_ASSETS ||--o{ EVENTS_EVENTS : banner
+    ARTIST_PROFILES ||--o{ EVENTS_EVENTS : organizes
+    IAM_USERS ||--o{ EVENTS_EVENTS : creates
+    EVENTS_EVENTS ||--o{ EVENTS_EVENT_ARTISTS : includes
+    ARTIST_PROFILES ||--o{ EVENTS_EVENT_ARTISTS : performs
+    EVENTS_EVENTS ||--o{ EVENTS_EVENT_CHANGES : tracks
+
+    ARTIST_PROFILES ||--o{ SOCIAL_REELS : publishes
+    EVENTS_EVENTS ||--o{ SOCIAL_REELS : links
+    MEDIA_ASSETS ||--o{ SOCIAL_REELS : video
+
+    SOCIAL_REELS ||--o{ SOCIAL_REEL_REACTIONS : gets
+    IAM_USERS ||--o{ SOCIAL_REEL_REACTIONS : reacts
+    SOCIAL_REELS ||--o{ SOCIAL_REPOSTS : reposted
+    IAM_USERS ||--o{ SOCIAL_REPOSTS : reposts
+
+    IAM_USERS ||--o{ SOCIAL_FOLLOWS : follows
+    ARTIST_PROFILES ||--o{ SOCIAL_FOLLOWS : followed
+
+    IAM_USERS ||--o{ SOCIAL_SAVES : saves
+    SOCIAL_REELS ||--o{ SOCIAL_SAVES : saved
+    EVENTS_EVENTS ||--o{ SOCIAL_SAVES : saved
+
+    IAM_USERS ||--o{ MARKETING_ATTRIBUTION_TOUCHES : attributed
+    SOCIAL_REELS ||--o{ MARKETING_SHORT_LINKS : target
+    EVENTS_EVENTS ||--o{ MARKETING_SHORT_LINKS : target
+    MARKETING_ATTRIBUTION_TOUCHES ||--o{ TICKETING_BOOKINGS : influences
+
+    IAM_USERS ||--o{ MODERATION_REPORTS : reports
+    SOCIAL_REELS ||--o{ MODERATION_REPORTS : reported
+    EVENTS_EVENTS ||--o{ MODERATION_REPORTS : reported
+    SOCIAL_REPOSTS ||--o{ MODERATION_REPORTS : reported
+    MODERATION_REPORTS ||--o{ MODERATION_ACTIONS : resolved_by
+
+    IAM_USERS ||--o{ NOTIFY_NOTIFICATIONS : receives
+
+    EVENTS_EVENTS ||--o{ TICKETING_TICKET_TYPES : has
+    IAM_USERS ||--o{ TICKETING_BOOKINGS : books
+    EVENTS_EVENTS ||--o{ TICKETING_BOOKINGS : booked_for
+    TICKETING_BOOKINGS ||--o{ TICKETING_TICKETS : issues
+    TICKETING_TICKET_TYPES ||--o{ TICKETING_TICKETS : typed
+    IAM_USERS ||--o{ TICKETING_TICKETS : owns
+
+    TICKETING_BOOKINGS ||--o{ PAYMENTS_PAYMENT_ATTEMPTS : paid_with
+    IAM_USERS ||--o{ ANALYTICS_APP_EVENTS : generates
