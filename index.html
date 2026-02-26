@@ -1,587 +1,939 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Event Management System - Futuristic web proposal for an Event Management and Ticketing platform.">
-  <title>Event Management System | Web Proposal</title>
+  <meta name="description" content="EventSocial final project proposal and quotation with full scope and simple budget options.">
+  <title>EventSocial | Final Project Proposal and Quotation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f3ea;
+      --panel: #fffdf8;
+      --panel-soft: #f9f3e6;
+      --ink: #223047;
+      --muted: #5f6877;
+      --primary: #0b5c65;
+      --primary-soft: #dff3ef;
+      --accent: #d46a2c;
+      --border: #ddd4c4;
+      --ok: #0f7b5f;
+      --warn: #955321;
+      --shadow: 0 16px 40px rgba(25, 31, 40, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(60% 38% at 0% 0%, #ffd9ad 0%, transparent 72%),
+        radial-gradient(45% 35% at 100% 0%, #bde9de 0%, transparent 76%),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    .page {
+      width: min(1200px, calc(100% - 2rem));
+      margin: 1rem auto 2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 2rem 1.6rem;
+      background:
+        linear-gradient(130deg, rgba(11, 92, 101, 0.12), rgba(212, 106, 44, 0.12)),
+        var(--panel);
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -45px;
+      top: -45px;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(11, 92, 101, 0.23), transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    h1,
+    h2 {
+      font-family: "Merriweather", serif;
+    }
+
+    h1 {
+      margin-top: 0.35rem;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+    }
+
+    h2 {
+      font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+      margin-bottom: 0.9rem;
+    }
+
+    p {
+      margin: 0.45rem 0 0;
+      color: var(--muted);
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1.15fr 0.85fr;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill-row {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .pill {
+      border: 1px solid rgba(11, 92, 101, 0.35);
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 0.35rem 0.68rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .quick-box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 0.85rem;
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .quick-item {
+      border: 1px solid #ebe3d5;
+      border-radius: 12px;
+      padding: 0.6rem;
+      background: #fffdf8;
+    }
+
+    .quick-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.85rem;
+    }
+
+    .quick-item span {
+      display: block;
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 0.18rem;
+    }
+
+    .top-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 700;
+      padding: 0.62rem 0.9rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(34, 48, 71, 0.18);
+    }
+
+    .btn-main {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .btn-alt {
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 6;
+      backdrop-filter: blur(6px);
+      background: rgba(248, 243, 234, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.52rem;
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #425064;
+      background: #fff;
+      border: 1px solid #e9e0d2;
+      border-radius: 999px;
+      padding: 0.34rem 0.68rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .section {
+      padding: 1.3rem 1.15rem;
+    }
+
+    .section-head {
+      margin-bottom: 0.9rem;
+    }
+
+    .cards-2,
+    .cards-3,
+    .cards-4 {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .cards-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cards-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cards-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 0.9rem;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .card p {
+      font-size: 0.92rem;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 1rem;
+      display: grid;
+      gap: 0.2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .phase {
+      border-left: 4px solid var(--primary);
+      background: linear-gradient(90deg, #eef8f5, transparent 45%), #fff;
+    }
+
+    .phase-next {
+      border-left-color: var(--accent);
+      background: linear-gradient(90deg, #fff2e9, transparent 45%), #fff;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .week {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.75rem;
+      background: #fff;
+    }
+
+    .week strong {
+      display: block;
+      color: var(--primary);
+      font-size: 0.83rem;
+      margin-bottom: 0.25rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .week p {
+      margin: 0;
+      font-size: 0.87rem;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #ece3d6;
+      text-align: left;
+      padding: 0.68rem;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f9f3e7;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      letter-spacing: 0.07em;
+      color: #48566b;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .price {
+      font-weight: 800;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .money-layout {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: 1.1fr 0.9fr;
+      margin-top: 0.75rem;
+    }
+
+    .money-box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.9rem;
+      background: #fff;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .money-box h3 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #4a5a70;
+    }
+
+    .big-number {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      line-height: 1;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .note-good {
+      color: var(--ok);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .note-warn {
+      color: var(--warn);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .option-cards {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 0.8rem;
+    }
+
+    .option {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      padding: 0.85rem;
+      display: grid;
+      gap: 0.48rem;
+    }
+
+    .option.recommended {
+      border-color: rgba(11, 92, 101, 0.45);
+      box-shadow: 0 10px 26px rgba(11, 92, 101, 0.14);
+      background: linear-gradient(180deg, #f0faf7, #fff);
+    }
+
+    .option h3 {
+      font-size: 1.02rem;
+    }
+
+    .option .tagline {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .option .monthly {
+      font-size: 1.26rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .option ul {
+      margin: 0;
+      padding-left: 1rem;
+      color: var(--muted);
+      font-size: 0.87rem;
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .simple-terms {
+      margin-top: 0.85rem;
+      display: grid;
+      gap: 0.68rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .simple-term {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 0.75rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .simple-term strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #6f7785;
+      padding: 0.2rem 0 0.5rem;
+    }
+
+    @media (max-width: 1080px) {
+      .cards-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .option-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .money-layout,
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(1200px, calc(100% - 1rem));
+      }
+
+      .hero,
+      .section {
+        padding: 1rem;
+      }
+
+      .cards-2,
+      .cards-3,
+      .simple-terms,
+      .timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .top-actions {
+        flex-direction: column;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+        gap: 0.35rem;
+      }
+
+      .panel {
+        box-shadow: none;
+      }
+
+      .nav,
+      .top-actions {
+        display: none;
+      }
+
+      .section,
+      .hero {
+        padding: 0.65rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="ambient ambient-top" aria-hidden="true"></div>
-  <div class="ambient ambient-bottom" aria-hidden="true"></div>
-  <div class="grid-overlay" aria-hidden="true"></div>
-  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  <main class="page">
+    <section class="panel hero" id="top">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Final Document | Meeting Locked Scope</p>
+          <h1>EventSocial Project Proposal and Quotation</h1>
+          <p>
+            This proposal is based on the final requirement discussion completed on <strong>25 February 2026</strong>.
+            It includes full scope coverage, implementation plan, budget options, and a simple quotation for non-technical review.
+          </p>
+          <div class="pill-row">
+            <span class="pill">Verified artist model</span>
+            <span class="pill">No customer comment system</span>
+            <span class="pill">Event first social discovery</span>
+            <span class="pill">Admin moderation dashboard</span>
+            <span class="pill">Deep link marketing ready</span>
+          </div>
+          <div class="top-actions">
+            <a class="btn btn-main" href="#budget">View Budget Options</a>
+            <button type="button" class="btn btn-alt" id="print-btn">Print / Save as PDF</button>
+          </div>
+        </div>
+        <aside class="quick-box">
+          <div class="quick-item">
+            <strong>Project Type</strong>
+            <span>Mobile + Admin Web Platform</span>
+          </div>
+          <div class="quick-item">
+            <strong>MVP Timeline</strong>
+            <span>8 Weeks</span>
+          </div>
+          <div class="quick-item">
+            <strong>One-Time Project Cost</strong>
+            <span>LKR 130,000</span>
+          </div>
+          <div class="quick-item">
+            <strong>Monthly Cloud Options</strong>
+            <span>USD 42-57 or USD 72-97</span>
+          </div>
+        </aside>
+      </div>
+    </section>
 
-  <header class="site-header">
-    <a class="brand" href="#hero">
-      <span class="brand-mark">EMS</span>
-      <span class="brand-text">Event Management System</span>
-    </a>
-    <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="site-nav">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <nav class="site-nav" id="site-nav">
-      <a href="#overview">Overview</a>
-      <a href="#modules">Modules</a>
-      <a href="#use-cases">Use Cases</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#roadmap">Roadmap</a>
+    <nav class="nav panel" aria-label="Section navigation">
+      <a href="#scope">Full Scope</a>
+      <a href="#phases">Phase Plan</a>
+      <a href="#timeline">Timeline</a>
       <a href="#deliverables">Deliverables</a>
-      <a href="#contact">Contact</a>
+      <a href="#budget">Budget Options</a>
+      <a href="#quotation">Quotation</a>
     </nav>
-  </header>
 
-  <main>
-    <section class="section hero" id="hero">
-      <div class="hero-copy reveal">
-        <p class="eyebrow">Futuristic Project Proposal</p>
-        <h1>Event Management & Ticketing System</h1>
-        <p>
-          A secure, scalable, and conversion-focused digital event platform that connects customers,
-          suppliers, and administrators through one high-performance mobile + web ecosystem.
-        </p>
-        <div class="hero-actions">
-          <!-- <a class="btn btn-primary" href="#contact">Approve Proposal</a> -->
-          <button class="btn btn-secondary" id="print-btn" type="button">Export / Print</button>
-        </div>
+    <section class="panel section" id="scope">
+      <div class="section-head">
+        <p class="eyebrow">Complete Requirement Coverage</p>
+        <h2>What Is Included in the Project</h2>
       </div>
-      <div class="hero-illustration reveal">
-        <div class="hero-3d-frame">
-          <img src="customer.png" alt="Customer browsing events" class="hero-3d-img" />
-          <div class="hero-3d-shadow"></div>
-        </div>
-      </div>
-      <div class="hero-stats-row reveal">
-        <article class="stat-card">
-          <h3>8 Weeks</h3>
-          <p>Delivery Timeline</p>
-        </article>
-        <article class="stat-card">
-          <h3>3 Platforms</h3>
-          <p>Mobile App, Supplier Web, Admin Web</p>
-        </article>
-        <article class="stat-card">
-          <h3>99.9%</h3>
-          <p>Uptime Target</p>
-        </article>
-        <article class="stat-card">
-          <h3>API Ready</h3>
-          <p>Web + Mobile Expansion</p>
-        </article>
-      </div>
-    </section>
 
-    <section class="section cover-section" id="cover-image">
-      <div class="cover-image-wrapper reveal">
-        <img src="image.png" alt="Event Management & Ticketing System - Use Case Diagram" class="cover-img" />
-        <div class="cover-caption">
-          <span class="pill">Use Case Diagram</span>
-          <p>Real-world system interaction model showing how Customers, Suppliers, and Admins connect through the platform.</p>
-        </div>
+      <div class="cards-3">
+        <article class="card">
+          <h3>1. Accounts and Access</h3>
+          <ul>
+            <li>Phone OTP login (primary), optional email login</li>
+            <li>User roles: Customer, Artist, Admin</li>
+            <li>Account settings and notification preferences</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>2. Artist Verification System</h3>
+          <ul>
+            <li>Verification request with ID and social links</li>
+            <li>Admin approve, reject, suspend actions</li>
+            <li>Only verified artists can publish reels and events</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>3. Social Feed (Reels)</h3>
+          <ul>
+            <li>Vertical reels feed with smooth autoplay</li>
+            <li>React, repost, save, share, follow actions</li>
+            <li>No public comments for customers</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>4. Event Management</h3>
+          <ul>
+            <li>Artist and admin event creation workflows</li>
+            <li>Draft, publish, cancel, reschedule lifecycle</li>
+            <li>Event pages with lineup, date, venue, policy</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>5. Calendar and Discovery</h3>
+          <ul>
+            <li>Month view and day list view calendar</li>
+            <li>Near me filtering with location radius</li>
+            <li>Search by artist, event, city, category</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>6. Notifications</h3>
+          <ul>
+            <li>Push notifications for events and engagement</li>
+            <li>Major event change alerts (date, venue, cancel)</li>
+            <li>Reminder notifications before event time</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>7. Moderation and Trust</h3>
+          <ul>
+            <li>Report flow for reels, events, profiles, repost text</li>
+            <li>Admin moderation queue and actions</li>
+            <li>Auto-hide logic for mass reports</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>8. Marketing and Growth</h3>
+          <ul>
+            <li>Deep links for reel, event, artist pages</li>
+            <li>Web preview pages for non-app users</li>
+            <li>UTM attribution tracking from campaigns</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>9. Admin Dashboard</h3>
+          <ul>
+            <li>User and role management</li>
+            <li>Artist verification queue</li>
+            <li>Event ops, venue management, reporting exports</li>
+          </ul>
+        </article>
       </div>
-    </section>
 
-    <section class="section" id="overview">
-      <div class="section-head reveal">
-        <p class="eyebrow">01 - Executive Overview</p>
-        <h2>Mobile + Web Proposal Vision</h2>
-      </div>
-      <div class="card-grid three">
-        <article class="info-card reveal">
-          <h3>Customer Experience</h3>
-          <p>
-            Event discovery, smart filtering, seamless checkout, promo code application, booking history,
-            and QR e-ticket access from a unified customer mobile app.
-          </p>
-        </article>
-        <article class="info-card reveal">
-          <h3>Supplier Workspace</h3>
-          <p>
-            Musicians, organizers, and managers can create events, configure ticket tiers, monitor sales,
-            and request payouts with complete visibility.
-          </p>
-        </article>
-        <article class="info-card reveal">
-          <h3>Admin Command Center</h3>
-          <p>
-            Super Admin and Admin role controls for approvals, commission settings, refund handling,
-            promotions, and operational analytics.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="modules">
-      <div class="section-head reveal">
-        <p class="eyebrow">02 - Functional Scope</p>
-        <h2>Core System Modules</h2>
-      </div>
-      <div class="module-list">
-        <article class="module-card reveal">
-          <h3>Identity & Access</h3>
+      <div class="cards-2" style="margin-top: 0.75rem;">
+        <article class="card">
+          <h3>Technical Base Included</h3>
           <ul>
-            <li>JWT authentication and role-based access</li>
-            <li>Password reset and account verification</li>
-            <li>Session controls and audit-ready access security</li>
+            <li>React Native mobile app and React admin web</li>
+            <li>Node.js + TypeScript + NestJS backend</li>
+            <li>PostgreSQL + PostGIS, Redis, object storage, CDN</li>
+            <li>Secure authentication, access control, monitoring</li>
           </ul>
         </article>
-        <article class="module-card reveal">
-          <h3>Event Lifecycle</h3>
+        <article class="card">
+          <h3>Business Rules Included</h3>
           <ul>
-            <li>Create, edit, review, approve, publish workflows</li>
-            <li>Event categories, schedules, media, and status control</li>
-            <li>Ticket tiering and optional seat allocation</li>
-          </ul>
-        </article>
-        <article class="module-card reveal">
-          <h3>Ticketing Engine</h3>
-          <ul>
-            <li>Unique ticket IDs and QR code generation</li>
-            <li>E-ticket delivery and validation state tracking</li>
-            <li>Cancellation and refund logic with traceability</li>
-          </ul>
-        </article>
-        <article class="module-card reveal">
-          <h3>Payments</h3>
-          <ul>
-            <li>Cards, bank transfer, wallets, and Koko Pay</li>
-            <li>Webhook-based payment confirmations</li>
-            <li>Refund pipeline, logs, and reconciliation support</li>
-          </ul>
-        </article>
-        <article class="module-card reveal">
-          <h3>Promotions</h3>
-          <ul>
-            <li>Fixed and percentage promo code models</li>
-            <li>Early bird offers and event-specific campaigns</li>
-            <li>Usage limits, expiry, and fraud-resistant rules</li>
-          </ul>
-        </article>
-        <article class="module-card reveal">
-          <h3>Analytics & Reports</h3>
-          <ul>
-            <li>Revenue, tickets sold, and conversion data</li>
-            <li>Supplier earnings and commission performance</li>
-            <li>Admin and supplier export-ready dashboards</li>
+            <li>Event change logs and policy based notifications</li>
+            <li>Age restriction labeling and filtering</li>
+            <li>Privacy controls for repost visibility</li>
+            <li>Analytics tracking events for growth and reporting</li>
           </ul>
         </article>
       </div>
     </section>
 
-    <section class="section" id="use-cases">
-      <div class="section-head reveal">
-        <p class="eyebrow">Use Case Specification</p>
-        <h2>System Actors & Use Cases</h2>
+    <section class="panel section" id="phases">
+      <div class="section-head">
+        <p class="eyebrow">Build Approach</p>
+        <h2>Phase Plan (Now and Next)</h2>
       </div>
-
-      <!-- System Actors -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">System Actors</h3>
-        <div class="card-grid two">
-          <article class="actor-card reveal">
-            <div class="actor-icon">👤</div>
-            <h3>Customer</h3>
-            <p>A user who browses events and purchases tickets using the mobile application.</p>
-          </article>
-          <article class="actor-card reveal">
-            <div class="actor-icon">🎵</div>
-            <h3>Supplier</h3>
-            <p>An event organizer or musician who creates and manages events via the supplier dashboard.</p>
-          </article>
-          <article class="actor-card reveal">
-            <div class="actor-icon">🛡️</div>
-            <h3>Admin</h3>
-            <p>A system controller who manages users, events, promotions, reports, and platform configurations.</p>
-          </article>
-          <article class="actor-card reveal">
-            <div class="actor-icon">⚡</div>
-            <h3>Super Admin</h3>
-            <p>An advanced administrative role with additional privileges including admin account management and role control.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- Customer Use Cases -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">Customer Use Cases</h3>
-        <div class="uc-grid">
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-01</span>
-            <h3>Register Account</h3>
-            <p>User creates a new account using email or phone number.</p>
-            <div class="uc-meta">
-              <span class="uc-tag">Pre: User is not registered</span>
-              <span class="uc-tag">Post: Account created successfully</span>
-            </div>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-02</span>
-            <h3>Login</h3>
-            <p>User logs into the mobile application.</p>
-            <div class="uc-meta">
-              <span class="uc-tag">Pre: Account exists</span>
-              <span class="uc-tag">Post: User session created</span>
-            </div>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-03</span>
-            <h3>Browse Events</h3>
-            <p>User views available events listed on the platform.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-04</span>
-            <h3>Search & Filter Events</h3>
-            <p>User searches events by category, date, location, or keyword.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-05</span>
-            <h3>View Event Details</h3>
-            <p>User views full event description, date, location, pricing, and availability.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-06</span>
-            <h3>Select Ticket Type</h3>
-            <p>User selects ticket category and quantity.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-07</span>
-            <h3>Apply Promotion Code</h3>
-            <p>User applies a valid discount code during checkout.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-08</span>
-            <h3>Make Payment</h3>
-            <p>User completes payment using supported methods (Card, Wallet, Bank, Koko Pay).</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-09</span>
-            <h3>Receive E-Ticket (QR Code)</h3>
-            <p>After successful payment, system generates a QR-based ticket.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-10</span>
-            <h3>View Booking History</h3>
-            <p>User views previously purchased tickets.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-11</span>
-            <h3>Receive Notifications</h3>
-            <p>User receives booking confirmations and event reminders.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- Supplier Use Cases -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">Supplier Use Cases</h3>
-        <div class="uc-grid">
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-12</span>
-            <h3>Supplier Registration</h3>
-            <p>Supplier registers for platform access.</p>
-            <div class="uc-meta">
-              <span class="uc-tag">Requires admin approval</span>
-            </div>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-13</span>
-            <h3>Create Event</h3>
-            <p>Supplier creates a new event including details and ticket categories.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-14</span>
-            <h3>Edit Event</h3>
-            <p>Supplier updates event information.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-15</span>
-            <h3>Upload Event Media</h3>
-            <p>Supplier uploads images/videos for event promotion.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-16</span>
-            <h3>Manage Ticket Categories</h3>
-            <p>Supplier defines ticket tiers and pricing.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-17</span>
-            <h3>View Sales & Revenue</h3>
-            <p>Supplier tracks ticket sales and revenue analytics.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-18</span>
-            <h3>Request Payout</h3>
-            <p>Supplier requests withdrawal of earned revenue.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-19</span>
-            <h3>Receive Notifications</h3>
-            <p>Supplier receives updates about bookings and approvals.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- Admin Use Cases -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">Admin Use Cases</h3>
-        <div class="uc-grid">
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-20</span>
-            <h3>Approve Supplier</h3>
-            <p>Admin approves or rejects supplier registrations.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-21</span>
-            <h3>Approve Event</h3>
-            <p>Admin reviews and approves events before publishing.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-22</span>
-            <h3>Manage Users</h3>
-            <p>Admin manages customer and supplier accounts.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-23</span>
-            <h3>Manage Promotions</h3>
-            <p>Admin creates and manages discount campaigns.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-24</span>
-            <h3>View Reports & Analytics</h3>
-            <p>Admin monitors platform revenue, sales, and performance.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-25</span>
-            <h3>Manage Refunds</h3>
-            <p>Admin handles ticket cancellations and refund processing.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-26</span>
-            <h3>Commission Management</h3>
-            <p>Admin defines commission percentages per event or supplier.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-27</span>
-            <h3>Configure Payment Gateway</h3>
-            <p>Admin configures payment gateway integration.</p>
-          </article>
-          <article class="uc-card reveal">
-            <span class="uc-id">UC-28</span>
-            <h3>Platform Settings</h3>
-            <p>Admin updates global platform configurations.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- Super Admin Use Cases -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">Super Admin Use Cases</h3>
-        <div class="uc-grid">
-          <article class="uc-card uc-card-super reveal">
-            <span class="uc-id">UC-29</span>
-            <h3>Manage Admin Accounts</h3>
-            <p>Create, update, or deactivate admin users.</p>
-          </article>
-          <article class="uc-card uc-card-super reveal">
-            <span class="uc-id">UC-30</span>
-            <h3>Role & Permission Management</h3>
-            <p>Define system roles and permissions.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- External System Interactions -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">External System Interactions</h3>
-        <div class="card-grid two">
-          <article class="info-card reveal">
-            <h3>Payment Gateway</h3>
-            <p>Handles secure payment processing and webhook confirmations.</p>
-          </article>
-          <article class="info-card reveal">
-            <h3>Notification Service</h3>
-            <p>Handles email, push notifications, and SMS alerts.</p>
-          </article>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      <div class="uc-subsection reveal">
-        <h3 class="uc-subsection-title">Use Case Model Summary</h3>
-        <div class="pill-row">
-          <span class="pill">Clear Role Separation</span>
-          <span class="pill">Controlled Access Management</span>
-          <span class="pill">Secure Ticket Purchasing</span>
-          <span class="pill">Event Lifecycle Management</span>
-          <span class="pill">Revenue & Commission Tracking</span>
-          <span class="pill">System Scalability</span>
-        </div>
+      <div class="cards-2">
+        <article class="card phase">
+          <h3>Phase 1 - Build Now (Included in this proposal)</h3>
+          <ul>
+            <li>Core social platform and verified artist publishing</li>
+            <li>Event creation and event discovery calendar</li>
+            <li>Admin dashboard and moderation operations</li>
+            <li>Deep links, campaign attribution, analytics events</li>
+            <li>Optional free ticket reservations model</li>
+          </ul>
+        </article>
+        <article class="card phase-next">
+          <h3>Phase 2 - After Traction (Future extension)</h3>
+          <ul>
+            <li>Paid ticketing and payment gateway integrations</li>
+            <li>Refund automation, waitlists, and payout management</li>
+            <li>Anti-fraud ticket improvements and offline scanning</li>
+            <li>Advanced finance reporting and AI moderation</li>
+          </ul>
+        </article>
       </div>
     </section>
 
-    <section class="section" id="architecture">
-      <div class="section-head reveal">
-        <p class="eyebrow">03 - Architecture</p>
-        <h2>Proposed Technical Stack</h2>
-      </div>
-      <div class="architecture">
-        <article class="arch-card reveal">
-          <h3>Frontend Layer</h3>
-          <p>React JS for web dashboards and React Native for Android/iOS mobile apps with shared API integration.</p>
-        </article>
-        <article class="arch-card reveal">
-          <h3>API & Services</h3>
-          <p>Laravel backend architecture with modular REST APIs, secure webhook handling, and service-level business logic.</p>
-        </article>
-        <article class="arch-card reveal">
-          <h3>Data & Infra</h3>
-          <p>MySQL primary database, Redis caching, media object storage, CI/CD pipeline, and cloud deployment on AWS/Azure/GCP.</p>
-        </article>
-      </div>
-      <div class="pill-row reveal">
-        <span class="pill">HTTPS Enforcement</span>
-        <span class="pill">OWASP Best Practices</span>
-        <span class="pill">Rate Limiting</span>
-        <span class="pill">Audit Logs</span>
-        <span class="pill">Disaster Recovery</span>
-      </div>
-    </section>
-
-    <section class="section" id="roadmap">
-      <div class="section-head reveal">
-        <p class="eyebrow">04 - Execution Plan</p>
+    <section class="panel section" id="timeline">
+      <div class="section-head">
+        <p class="eyebrow">Execution Timeline</p>
         <h2>8-Week Delivery Roadmap</h2>
       </div>
       <div class="timeline">
-        <article class="timeline-item reveal">
-          <h3>Week 1</h3>
-          <p>Requirement finalization, architecture decisions, backlog lock, and execution plan sign-off.</p>
+        <article class="week">
+          <strong>Week 1-2</strong>
+          <p>UI/UX finalization, architecture lock, setup of project foundations.</p>
         </article>
-        <article class="timeline-item reveal">
-          <h3>Week 2</h3>
-          <p>UI/UX completion for customer mobile app, supplier dashboard, and admin command center.</p>
+        <article class="week">
+          <strong>Week 3-4</strong>
+          <p>Backend core modules, auth, verification, events, and feed APIs.</p>
         </article>
-        <article class="timeline-item reveal">
-          <h3>Week 3</h3>
-          <p>Core backend setup: auth, users, supplier onboarding, event base services.</p>
+        <article class="week">
+          <strong>Week 5-6</strong>
+          <p>Mobile app and admin dashboard implementation with integrations.</p>
         </article>
-        <article class="timeline-item reveal">
-          <h3>Week 4</h3>
-          <p>Advanced backend: ticketing engine, payments, promotions, and notifications.</p>
-        </article>
-        <article class="timeline-item reveal">
-          <h3>Week 5</h3>
-          <p>Customer mobile app development including browse, cart, checkout, booking history, and QR tickets.</p>
-        </article>
-        <article class="timeline-item reveal">
-          <h3>Week 6</h3>
-          <p>Admin and supplier dashboards with event approvals, reporting, and monitoring.</p>
-        </article>
-        <article class="timeline-item reveal">
-          <h3>Week 7</h3>
-          <p>QA hardening: functional, integration, regression, and security testing with UAT.</p>
-        </article>
-        <article class="timeline-item reveal">
-          <h3>Week 8</h3>
-          <p>Deployment, production readiness, documentation handover, and go-live support.</p>
+        <article class="week">
+          <strong>Week 7-8</strong>
+          <p>QA, security hardening, deployment, UAT, and launch readiness support.</p>
         </article>
       </div>
     </section>
 
-    <section class="section" id="team">
-      <div class="section-head reveal">
-        <p class="eyebrow">05 - Team Structure</p>
-        <h2>Project Roles</h2>
+    <section class="panel section" id="deliverables">
+      <div class="section-head">
+        <p class="eyebrow">Project Output</p>
+        <h2>Final Deliverables</h2>
       </div>
-      <div class="card-grid three">
-        <article class="info-card reveal">
-          <h3>Project Manager & BA</h3>
-          <p><strong>Dilshan Perera</strong></p>
-          <p>Requirement governance, stakeholder alignment, timeline control, and UAT coordination.</p>
+      <div class="cards-4">
+        <article class="card">
+          <h3>Mobile Application</h3>
+          <p>Customer and artist flows with social feed, event discovery, and profile features.</p>
         </article>
-        <article class="info-card reveal">
-          <h3>Mobile & Web Engineer</h3>
-          <p><strong>Parinda Sathsara Maduwantha</strong></p>
-          <p>Web development, API integration, payment setup, QR ticket implementation, and deployment support.</p>
+        <article class="card">
+          <h3>Admin Dashboard</h3>
+          <p>Verification, event ops, moderation, venue data, and analytics exports.</p>
         </article>
-        <article class="info-card reveal">
-          <h3>Internal QA Team</h3>
-          <p><strong>Validation & Assurance</strong></p>
-          <p>Functional, integration, regression, security testing, and release quality certification.</p>
+        <article class="card">
+          <h3>Backend APIs</h3>
+          <p>Secure service layer with scalable architecture and business rules implementation.</p>
         </article>
-      </div>
-    </section>
-
-    <section class="section" id="deliverables">
-      <div class="section-head reveal">
-        <p class="eyebrow">06 - Commitments</p>
-        <h2>Deliverables & KPIs</h2>
-      </div>
-      <div class="card-grid two">
-        <article class="info-card reveal">
-          <h3>Delivery Scope</h3>
-          <ul>
-            <li>Customer mobile application (Android/iOS)</li>
-            <li>Supplier dashboard</li>
-            <li>Admin dashboard with role hierarchy</li>
-            <li>Backend API suite and database schema</li>
-            <li>Payment and QR ticket lifecycle</li>
-            <li>Deployment and technical documentation</li>
-          </ul>
-        </article>
-        <article class="info-card reveal">
-          <h3>Success Targets</h3>
-          <ul>
-            <li>99.9% uptime target</li>
-            <li>Sub-2.5s load for core journeys</li>
-            <li>98%+ payment success rate target</li>
-            <li>Zero critical security findings at launch</li>
-            <li>Operational readiness within 8 weeks</li>
-          </ul>
+        <article class="card">
+          <h3>Deployment Setup</h3>
+          <p>Domain, SSL, hosting pipeline, baseline monitoring, and go-live configuration.</p>
         </article>
       </div>
     </section>
 
-    <section class="section future" id="future">
-      <div class="section-head reveal">
-        <p class="eyebrow">07 - Beyond Launch</p>
-        <h2>Future-Ready Enhancements</h2>
-      </div>
-      <div class="pill-row reveal">
-        <span class="pill">AI Event Recommendations</span>
-        <span class="pill">Dynamic Ticket Pricing</span>
-        <span class="pill">Fraud Pattern Detection</span>
-        <span class="pill">Supplier Performance Scoring</span>
-        <span class="pill">Native Mobile App Expansion</span>
-      </div>
-    </section>
-
-    <section class="section contact" id="contact">
-      <div class="contact-card reveal">
-        <p class="eyebrow">Ready For Approval</p>
-        <h2>Event Management System Proposal</h2>
+    <section class="panel section" id="budget">
+      <div class="section-head">
+        <p class="eyebrow">Simple Budget View</p>
+        <h2>Infrastructure Options (Non-Technical Friendly)</h2>
         <p>
-          This web proposal is prepared for client review and can be hosted directly as a static website.
-          Approval confirms scope, timeline, and delivery governance for the 8-week implementation cycle.
+          All options run the same product features. The difference is only server capacity and performance headroom.
         </p>
-        <div class="contact-meta">
-          <span>Version 1.0</span>
-          <span>Prepared for Client Presentation</span>
+      </div>
+
+      <div class="option-cards">
+        <article class="option recommended">
+          <p class="tagline">Recommended Start</p>
+          <h3>Option A - Lean Launch</h3>
+          <div class="monthly">USD 42-57 / month</div>
+          <p>Good for launch and early growth while keeping costs low.</p>
+          <ul>
+            <li>Expected yearly cloud cost: about USD 618</li>
+            <li>Domain included in this estimate</li>
+            <li>Easy upgrade path later without rebuild</li>
+          </ul>
+        </article>
+        <article class="option">
+          <p class="tagline">Higher Capacity</p>
+          <h3>Option B - Full Production</h3>
+          <div class="monthly">USD 72-97 / month</div>
+          <p>Better for high traffic from day one.</p>
+          <ul>
+            <li>Expected yearly cloud cost: about USD 1,038</li>
+            <li>Domain included in this estimate</li>
+            <li>More headroom for spikes and bigger campaigns</li>
+          </ul>
+        </article>
+        <article class="option">
+          <p class="tagline">Practical Path</p>
+          <h3>Option C - Step-Up Plan</h3>
+          <div class="monthly">Start A, then move to B</div>
+          <p>Start low cost, upgrade when active users increase.</p>
+          <ul>
+            <li>Best for unknown early demand</li>
+            <li>No re-development needed during upgrade</li>
+            <li>Most budget friendly business approach</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="simple-terms">
+        <div class="simple-term">
+          <strong>Very simple explanation</strong>
+          Your one-time project payment is for building the software. Monthly cloud cost is separate for running servers and domain.
+        </div>
+        <div class="simple-term">
+          <strong>Who pays what</strong>
+          One-time project cost is paid to the development team. Monthly hosting/domain bills are paid to AWS/domain provider.
         </div>
       </div>
     </section>
+
+    <section class="panel section" id="quotation">
+      <div class="section-head">
+        <p class="eyebrow">Final Commercial Quotation</p>
+        <h2>Project Cost Breakdown</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Quotation table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Type</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Development Cost</td>
+              <td>One-Time</td>
+              <td class="price">LKR 120,000</td>
+            </tr>
+            <tr>
+              <td>Deployment / DevOps / Security Setup</td>
+              <td>One-Time</td>
+              <td class="price">LKR 10,000</td>
+            </tr>
+            <tr>
+              <td><strong>Total Project Cost</strong></td>
+              <td><strong>One-Time</strong></td>
+              <td class="price"><strong>LKR 130,000</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="money-layout">
+        <article class="money-box">
+          <h3>What You Pay to Development Team</h3>
+          <div class="big-number">LKR 130,000</div>
+          <p class="note-good">Fixed one-time project charge.</p>
+          <p>No recurring monthly payment to development team is included in this quotation.</p>
+        </article>
+        <article class="money-box">
+          <h3>What You Pay Monthly for Servers</h3>
+          <div class="big-number">USD 42-57</div>
+          <p class="note-good">Option A recommended for launch.</p>
+          <p class="note-warn">Or USD 72-97 if you start directly with high-capacity setup.</p>
+        </article>
+      </div>
+
+      <div class="table-wrap" style="margin-top: 0.75rem;">
+        <table aria-label="First year examples">
+          <thead>
+            <tr>
+              <th>First-Year Example</th>
+              <th>Formula</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Using Option A (Lean Launch)</td>
+              <td>LKR 130,000 + USD 618 yearly cloud</td>
+              <td class="price">LKR 130,000 + USD 618</td>
+            </tr>
+            <tr>
+              <td>Using Option B (Full Production)</td>
+              <td>LKR 130,000 + USD 1,038 yearly cloud</td>
+              <td class="price">LKR 130,000 + USD 1,038</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <p class="footer">
+      EventSocial final project proposal generated from complete requirement documents and revised for non-technical stakeholder clarity.
+    </p>
   </main>
 
-  <footer class="site-footer">
-    <p>Event Management System | Event Management & Ticketing System Proposal</p>
-  </footer>
+  <script>
+    var printBtn = document.getElementById("print-btn");
+    if (printBtn) {
+      printBtn.addEventListener("click", function () {
+        window.print();
+      });
+    }
 
-  <script src="app.js"></script>
+  </script>
 </body>
 </html>
