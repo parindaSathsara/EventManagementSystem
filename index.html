@@ -406,7 +406,7 @@
     .option-cards {
       display: grid;
       gap: 0.75rem;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       margin-top: 0.8rem;
     }
 
@@ -475,6 +475,39 @@
       margin-bottom: 0.3rem;
     }
 
+    .agreement-list {
+      margin: 0;
+      padding-left: 1rem;
+      display: grid;
+      gap: 0.28rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .sign-grid {
+      margin-top: 0.8rem;
+      display: grid;
+      gap: 0.7rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sign-card {
+      border: 1px dashed #baa98f;
+      background: #fffcf7;
+      border-radius: 12px;
+      padding: 0.8rem;
+      min-height: 132px;
+      color: #5f6773;
+      font-size: 0.87rem;
+    }
+
+    .sign-card strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.9rem;
+    }
+
     .footer {
       text-align: center;
       font-size: 0.82rem;
@@ -514,6 +547,7 @@
       .cards-2,
       .cards-3,
       .simple-terms,
+      .sign-grid,
       .timeline {
         grid-template-columns: 1fr;
       }
@@ -563,7 +597,8 @@
           <h1>EventSocial Project Proposal and Quotation</h1>
           <p>
             This proposal is based on the final requirement discussion completed on <strong>25 February 2026</strong>.
-            It includes full scope coverage, implementation plan, budget options, and a simple quotation for non-technical review.
+            It includes the agreed Phase 1 budget plan, full scope checklist, paid ticketing and payment gateway addition,
+            infrastructure options, and a sign-off ready agreement format.
           </p>
           <div class="pill-row">
             <span class="pill">Verified artist model</span>
@@ -571,6 +606,7 @@
             <span class="pill">Event first social discovery</span>
             <span class="pill">Admin moderation dashboard</span>
             <span class="pill">Deep link marketing ready</span>
+            <span class="pill">Paid ticketing in agreed scope</span>
           </div>
           <div class="top-actions">
             <a class="btn btn-main" href="#budget">View Budget Options</a>
@@ -592,7 +628,7 @@
           </div>
           <div class="quick-item">
             <strong>Monthly Cloud Options</strong>
-            <span>USD 42-57 or USD 72-97</span>
+            <span>AWS: USD 42-97 | GCP: USD 93-139</span>
           </div>
         </aside>
       </div>
@@ -605,6 +641,7 @@
       <a href="#deliverables">Deliverables</a>
       <a href="#budget">Budget Options</a>
       <a href="#quotation">Quotation</a>
+      <a href="#agreement">Agreement</a>
     </nav>
 
     <section class="panel section" id="scope">
@@ -686,6 +723,14 @@
             <li>Event ops, venue management, reporting exports</li>
           </ul>
         </article>
+        <article class="card">
+          <h3>10. Paid Ticketing and Gateway Integration</h3>
+          <ul>
+            <li>Paid ticket types and checkout flow</li>
+            <li>Payment gateway integration with webhook handling</li>
+            <li>Purchase confirmation, ticket issuance, and transaction logs</li>
+          </ul>
+        </article>
       </div>
 
       <div class="cards-2" style="margin-top: 0.75rem;">
@@ -723,16 +768,16 @@
             <li>Event creation and event discovery calendar</li>
             <li>Admin dashboard and moderation operations</li>
             <li>Deep links, campaign attribution, analytics events</li>
-            <li>Optional free ticket reservations model</li>
+            <li>Paid ticketing and payment gateway integrations</li>
           </ul>
         </article>
         <article class="card phase-next">
           <h3>Phase 2 - After Traction (Future extension)</h3>
           <ul>
-            <li>Paid ticketing and payment gateway integrations</li>
             <li>Refund automation, waitlists, and payout management</li>
             <li>Anti-fraud ticket improvements and offline scanning</li>
             <li>Advanced finance reporting and AI moderation</li>
+            <li>Settlement automation and advanced partner finance flows</li>
           </ul>
         </article>
       </div>
@@ -778,8 +823,8 @@
           <p>Verification, event ops, moderation, venue data, and analytics exports.</p>
         </article>
         <article class="card">
-          <h3>Backend APIs</h3>
-          <p>Secure service layer with scalable architecture and business rules implementation.</p>
+          <h3>Backend APIs and Payments</h3>
+          <p>Secure service layer with scalable architecture, business rules, and payment gateway integration.</p>
         </article>
         <article class="card">
           <h3>Deployment Setup</h3>
@@ -831,18 +876,201 @@
             <li>Most budget friendly business approach</li>
           </ul>
         </article>
+        <article class="option">
+          <p class="tagline">Google Cloud Option</p>
+          <h3>Option D - GCP Managed Environment</h3>
+          <div class="monthly">USD 93-139 / month</div>
+          <p>Fully managed GCP stack with database, Redis, CDN, DNS, and domain.</p>
+          <ul>
+            <li>Expected yearly cloud cost: about USD 1,116-1,668</li>
+            <li>Includes Cloud SQL, Redis, DNS, CDN, and domain</li>
+            <li>Best if client prefers Google Cloud ecosystem</li>
+          </ul>
+        </article>
       </div>
 
       <div class="simple-terms">
         <div class="simple-term">
           <strong>Very simple explanation</strong>
-          Your one-time project payment is for building the software. Monthly cloud cost is separate for running servers and domain.
+          Your one-time project payment is for building the software. Monthly cloud cost is separate for running servers, databases, CDN, and domain.
         </div>
         <div class="simple-term">
           <strong>Who pays what</strong>
-          One-time project cost is paid to the development team. Monthly hosting/domain bills are paid to AWS/domain provider.
+          One-time project cost is paid to the development team. Monthly hosting and infrastructure bills are paid to your selected cloud provider.
         </div>
       </div>
+
+      <div class="table-wrap" style="margin-top: 0.8rem;">
+        <table aria-label="Option A AWS Lean itemized cost breakdown">
+          <thead>
+            <tr>
+              <th>Option A (AWS Lean) - Itemized Cost</th>
+              <th>Billing</th>
+              <th>Estimated Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EC2 t3.micro (backend + Redis combined)</td>
+              <td>Monthly</td>
+              <td class="price">USD 10-12</td>
+            </tr>
+            <tr>
+              <td>RDS PostgreSQL db.t3.micro</td>
+              <td>Monthly</td>
+              <td class="price">USD 18-25</td>
+            </tr>
+            <tr>
+              <td>S3 object storage (media)</td>
+              <td>Monthly</td>
+              <td class="price">USD 3-5</td>
+            </tr>
+            <tr>
+              <td>CloudFront CDN</td>
+              <td>Monthly</td>
+              <td class="price">USD 8-12</td>
+            </tr>
+            <tr>
+              <td>Route 53 hosted zone</td>
+              <td>Monthly</td>
+              <td class="price">USD 0.50</td>
+            </tr>
+            <tr>
+              <td>.com domain (monthly average from yearly)</td>
+              <td>Monthly</td>
+              <td class="price">USD 1.50</td>
+            </tr>
+            <tr>
+              <td><strong>Total Option A Cloud Cost</strong></td>
+              <td><strong>Monthly</strong></td>
+              <td class="price"><strong>USD 42-57</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap" style="margin-top: 0.8rem;">
+        <table aria-label="Option B AWS Production itemized cost breakdown">
+          <thead>
+            <tr>
+              <th>Option B (AWS Production) - Itemized Cost</th>
+              <th>Billing</th>
+              <th>Estimated Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ECS Fargate (API service)</td>
+              <td>Monthly</td>
+              <td class="price">USD 20-30</td>
+            </tr>
+            <tr>
+              <td>RDS PostgreSQL db.t3.micro</td>
+              <td>Monthly</td>
+              <td class="price">USD 18-25</td>
+            </tr>
+            <tr>
+              <td>ElastiCache Redis</td>
+              <td>Monthly</td>
+              <td class="price">USD 15</td>
+            </tr>
+            <tr>
+              <td>S3 object storage (media)</td>
+              <td>Monthly</td>
+              <td class="price">USD 3-5</td>
+            </tr>
+            <tr>
+              <td>CloudFront CDN</td>
+              <td>Monthly</td>
+              <td class="price">USD 8-12</td>
+            </tr>
+            <tr>
+              <td>CloudWatch monitoring</td>
+              <td>Monthly</td>
+              <td class="price">USD 5</td>
+            </tr>
+            <tr>
+              <td>Route 53 hosted zone</td>
+              <td>Monthly</td>
+              <td class="price">USD 0.50</td>
+            </tr>
+            <tr>
+              <td>.com domain (monthly average from yearly)</td>
+              <td>Monthly</td>
+              <td class="price">USD 1.50</td>
+            </tr>
+            <tr>
+              <td><strong>Total Option B Cloud Cost</strong></td>
+              <td><strong>Monthly</strong></td>
+              <td class="price"><strong>USD 72-97</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap" style="margin-top: 0.8rem;">
+        <table aria-label="GCP option cost breakdown">
+          <thead>
+            <tr>
+              <th>Option D (GCP) - Itemized Cost</th>
+              <th>Billing</th>
+              <th>Estimated Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cloud Run (API + worker services)</td>
+              <td>Monthly</td>
+              <td class="price">USD 12-28</td>
+            </tr>
+            <tr>
+              <td>Cloud SQL PostgreSQL (db-f1-micro to db-g1-small, SSD + backups)</td>
+              <td>Monthly</td>
+              <td class="price">USD 15-33</td>
+            </tr>
+            <tr>
+              <td>Memorystore for Redis (Basic 1GB)</td>
+              <td>Monthly</td>
+              <td class="price">USD 35.8</td>
+            </tr>
+            <tr>
+              <td>Cloud Storage Standard (100GB media)</td>
+              <td>Monthly</td>
+              <td class="price">USD 2.0</td>
+            </tr>
+            <tr>
+              <td>Cloud CDN (low traffic estimate)</td>
+              <td>Monthly</td>
+              <td class="price">USD 8-15</td>
+            </tr>
+            <tr>
+              <td>Global HTTPS Load Balancer</td>
+              <td>Monthly</td>
+              <td class="price">USD 18.25</td>
+            </tr>
+            <tr>
+              <td>Cloud DNS zone + query charges</td>
+              <td>Monthly</td>
+              <td class="price">USD 0.6-1.0</td>
+            </tr>
+            <tr>
+              <td>.com domain (Cloud Domains reference)</td>
+              <td>Yearly</td>
+              <td class="price">USD 12</td>
+            </tr>
+            <tr>
+              <td><strong>Total Option D Cloud Cost</strong></td>
+              <td><strong>Monthly</strong></td>
+              <td class="price"><strong>USD 93-139</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top: 0.65rem; font-size: 0.84rem;">
+        GCP estimate assumptions: low to medium traffic, one primary app service, one worker service,
+        PostgreSQL shared-core tier, 30GB database storage, 100GB media storage, and a .com domain.
+        Final cloud bill depends on actual traffic, media usage, and selected GCP region.
+      </p>
     </section>
 
     <section class="panel section" id="quotation">
@@ -891,7 +1119,7 @@
           <h3>What You Pay Monthly for Servers</h3>
           <div class="big-number">USD 42-57</div>
           <p class="note-good">Option A recommended for launch.</p>
-          <p class="note-warn">Or USD 72-97 if you start directly with high-capacity setup.</p>
+          <p class="note-warn">Other options: Option B USD 72-97, Option D (GCP) USD 93-139.</p>
         </article>
       </div>
 
@@ -915,10 +1143,102 @@
               <td>LKR 130,000 + USD 1,038 yearly cloud</td>
               <td class="price">LKR 130,000 + USD 1,038</td>
             </tr>
+            <tr>
+              <td>Using Option D (GCP Managed Environment)</td>
+              <td>LKR 130,000 + USD 1,116-1,668 yearly cloud</td>
+              <td class="price">LKR 130,000 + USD 1,116-1,668</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
+    </section>
+
+    <section class="panel section" id="agreement">
+      <div class="section-head">
+        <p class="eyebrow">Project Agreement Attachment</p>
+        <h2>Implementation Agreement and Sign-Off Terms</h2>
+        <p>
+          This section defines the agreed delivery scope and the authorized signatories for project approval.
+          This agreement becomes active once signed by at least one authorized signatory from each side.
+        </p>
+      </div>
+
+      <div class="cards-2">
+        <article class="card">
+          <h3>Authorized Signatories - Service Provider</h3>
+          <ul>
+            <li>Dilshan Perera</li>
+            <li>Parinda Sathsara Maduwantha</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Authorized Signatories - Client</h3>
+          <ul>
+            <li>Niluksha</li>
+            <li>Udara</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="card" style="margin-top: 0.8rem;">
+        <h3>Agreed Project Scope Checklist</h3>
+        <ol class="agreement-list">
+          <li>Customer and artist mobile app flows with secure login.</li>
+          <li>Verified-artist-only publishing model with admin approval pipeline.</li>
+          <li>Reels feed with reactions, reposts, saves, follows, and sharing.</li>
+          <li>No customer public comments, as per final requirement decision.</li>
+          <li>Event creation, editing, publishing, cancellation, and rescheduling workflows.</li>
+          <li>Calendar discovery with date, location, category, and near-me filters.</li>
+          <li>Event detail pages with lineup, venue, time, policy, and linked reels.</li>
+          <li>Admin dashboard for verification, moderation, event ops, and exports.</li>
+          <li>Report and moderation workflow including trust controls.</li>
+          <li>Push notification setup for engagement and event updates.</li>
+          <li>Deep links, web preview pages, and campaign attribution tracking.</li>
+          <li>Analytics event tracking implementation for core product events.</li>
+          <li>Paid ticketing module integration included in this project scope.</li>
+          <li>Payment gateway integration with transaction logging and callbacks.</li>
+          <li>Deployment setup with domain, SSL, database, storage, and CDN.</li>
+        </ol>
+      </div>
+
+      <div class="simple-terms">
+        <div class="simple-term">
+          <strong>Sign-Off Rule</strong>
+          One signature from the service provider side and one signature from the client side is sufficient to approve project commencement.
+        </div>
+        <div class="simple-term">
+          <strong>Infrastructure Selection Rule</strong>
+          Client will select one hosting option (A, B, C path, or D GCP) before deployment phase begins.
+        </div>
+      </div>
+
+      <div class="sign-grid">
+        <div class="sign-card">
+          <strong>Service Provider Signatory 1: Dilshan Perera</strong>
+          Signature: ___________________________<br>
+          Date: ________________________________<br>
+          Role: ________________________________
+        </div>
+        <div class="sign-card">
+          <strong>Service Provider Signatory 2: Parinda Sathsara Maduwantha</strong>
+          Signature: ___________________________<br>
+          Date: ________________________________<br>
+          Role: ________________________________
+        </div>
+        <div class="sign-card">
+          <strong>Client Signatory 1: Niluksha</strong>
+          Signature: ___________________________<br>
+          Date: ________________________________<br>
+          Role: ________________________________
+        </div>
+        <div class="sign-card">
+          <strong>Client Signatory 2: Udara</strong>
+          Signature: ___________________________<br>
+          Date: ________________________________<br>
+          Role: ________________________________
+        </div>
+      </div>
     </section>
 
     <p class="footer">
