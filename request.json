@@ -1,0 +1,171 @@
+{
+    "status": 200,
+    "data": {
+        "ResponseStatusType": {
+            "Id": "1",
+            "Success": true,
+            "Message": "",
+            "RequestTimeStamp": "2026-02-22 10:31:57:2213",
+            "ResponseTimeStamp": "2026-02-22 10:32:13:0599"
+        },
+        "Flights": [
+            {
+                "OriginDestination": {
+                    "Departure": "CMB",
+                    "Arrival": "DXB",
+                    "DepartureDateTime": "2026-02-23T13:20:00",
+                    "ArrivalDateTime": "2026-02-23T16:45:00",
+                    "TotalTime": "04:55"
+                },
+                "ValidatingCarrier": "8D",
+                "SupplierName": "FitsAir",
+                "BasicFare": 856,
+                "TotalTax": 354,
+                "TotalFare": 1210,
+                "NetAmount": 1210,
+                "GrossFare": 1217.5,
+                "AirlinePNR": "KISWCJ",
+                "FlightKey": "8D_CMB_DXB_1ADT_0CHD_0INF_821_20260222045302853545_d2c71e0a-fc0d-44d5-8a3d-ffb6add602de_$TRV$_TVIxfEFFfEFFRA==_$MR_TVJEWEJBRTY4MDM=",
+                "FareName": "CLASSIC",
+                "Segments": [
+                    {
+                        "OriginDestination": {
+                            "Departure": "CMB",
+                            "Arrival": "DXB",
+                            "DepartureDateTime": "2026-02-23T13:20:00",
+                            "ArrivalDateTime": "2026-02-23T16:45:00",
+                            "TotalTime": "04:55"
+                        },
+                        "FlightNumber": "821",
+                        "Cabin": "H - Economy",
+                        "DepartureTerminal": "Yet to be decided",
+                        "ArrivalTerminal": "Yet to be decided",
+                        "MarketingCarrier": "8D",
+                        "OperationgCarrier": "8D",
+                        "Carrier": "8D",
+                        "AirlineLogoURL": "https:\/\/airlogo.cloud.trvlnxt.com\/8D.png",
+                        "EquipmentType": "320",
+                        "SeatRemaining": "Hurry!! Only 4 Seat Left",
+                        "PricingMessageDescription": "REFUNDABLE",
+                        "ProductClass": "H",
+                        "FareType": "H",
+                        "rbd": "H",
+                        "Baggage": {
+                            "Weight": "30",
+                            "Unit": "KG",
+                            "Code": "KG",
+                            "Type": "ADT"
+                        },
+                        "Baggages": [
+                            {
+                                "Weight": "30",
+                                "Unit": "KG",
+                                "Code": "KG",
+                                "Type": "ADT"
+                            }
+                        ],
+                        "CabinBaggage": "7 KG",
+                        "AirlinePNR": "KISWCJ",
+                        "SeatStatus": "",
+                        "MealCode": "V",
+                        "RPH": "1"
+                    }
+                ],
+                "ProcessTermsPrice": 0,
+                "ProcessDetailsPrice": 0,
+                "AdditionalFare": {
+                    "serviceFee": {
+                        "ADTServiceFee": 7.5,
+                        "CHDServiceFee": 0,
+                        "INFServiceFee": 0,
+                        "GST": 0,
+                        "Currency": "AED",
+                        "MarkupBookingOn": "PerPax"
+                    },
+                    "discount": {
+                        "ADTIATA": 0,
+                        "CHDIATA": 0,
+                        "INFIATA": 0,
+                        "ADTIATATDS": 0,
+                        "CHDIATATDS": 0,
+                        "INFIATATDS": 0,
+                        "ADTPLB": 0,
+                        "CHDPLB": 0,
+                        "INFPLB": 0,
+                        "ADTPLBTDS": 0,
+                        "CHDPLBTDS": 0,
+                        "INFPLBTDS": 0,
+                        "ADTPLBGST": 0,
+                        "CHDPLBGST": 0,
+                        "INFPLBGST": 0,
+                        "ADTDNC": 0,
+                        "CHDDNC": 0,
+                        "INFDNC": 0
+                    },
+                    "agentMarkupLimit": {
+                        "ADTMarkupLimit": 0,
+                        "CHDMarkupLimit": 0,
+                        "INFMarkupLimit": 0,
+                        "MarkuMaxAmt": 0
+                    },
+                    "commission": {
+                        "CommissionAmt": 0,
+                        "ADTCommissionAmt": 0,
+                        "CHDCommissionAmt": 0,
+                        "INFCommissionAmt": 0
+                    }
+                }
+            }
+        ],
+        "Passengers": [
+            {
+                "PaxType": "ADULT",
+                "Title": "MS",
+                "FirstName": "KEERTHANA",
+                "MiddleName": "",
+                "LastName": "ANURAJ",
+                "Gender": "Female",
+                "DateOfBirth": "1997-10-02",
+                "isRtnPassenger": false,
+                "MCOAmount": 0,
+                "IsMCOExist": false,
+                "MarkUp": 0,
+                "TicketNumber": "0330069486",
+                "BFCAmount": 0,
+                "HupAmount": 0,
+                "PanCardValidation": false,
+                "BarCodes": [
+                    {
+                        "DepartureArrival": "CMB-DXB",
+                        "BarCodeString": "M1ANURAJ\/KEERTHANA     KISWCJ DXBCMB8D 0821 054Y00000000 0091"
+                    }
+                ],
+                "PassportDetail": {
+                    "PassportNo": "N10036103",
+                    "PassportExpiry": "2032-10-28T13:09:56.426Z",
+                    "PassportIssueCountry": "LK"
+                },
+                "BaggageDetail": {
+                    "Adult": "30 KG"
+                }
+            }
+        ],
+        "IsNegofare": false,
+        "IataCode": "DXBAE6803",
+        "AirlineType": "LCC",
+        "GDSPNR": "KISWCJ",
+        "TrvlnxtPNR": "TNA3HCM671",
+        "OrderId": "RT20260222050211249",
+        "IssueDate": "2026-02-22T09:02:11",
+        "HoldDate": "0001-01-01T00:00:00",
+        "Isfarerevised": false,
+        "IsFarerevisedOnBook": false,
+        "UpdatedByprice": 0,
+        "ROE": 1,
+        "PurchaseCurrencyCode": "AED",
+        "IsInterCompany": false,
+        "AgentROE": 0
+    },
+    "pnr": "TNA3HCM671",
+    "airType": "trvlNxt"
+}

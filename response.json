@@ -1,0 +1,1940 @@
+{
+    "status": "hold",
+    "data": {
+        "itineraryId": "KGFPML",
+        "numberRecord": [
+            {
+                "Number": 1
+            }
+        ],
+        "flightCodes": [
+            "UL"
+        ],
+        "departureAirportCodes": [
+            "CMB"
+        ],
+        "arrivalAirportCodes": [
+            "DXB"
+        ],
+        "sabreBookingResponse": {
+            "CreatePassengerNameRecordRS": {
+                "ApplicationResults": {
+                    "status": "Complete",
+                    "Success": [
+                        {
+                            "timeStamp": "2026-02-26T08:01:14.276Z"
+                        }
+                    ],
+                    "Warning": [
+                        {
+                            "type": "Validation",
+                            "timeStamp": "2026-02-26T08:01:13.192Z",
+                            "SystemSpecificResults": [
+                                {
+                                    "Message": [
+                                        {
+                                            "code": "WARN.SWS.CLIENT.VALIDATION_FAILED",
+                                            "content": "SpecialServiceLLSRQ: Document, ResidentDestinationAddress are mutually exclusive"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "ItineraryRef": {
+                    "ID": "KGFPML"
+                },
+                "AirBook": {
+                    "OriginDestinationOption": {
+                        "FlightSegment": [
+                            {
+                                "ArrivalDateTime": "03-12T21:50",
+                                "DepartureDateTime": "03-12T18:40",
+                                "eTicket": true,
+                                "FlightNumber": "0225",
+                                "NumberInParty": "001",
+                                "ResBookDesigCode": "O",
+                                "Status": "NN",
+                                "DestinationLocation": {
+                                    "LocationCode": "DXB"
+                                },
+                                "MarketingAirline": {
+                                    "Code": "UL",
+                                    "FlightNumber": "0225"
+                                },
+                                "OriginLocation": {
+                                    "LocationCode": "CMB"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "AirPrice": [
+                    {
+                        "PriceQuote": {
+                            "MiscInformation": {
+                                "BaggageInfo": {
+                                    "SubCodeProperties": [
+                                        {
+                                            "SolutionSequenceNmbr": 1,
+                                            "RPH": 1,
+                                            "AncillaryFeeGroupCode": "BG",
+                                            "CommercialNameofBaggageItemType": "FREE BAGGAGE ALLOWANCE",
+                                            "EMD_Type": "4",
+                                            "ExtendedSubCodeKey": "0DFAAUL"
+                                        },
+                                        {
+                                            "SolutionSequenceNmbr": 1,
+                                            "RPH": 2,
+                                            "AncillaryFeeGroupCode": "BG",
+                                            "AncillaryService": {
+                                                "SubGroupCode": "CY",
+                                                "Text": "CARRY ON HAND BAGGAGE"
+                                            },
+                                            "CommercialNameofBaggageItemType": "CARRYON HAND BAGGAGE ALLOWANCE",
+                                            "EMD_Type": "4",
+                                            "ExtendedSubCodeKey": "0LNABUL"
+                                        },
+                                        {
+                                            "SolutionSequenceNmbr": 1,
+                                            "RPH": 3,
+                                            "AncillaryFeeGroupCode": "BG",
+                                            "AncillaryService": {
+                                                "SubGroupCode": "CY",
+                                                "Text": "CARRY ON HAND BAGGAGE"
+                                            },
+                                            "CommercialNameofBaggageItemType": "CARRY7KG 15LB UPTO45LI 115LCM",
+                                            "DescriptionOne": {
+                                                "Code": "07",
+                                                "Text": "UP TO 15 POUNDS\/7 KILOGRAMS"
+                                            },
+                                            "DescriptionTwo": {
+                                                "Code": "4U",
+                                                "Text": "UP TO 45 LINEAR INCHES\/115 LINEAR CENTIMETERS"
+                                            },
+                                            "EMD_Type": "2",
+                                            "ExtendedSubCodeKey": "0M3ACUL",
+                                            "RFIC": "C",
+                                            "SizeWeightInfo": {
+                                                "MaximumSizeInAlternate": {
+                                                    "Units": "C",
+                                                    "content": "115"
+                                                },
+                                                "MaximumSize": {
+                                                    "Units": "I",
+                                                    "content": "45"
+                                                },
+                                                "MaximumWeightInAlternate": {
+                                                    "Units": "K",
+                                                    "content": "7"
+                                                },
+                                                "MaximumWeight": {
+                                                    "Units": "L",
+                                                    "content": "15"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "HeaderInformation": [
+                                    {
+                                        "SolutionSequenceNmbr": "1",
+                                        "DepartureDate": "2026-03-12",
+                                        "LastTicketingDate": "02-26T23:59",
+                                        "Text": [
+                                            "VALIDATING CARRIER - UL",
+                                            "BAG ALLOWANCE     -CMBDXB-30KG\/UL",
+                                            "CARRY ON ALLOWANCE",
+                                            "CMBDXB-01P\/UL",
+                                            "01\/UP TO 15 POUNDS\/7 KILOGRAMS AND UP TO 45 LINEAR INCHES\/",
+                                            "115 LINEAR CENTIMETERS",
+                                            "CARRY ON CHARGES",
+                                            "CMBDXB-UL-CARRY ON FEES UNKNOWN-CONTACT CARRIER",
+                                            "ADDITIONAL ALLOWANCES AND\/OR DISCOUNTS MAY APPLY DEPENDING ON",
+                                            "FLYER-SPECIFIC FACTORS \/E.G. FREQUENT FLYER STATUS\/MILITARY\/",
+                                            "CREDIT CARD FORM OF PAYMENT\/EARLY PURCHASE OVER INTERNET,ETC.\/",
+                                            "12MAR DEPARTURE DATE-----LAST DAY TO PURCHASE 26FEB\/2359"
+                                        ],
+                                        "ValidatingCarrier": {
+                                            "Code": "UL"
+                                        }
+                                    }
+                                ],
+                                "SolutionInformation": [
+                                    {
+                                        "SolutionSequenceNmbr": "1",
+                                        "BaseFareCurrencyCode": "USD",
+                                        "CurrencyCode": "LKR",
+                                        "GrandTotalBaseFareAmount": "33600",
+                                        "GrandTotalEquivFareAmount": "107.00",
+                                        "GrandTotalTaxes": "34874",
+                                        "RequiresRebook": "false",
+                                        "TicketNumber": "0",
+                                        "TotalAmount": "68474"
+                                    }
+                                ]
+                            },
+                            "PricedItinerary": {
+                                "AlternativePricing": "false",
+                                "CurrencyCode": "LKR",
+                                "MultiTicket": false,
+                                "TotalAmount": "68474",
+                                "AirItineraryPricingInfo": [
+                                    {
+                                        "SolutionSequenceNmbr": "1",
+                                        "BaggageProvisions": [
+                                            {
+                                                "RPH": "1",
+                                                "Associations": {
+                                                    "CarrierCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "UL"
+                                                        }
+                                                    ],
+                                                    "CountForSegmentAssociatedID": "1",
+                                                    "DepartureDate": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "2026-03-12"
+                                                        }
+                                                    ],
+                                                    "DestinationLocation": [
+                                                        {
+                                                            "LocationCode": "DXB",
+                                                            "RPH": 1
+                                                        }
+                                                    ],
+                                                    "FlightNumber": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "225"
+                                                        }
+                                                    ],
+                                                    "OriginLocation": [
+                                                        {
+                                                            "LocationCode": "CMB",
+                                                            "RPH": 1
+                                                        }
+                                                    ],
+                                                    "PNR_Segment": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "2"
+                                                        }
+                                                    ],
+                                                    "ResBookDesigCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "O"
+                                                        }
+                                                    ],
+                                                    "StatusCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "SS"
+                                                        }
+                                                    ]
+                                                },
+                                                "CarrierWhoseBaggageProvisionsApply": "UL",
+                                                "ProvisionType": "A",
+                                                "SubCodeInfo": {
+                                                    "SubCodeForChargesOthers": "0DFAAUL"
+                                                },
+                                                "WeightLimit": {
+                                                    "Units": "K",
+                                                    "content": "30"
+                                                }
+                                            },
+                                            {
+                                                "RPH": "2",
+                                                "Associations": {
+                                                    "CarrierCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "UL"
+                                                        }
+                                                    ],
+                                                    "CountForSegmentAssociatedID": "1",
+                                                    "DepartureDate": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "2026-03-12"
+                                                        }
+                                                    ],
+                                                    "DestinationLocation": [
+                                                        {
+                                                            "LocationCode": "DXB",
+                                                            "RPH": 1
+                                                        }
+                                                    ],
+                                                    "FlightNumber": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "225"
+                                                        }
+                                                    ],
+                                                    "OriginLocation": [
+                                                        {
+                                                            "LocationCode": "CMB",
+                                                            "RPH": 1
+                                                        }
+                                                    ],
+                                                    "PNR_Segment": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "2"
+                                                        }
+                                                    ],
+                                                    "ResBookDesigCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "O"
+                                                        }
+                                                    ],
+                                                    "StatusCode": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "SS"
+                                                        }
+                                                    ]
+                                                },
+                                                "CarrierWhoseBaggageProvisionsApply": "UL",
+                                                "NumPiecesBDI": "1",
+                                                "NumPiecesITR": [
+                                                    "1"
+                                                ],
+                                                "ProvisionType": "B",
+                                                "SubCodeInfo": {
+                                                    "SubCodeForAllowance": [
+                                                        {
+                                                            "RPH": 1,
+                                                            "content": "0M3ACUL"
+                                                        }
+                                                    ],
+                                                    "SubCodeForChargesOthers": "0LNABUL"
+                                                }
+                                            }
+                                        ],
+                                        "FareCalculation": {
+                                            "Text": "CMB UL DXB Q2.00 105.00NUC107.00END ROE1.00"
+                                        },
+                                        "FareCalculationBreakdown": [
+                                            {
+                                                "Branch": {
+                                                    "PCC": "Z7B8",
+                                                    "FirstJointCarrier": "UL"
+                                                },
+                                                "Departure": {
+                                                    "CityCode": "CMB",
+                                                    "AirportCode": "CMB",
+                                                    "AirlineCode": "UL",
+                                                    "GenericInd": "O",
+                                                    "ArrivalCityCode": "DXB",
+                                                    "ArrivalAirportCode": "DXB"
+                                                },
+                                                "FareBasis": {
+                                                    "Code": "OSOWP9LK",
+                                                    "FareAmount": "105.00",
+                                                    "FarePassengerType": "ADT",
+                                                    "FareType": "P",
+                                                    "FilingCarrier": "UL",
+                                                    "GlobalInd": "EH",
+                                                    "TripTypeInd": "O",
+                                                    "Market": "CMBDXB",
+                                                    "Cabin": "Y"
+                                                },
+                                                "FreeBaggageAllowance": "KG030",
+                                                "RuleCategoryIndicator": [
+                                                    "4",
+                                                    "5",
+                                                    "6",
+                                                    "7",
+                                                    "8",
+                                                    "9",
+                                                    "10",
+                                                    "12",
+                                                    "15",
+                                                    "16",
+                                                    "18",
+                                                    "23"
+                                                ],
+                                                "Surcharges": [
+                                                    {
+                                                        "Ind": "Q",
+                                                        "Type": "MIS",
+                                                        "content": "2.00"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "ItinTotalFare": {
+                                            "NonRefundableInd": "N",
+                                            "BaggageInfo": {
+                                                "NonUS_DOT_Disclosure": {
+                                                    "Text": [
+                                                        "BAG ALLOWANCE     -CMBDXB-30KG\/UL",
+                                                        "CARRY ON ALLOWANCE",
+                                                        "CMBDXB-01P\/UL",
+                                                        "01\/UP TO 15 POUNDS\/7 KILOGRAMS AND UP TO 45 LINEAR INCHES\/",
+                                                        "115 LINEAR CENTIMETERS",
+                                                        "CARRY ON CHARGES",
+                                                        "CMBDXB-UL-CARRY ON FEES UNKNOWN-CONTACT CARRIER",
+                                                        "ADDITIONAL ALLOWANCES AND\/OR DISCOUNTS MAY APPLY DEPENDING ON",
+                                                        "FLYER-SPECIFIC FACTORS \/E.G. FREQUENT FLYER STATUS\/MILITARY\/",
+                                                        "CREDIT CARD FORM OF PAYMENT\/EARLY PURCHASE OVER INTERNET,ETC.\/"
+                                                    ]
+                                                }
+                                            },
+                                            "BaseFare": {
+                                                "Amount": "107.00",
+                                                "CurrencyCode": "USD"
+                                            },
+                                            "Construction": {
+                                                "Amount": "107.00",
+                                                "CurrencyCode": "NUC",
+                                                "RateOfExchange": "1.000000"
+                                            },
+                                            "Endorsements": {
+                                                "Text": [
+                                                    "VLD ON UL ONLY\/CHANGE FEE\/MAY APPLY\/AF DEP NONREF"
+                                                ]
+                                            },
+                                            "EquivFare": {
+                                                "Amount": "33600",
+                                                "CurrencyCode": "LKR"
+                                            },
+                                            "Taxes": {
+                                                "TotalAmount": "34874",
+                                                "Tax": [
+                                                    {
+                                                        "Amount": "18789",
+                                                        "TaxCode": "LK",
+                                                        "TaxName": "EMBARKATION TAX",
+                                                        "TicketingTaxCode": "LK"
+                                                    },
+                                                    {
+                                                        "Amount": "427",
+                                                        "TaxCode": "ZR",
+                                                        "TaxName": "INTERNATIONAL ADVANCED PASSENG",
+                                                        "TicketingTaxCode": "ZR"
+                                                    },
+                                                    {
+                                                        "Amount": "15658",
+                                                        "TaxCode": "YQF",
+                                                        "TaxName": "SERVICE FEE - CARRIER-IMPOSED",
+                                                        "TicketingTaxCode": "YQ"
+                                                    }
+                                                ]
+                                            },
+                                            "TotalFare": {
+                                                "Amount": "68474",
+                                                "CurrencyCode": "LKR"
+                                            }
+                                        },
+                                        "PassengerTypeQuantity": {
+                                            "Code": "ADT",
+                                            "Quantity": "1"
+                                        },
+                                        "PTC_FareBreakdown": [
+                                            {
+                                                "Cabin": "Y",
+                                                "FareBasis": {
+                                                    "Code": "OSOWP9LK",
+                                                    "FareAmount": "105.00",
+                                                    "FarePassengerType": "ADT",
+                                                    "FareType": "P",
+                                                    "FilingCarrier": "UL",
+                                                    "GlobalInd": "EH",
+                                                    "Market": "CMBDXB"
+                                                },
+                                                "FreeBaggageAllowance": "KG030",
+                                                "Surcharges": [
+                                                    {
+                                                        "Ind": "Q",
+                                                        "Type": "MIS",
+                                                        "content": "2.00"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "TravelItineraryRead": {
+                    "TravelItinerary": {
+                        "CustomerInfo": {
+                            "ContactNumbers": {
+                                "ContactNumber": [
+                                    {
+                                        "LocationCode": "CMB",
+                                        "Phone": "LK0712224227-A-1.1",
+                                        "RPH": "001",
+                                        "Id": "8"
+                                    },
+                                    {
+                                        "LocationCode": "CMB",
+                                        "Phone": "LK94741888673-M-1.1",
+                                        "RPH": "002",
+                                        "Id": "9"
+                                    }
+                                ]
+                            },
+                            "PersonName": [
+                                {
+                                    "WithInfant": "false",
+                                    "NameNumber": "01.01",
+                                    "PassengerType": "ADT",
+                                    "RPH": "1",
+                                    "elementId": "pnr-3.1",
+                                    "Email": [
+                                        {
+                                            "Id": "7",
+                                            "Comment": "PAX",
+                                            "content": "DIVYATASHIYATRAVELS@GMAIL.COM"
+                                        },
+                                        {
+                                            "Id": "6",
+                                            "Comment": "AGENCY",
+                                            "content": "BETEAM@AAHAAS.COM"
+                                        }
+                                    ],
+                                    "GivenName": "THARINDU A MR",
+                                    "Surname": "HONDAMUNI"
+                                }
+                            ]
+                        },
+                        "ItineraryInfo": {
+                            "ItineraryPricing": {
+                                "PriceQuote": [
+                                    {
+                                        "RPH": "1",
+                                        "MiscInformation": {
+                                            "SignatureLine": [
+                                                {
+                                                    "ExpirationDateTime": "00:00",
+                                                    "Source": "SYS",
+                                                    "Status": "ACTIVE",
+                                                    "Text": "Z7B8 Z7B8*AWS 1331\/26FEB26"
+                                                }
+                                            ]
+                                        },
+                                        "PricedItinerary": [
+                                            {
+                                                "DisplayOnly": false,
+                                                "InputMessage": "WPP1ADT\u00a5RQ",
+                                                "RPH": "1",
+                                                "StatusCode": "A",
+                                                "TaxExempt": false,
+                                                "ValidatingCarrier": "UL",
+                                                "StoredDateTime": "2026-02-26T13:31",
+                                                "AirItineraryPricingInfo": {
+                                                    "ItinTotalFare": [
+                                                        {
+                                                            "BaseFare": {
+                                                                "Amount": "107.00",
+                                                                "CurrencyCode": "USD"
+                                                            },
+                                                            "EquivFare": {
+                                                                "Amount": "33600",
+                                                                "CurrencyCode": "LKR"
+                                                            },
+                                                            "Taxes": {
+                                                                "Tax": {
+                                                                    "Amount": "34874",
+                                                                    "TaxCode": "XT"
+                                                                },
+                                                                "TaxBreakdownCode": [
+                                                                    {
+                                                                        "TaxPaid": false,
+                                                                        "content": "18789LK"
+                                                                    },
+                                                                    {
+                                                                        "TaxPaid": false,
+                                                                        "content": "427ZR"
+                                                                    },
+                                                                    {
+                                                                        "TaxPaid": false,
+                                                                        "content": "15658YQ"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "TotalFare": {
+                                                                "Amount": "68474",
+                                                                "CurrencyCode": "LKR"
+                                                            },
+                                                            "Totals": {
+                                                                "BaseFare": {
+                                                                    "Amount": "107.00"
+                                                                },
+                                                                "EquivFare": {
+                                                                    "Amount": "33600"
+                                                                },
+                                                                "Taxes": {
+                                                                    "Tax": {
+                                                                        "Amount": "34874"
+                                                                    }
+                                                                },
+                                                                "TotalFare": {
+                                                                    "Amount": "68474"
+                                                                }
+                                                            }
+                                                        }
+                                                    ],
+                                                    "PassengerTypeQuantity": [
+                                                        {
+                                                            "Code": "ADT",
+                                                            "Quantity": "01"
+                                                        }
+                                                    ],
+                                                    "PTC_FareBreakdown": [
+                                                        {
+                                                            "Endorsements": {
+                                                                "Endorsement": [
+                                                                    {
+                                                                        "type": "PRICING_PARAMETER",
+                                                                        "Text": "WPP1ADT$RQ"
+                                                                    },
+                                                                    {
+                                                                        "type": "WARNING",
+                                                                        "Text": "VALIDATING CARRIER - UL"
+                                                                    },
+                                                                    {
+                                                                        "type": "SYSTEM_ENDORSEMENT",
+                                                                        "Text": "VLD ON UL ONLY\/CHANGE FEE\/MAY APPLY\/AF DEP NONREF"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            "FareBasis": [
+                                                                {
+                                                                    "Code": "OSOWP9LK"
+                                                                }
+                                                            ],
+                                                            "FareCalculation": {
+                                                                "Text": [
+                                                                    "CMB UL DXB Q2.00 105.00NUC107.00END ROE1.00"
+                                                                ]
+                                                            },
+                                                            "FareSource": "ATPC",
+                                                            "FlightSegment": [
+                                                                {
+                                                                    "ConnectionInd": "O",
+                                                                    "DepartureDateTime": "03-12T18:40",
+                                                                    "FlightNumber": "225",
+                                                                    "ResBookDesigCode": "O",
+                                                                    "SegmentNumber": "1",
+                                                                    "Status": "OK",
+                                                                    "BaggageAllowance": {
+                                                                        "Number": "30K"
+                                                                    },
+                                                                    "FareBasis": {
+                                                                        "Code": "OSOWP9LK"
+                                                                    },
+                                                                    "MarketingAirline": {
+                                                                        "Code": "UL",
+                                                                        "FlightNumber": "225"
+                                                                    },
+                                                                    "OriginLocation": {
+                                                                        "LocationCode": "CMB"
+                                                                    },
+                                                                    "ValidityDates": {
+                                                                        "NotValidAfter": "2026-03-12",
+                                                                        "NotValidBefore": "2026-03-12"
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "OriginLocation": {
+                                                                        "LocationCode": "DXB"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "FareComponent": [
+                                                                {
+                                                                    "FareBasisCode": "OSOWP9LK",
+                                                                    "FareDirectionality": "FROM",
+                                                                    "Amount": "10500",
+                                                                    "TicketDesignator": "",
+                                                                    "GoverningCarrier": "UL",
+                                                                    "FareComponentNumber": "1",
+                                                                    "Location": {
+                                                                        "Origin": "CMB",
+                                                                        "Destination": "DXB"
+                                                                    },
+                                                                    "Dates": {
+                                                                        "DepartureDateTime": "03-12T18:40",
+                                                                        "ArrivalDateTime": "03-12T21:50"
+                                                                    },
+                                                                    "FlightSegmentNumbers": {
+                                                                        "FlightSegmentNumber": [
+                                                                            "1"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "ResTicketingRestrictions": [
+                                                                "LAST DAY TO PURCHASE 26FEB\/2359",
+                                                                "GUARANTEED FARE APPL IF PURCHASED BEFORE 26FEB"
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ],
+                                        "ResponseHeader": {
+                                            "Text": [
+                                                "FARE - PRICE RETAINED",
+                                                "FARE USED TO CALCULATE DISCOUNT",
+                                                "FARE NOT GUARANTEED UNTIL TICKETED"
+                                            ]
+                                        },
+                                        "PriceQuotePlus": {
+                                            "DomesticIntlInd": "I",
+                                            "PricingStatus": "A",
+                                            "VerifyFareCalc": false,
+                                            "ItineraryChanged": false,
+                                            "ManualFare": false,
+                                            "NegotiatedFare": false,
+                                            "SystemIndicator": "S",
+                                            "NUCSuppresion": false,
+                                            "SubjToGovtApproval": false,
+                                            "IT_BT_Fare": "BT",
+                                            "DisplayOnly": false,
+                                            "DiscountAmount": "0",
+                                            "PassengerInfo": {
+                                                "PassengerType": "ADT",
+                                                "PassengerData": [
+                                                    {
+                                                        "NameNumber": "01.01",
+                                                        "content": "HONDAMUNI\/THARINDU A MR"
+                                                    }
+                                                ]
+                                            },
+                                            "TicketingInstructionsInfo": []
+                                        }
+                                    }
+                                ],
+                                "PriceQuoteTotals": {
+                                    "BaseFare": {
+                                        "Amount": "107.00"
+                                    },
+                                    "EquivFare": {
+                                        "Amount": "33600.00"
+                                    },
+                                    "Taxes": {
+                                        "Tax": {
+                                            "Amount": "34874.00"
+                                        }
+                                    },
+                                    "TotalFare": {
+                                        "Amount": "68474.00"
+                                    }
+                                }
+                            },
+                            "ReservationItems": {
+                                "Item": [
+                                    {
+                                        "RPH": "1",
+                                        "FlightSegment": [
+                                            {
+                                                "AirMilesFlown": "2042",
+                                                "ArrivalDateTime": "03-12T21:50",
+                                                "DayOfWeekInd": "4",
+                                                "DepartureDateTime": "2026-03-12T18:40",
+                                                "SegmentBookedDate": "2026-02-26T02:01:00",
+                                                "ElapsedTime": "04.40",
+                                                "eTicket": true,
+                                                "FlightNumber": "0225",
+                                                "NumberInParty": "01",
+                                                "ResBookDesigCode": "O",
+                                                "SegmentNumber": "0001",
+                                                "SmokingAllowed": false,
+                                                "SpecialMeal": false,
+                                                "Status": "HK",
+                                                "StopQuantity": "00",
+                                                "IsPast": false,
+                                                "CodeShare": false,
+                                                "Id": "10",
+                                                "DestinationLocation": {
+                                                    "LocationCode": "DXB",
+                                                    "Terminal": "TERMINAL 1",
+                                                    "TerminalCode": "1"
+                                                },
+                                                "Equipment": {
+                                                    "AirEquipType": "332"
+                                                },
+                                                "MarketingAirline": {
+                                                    "Code": "UL",
+                                                    "FlightNumber": "0225",
+                                                    "ResBookDesigCode": "O",
+                                                    "Banner": "MARKETED BY SRILANKAN AIRLINES"
+                                                },
+                                                "Meal": [
+                                                    {
+                                                        "Code": "H"
+                                                    }
+                                                ],
+                                                "OperatingAirline": [
+                                                    {
+                                                        "Code": "UL",
+                                                        "FlightNumber": "0225",
+                                                        "ResBookDesigCode": "O",
+                                                        "Banner": "OPERATED BY SRILANKAN AIRLINES"
+                                                    }
+                                                ],
+                                                "OperatingAirlinePricing": {
+                                                    "Code": "UL"
+                                                },
+                                                "DisclosureCarrier": {
+                                                    "Code": "UL",
+                                                    "DOT": false,
+                                                    "Banner": "SRILANKAN AIRLINES"
+                                                },
+                                                "OriginLocation": {
+                                                    "LocationCode": "CMB"
+                                                },
+                                                "SupplierRef": {
+                                                    "ID": "DCUL"
+                                                },
+                                                "UpdatedArrivalTime": "03-12T21:50",
+                                                "UpdatedDepartureTime": "03-12T18:40",
+                                                "Cabin": {
+                                                    "Code": "Y",
+                                                    "SabreCode": "Y",
+                                                    "Name": "ECONOMY",
+                                                    "ShortName": "ECONOMY",
+                                                    "Lang": "EN"
+                                                }
+                                            }
+                                        ],
+                                        "Product": {
+                                            "ProductDetails": {
+                                                "productCategory": "AIR",
+                                                "ProductName": {
+                                                    "type": "AIR",
+                                                    "content": ""
+                                                },
+                                                "Air": {
+                                                    "sequence": 1,
+                                                    "segmentAssociationId": 2,
+                                                    "DepartureAirport": "CMB",
+                                                    "ArrivalAirport": "DXB",
+                                                    "ArrivalTerminalName": "TERMINAL 1",
+                                                    "ArrivalTerminalCode": "1",
+                                                    "EquipmentType": "332",
+                                                    "MarketingAirlineCode": "UL",
+                                                    "MarketingFlightNumber": "225",
+                                                    "MarketingClassOfService": "O",
+                                                    "Cabin": {
+                                                        "code": "Y",
+                                                        "sabreCode": "Y",
+                                                        "name": "ECONOMY",
+                                                        "shortName": "ECONOMY",
+                                                        "lang": "EN"
+                                                    },
+                                                    "MealCode": [
+                                                        "H"
+                                                    ],
+                                                    "ElapsedTime": 280,
+                                                    "AirMilesFlown": 2042,
+                                                    "FunnelFlight": false,
+                                                    "ChangeOfGauge": false,
+                                                    "DisclosureCarrier": {
+                                                        "Code": "UL",
+                                                        "DOT": false,
+                                                        "Banner": "SRILANKAN AIRLINES"
+                                                    },
+                                                    "AirlineRefId": "DCUL",
+                                                    "Eticket": true,
+                                                    "DepartureDateTime": "2026-03-12T18:40:00",
+                                                    "ArrivalDateTime": "2026-03-12T21:50:00",
+                                                    "FlightNumber": "225",
+                                                    "ClassOfService": "O",
+                                                    "ActionCode": "HK",
+                                                    "NumberInParty": 1,
+                                                    "inboundConnection": false,
+                                                    "outboundConnection": false,
+                                                    "ScheduleChangeIndicator": false,
+                                                    "SegmentBookedDate": "2026-02-26T02:01:00"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "Ticketing": [
+                                {
+                                    "RPH": "01",
+                                    "TicketTimeLimit": "TAW\/"
+                                }
+                            ]
+                        },
+                        "ItineraryRef": {
+                            "AirExtras": false,
+                            "ID": "KGFPML",
+                            "InhibitCode": "U",
+                            "PartitionID": "AA",
+                            "PrimeHostID": "1B",
+                            "Header": [
+                                "PRICE QUOTE RECORD - AUTOPRICED"
+                            ],
+                            "Source": {
+                                "AAA_PseudoCityCode": "Z7B8",
+                                "CreateDateTime": "2026-02-26T02:01",
+                                "CreationAgent": "AWS",
+                                "HomePseudoCityCode": "Z7B8",
+                                "PseudoCityCode": "Z7B8",
+                                "ReceivedFrom": "SABREAPISTOOLS",
+                                "LastUpdateDateTime": "2026-02-26T02:01",
+                                "SequenceNumber": "1"
+                            }
+                        },
+                        "RemarkInfo": {
+                            "Remark": [
+                                {
+                                    "RPH": "001",
+                                    "Type": "General",
+                                    "Id": "12",
+                                    "Text": "CREATED WITH SABRE APIS CPNR TOOL"
+                                },
+                                {
+                                    "RPH": "002",
+                                    "Type": "Historical",
+                                    "Id": "13",
+                                    "Text": "BOOKING VIA BETEAM PLATFORM"
+                                }
+                            ]
+                        },
+                        "SpecialServiceInfo": [
+                            {
+                                "RPH": "001",
+                                "Type": "GFX",
+                                "Id": "11",
+                                "Service": {
+                                    "SSR_Code": "OSI",
+                                    "Airline": {
+                                        "Code": "1B"
+                                    },
+                                    "Text": [
+                                        "PLEASE TICKET FARE AS PER TKT\/TL IN PQ"
+                                    ]
+                                }
+                            }
+                        ],
+                        "OpenReservationElements": {
+                            "OpenReservationElement": [
+                                {
+                                    "id": "11",
+                                    "type": "SRVC",
+                                    "elementId": "pnr-11",
+                                    "ServiceRequest": {
+                                        "airlineCode": "1B",
+                                        "serviceType": "OSI",
+                                        "ssrType": "GFX",
+                                        "FreeText": "PLEASE TICKET FARE AS PER TKT\/TL IN PQ",
+                                        "FullText": "1B PLEASE TICKET FARE AS PER TKT\/TL IN PQ"
+                                    }
+                                },
+                                {
+                                    "id": "7",
+                                    "type": "PSG_DETAILS_MAIL",
+                                    "elementId": "pnr-7",
+                                    "Email": {
+                                        "comment": "PAX",
+                                        "Address": "DIVYATASHIYATRAVELS@GMAIL.COM"
+                                    },
+                                    "NameAssociation": [
+                                        {
+                                            "LastName": "HONDAMUNI",
+                                            "FirstName": "THARINDU A MR",
+                                            "ReferenceId": 1,
+                                            "NameRefNumber": "01.01"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "6",
+                                    "type": "PSG_DETAILS_MAIL",
+                                    "elementId": "pnr-6",
+                                    "Email": {
+                                        "comment": "AGENCY",
+                                        "Address": "BETEAM@AAHAAS.COM"
+                                    },
+                                    "NameAssociation": [
+                                        {
+                                            "LastName": "HONDAMUNI",
+                                            "FirstName": "THARINDU A MR",
+                                            "ReferenceId": 1,
+                                            "NameRefNumber": "01.01"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "PriceQuote": {
+                        "PriceQuoteInfo": {
+                            "Reservation": {
+                                "updateToken": "ZSsfXiZAWlxe",
+                                "activePqCount": 1,
+                                "content": "KGFPML"
+                            },
+                            "Summary": {
+                                "NameAssociation": [
+                                    {
+                                        "nameNumber": "1.1",
+                                        "nameId": 1,
+                                        "firstName": "THARINDU A MR",
+                                        "lastName": "HONDAMUNI",
+                                        "PriceQuote": [
+                                            {
+                                                "type": "PQ",
+                                                "number": 1,
+                                                "status": "A",
+                                                "pricingType": "S",
+                                                "pricingStatus": "AUTOPRICED",
+                                                "latestPQFlag": true,
+                                                "pqOwner": "1B",
+                                                "Indicators": [],
+                                                "Passenger": {
+                                                    "type": "ADT",
+                                                    "requestedType": "ADT",
+                                                    "passengerTypeCount": 1
+                                                },
+                                                "ItineraryType": "I",
+                                                "ValidatingCarrier": {
+                                                    "content": "UL"
+                                                },
+                                                "Amounts": {
+                                                    "Total": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 68474
+                                                    }
+                                                },
+                                                "LocalCreateDateTime": "2026-02-26T13:31:00"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "SummaryByPassengerType": {
+                                    "FareInfo": [
+                                        {
+                                            "passengerType": "ADT",
+                                            "passengerTypeCount": 1,
+                                            "BaseFare": {
+                                                "currencyCode": "USD",
+                                                "decimalPlace": 2,
+                                                "content": 107
+                                            },
+                                            "EquivalentFare": {
+                                                "currencyCode": "LKR",
+                                                "content": 33600
+                                            },
+                                            "TotalTax": {
+                                                "currencyCode": "LKR",
+                                                "content": 34874
+                                            },
+                                            "TotalFare": {
+                                                "currencyCode": "LKR",
+                                                "content": 68474
+                                            }
+                                        }
+                                    ],
+                                    "Total": [
+                                        {
+                                            "BaseFare": {
+                                                "currencyCode": "USD",
+                                                "decimalPlace": 2,
+                                                "content": 107
+                                            },
+                                            "EquivalentFare": {
+                                                "currencyCode": "LKR",
+                                                "content": 33600
+                                            },
+                                            "TotalTax": {
+                                                "currencyCode": "LKR",
+                                                "content": 34874
+                                            },
+                                            "TotalFare": {
+                                                "currencyCode": "LKR",
+                                                "content": 68474
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "Details": [
+                                {
+                                    "type": "PQ",
+                                    "number": 1,
+                                    "passengerType": "ADT",
+                                    "status": "A",
+                                    "pricingType": "S",
+                                    "pricingStatus": "AUTOPRICED",
+                                    "ataFormat": false,
+                                    "pqOwner": "1B",
+                                    "AgentInfo": {
+                                        "sine": "AWS",
+                                        "duty": "*",
+                                        "HomeLocation": "Z7B8",
+                                        "WorkLocation": "Z7B8"
+                                    },
+                                    "TransactionInfo": {
+                                        "CreateDateTime": "2026-02-26T02:01:00",
+                                        "UpdateDateTime": "2026-02-26T02:01:00",
+                                        "LastDateToPurchase": "2026-02-26T23:59:00",
+                                        "LocalCreateDateTime": "2026-02-26T13:31:00",
+                                        "LocalUpdateDateTime": "2026-02-26T13:31:00",
+                                        "InputEntry": "WPP1ADT$RQ",
+                                        "PricedLocation": {
+                                            "countryCode": "LK",
+                                            "content": "CMB"
+                                        },
+                                        "TicketedLocation": {
+                                            "countryCode": "LK",
+                                            "content": "CMB"
+                                        },
+                                        "PricingQualifiers": {
+                                            "Qualifier": [
+                                                {
+                                                    "ActionCode": "WP"
+                                                },
+                                                {
+                                                    "mergeAllowed": true,
+                                                    "ActionCode": "P",
+                                                    "Data": "1ADT"
+                                                },
+                                                {
+                                                    "ActionCode": "RQ"
+                                                }
+                                            ]
+                                        },
+                                        "TicketByDate": "2026-02-26T00:00:00"
+                                    },
+                                    "NameAssociationInfo": [
+                                        {
+                                            "nameNumber": "1.1",
+                                            "nameId": 1,
+                                            "firstName": "THARINDU A MR",
+                                            "lastName": "HONDAMUNI"
+                                        }
+                                    ],
+                                    "SegmentInfo": [
+                                        {
+                                            "number": 1,
+                                            "segmentStatus": "OK",
+                                            "segNumber": "1",
+                                            "segID": "2",
+                                            "bookingStatus": "OK",
+                                            "Flight": {
+                                                "connectionIndicator": "O",
+                                                "MarketingFlight": {
+                                                    "number": "225",
+                                                    "content": "UL"
+                                                },
+                                                "ClassOfService": "O",
+                                                "Departure": {
+                                                    "DateTime": "2026-03-12T18:40:00",
+                                                    "CityCode": {
+                                                        "name": "COLOMBO",
+                                                        "content": "CMB"
+                                                    }
+                                                },
+                                                "Arrival": {
+                                                    "DateTime": "2026-03-12T21:50:00",
+                                                    "CityCode": {
+                                                        "name": "DUBAI",
+                                                        "content": "DXB"
+                                                    }
+                                                },
+                                                "OperatingFlight": {
+                                                    "number": "225",
+                                                    "content": "UL"
+                                                }
+                                            },
+                                            "FareBasis": "OSOWP9LK",
+                                            "NotValidBefore": "2026-03-12",
+                                            "NotValidAfter": "2026-03-12",
+                                            "Baggage": {
+                                                "type": "K",
+                                                "allowance": "30"
+                                            },
+                                            "BrandedFare": []
+                                        }
+                                    ],
+                                    "FareInfo": {
+                                        "source": "ATPC",
+                                        "FareIndicators": [],
+                                        "BaseFare": {
+                                            "currencyCode": "USD",
+                                            "decimalPlace": 2,
+                                            "content": "107.00"
+                                        },
+                                        "EquivalentFare": {
+                                            "currencyCode": "LKR",
+                                            "content": "33600"
+                                        },
+                                        "TotalTax": {
+                                            "currencyCode": "LKR",
+                                            "content": "34874"
+                                        },
+                                        "TotalFare": {
+                                            "currencyCode": "LKR",
+                                            "content": "68474"
+                                        },
+                                        "TaxInfo": {
+                                            "CombinedTax": [
+                                                {
+                                                    "code": "LK",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 18789
+                                                    }
+                                                },
+                                                {
+                                                    "code": "ZR",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 427
+                                                    }
+                                                },
+                                                {
+                                                    "code": "YQ",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 15658
+                                                    }
+                                                }
+                                            ],
+                                            "Tax": [
+                                                {
+                                                    "code": "LK",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 18789
+                                                    }
+                                                },
+                                                {
+                                                    "code": "ZR",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 427
+                                                    }
+                                                },
+                                                {
+                                                    "code": "YQ",
+                                                    "Amount": {
+                                                        "currencyCode": "LKR",
+                                                        "content": 15658
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "FareCalculation": {
+                                            "rateOfExchange": "1.00000000",
+                                            "Text": "CMB UL DXB Q2.00 105.00NUC107.00END ROE1.00",
+                                            "Amount": {
+                                                "currencyCode": "NUC",
+                                                "decimalPlace": 2,
+                                                "content": "107.00"
+                                            }
+                                        },
+                                        "CurrencyConversion": {
+                                            "fromCurrency": "USD",
+                                            "toCurrency": "LKR",
+                                            "rateOfExchange": "313.146"
+                                        },
+                                        "FareComponent": [
+                                            {
+                                                "type": "ER",
+                                                "typeBitmap": "00",
+                                                "number": 1,
+                                                "fareBasisCode": "OSOWP9LK",
+                                                "FlightSegmentNumbers": {
+                                                    "SegmentNumber": [
+                                                        1
+                                                    ]
+                                                },
+                                                "FlightSegment": [
+                                                    {
+                                                        "fareBreakPoint": true,
+                                                        "SegmentNumber": 1,
+                                                        "Surcharge": [
+                                                            {
+                                                                "nature": "S",
+                                                                "natureType": "Q",
+                                                                "Fare": {
+                                                                    "currencyCode": "USD",
+                                                                    "decimalPlace": 2,
+                                                                    "content": 2
+                                                                },
+                                                                "Description": "MISCELLANEOUS\/OTHER"
+                                                            }
+                                                        ],
+                                                        "Amount": {
+                                                            "decimalPlace": 2,
+                                                            "content": 105
+                                                        }
+                                                    }
+                                                ],
+                                                "FareDirectionality": {
+                                                    "oneWay": true,
+                                                    "globalDirection": "EH"
+                                                },
+                                                "Departure": {
+                                                    "DateTime": "2026-03-12T18:40:00",
+                                                    "CityCode": {
+                                                        "name": "COLOMBO",
+                                                        "content": "CMB"
+                                                    }
+                                                },
+                                                "Arrival": {
+                                                    "DateTime": "2026-03-12T21:50:00",
+                                                    "CityCode": {
+                                                        "name": "DUBAI",
+                                                        "content": "DXB"
+                                                    }
+                                                },
+                                                "Amount": {
+                                                    "currencyCode": "NUC",
+                                                    "decimalPlace": 2,
+                                                    "content": 105
+                                                },
+                                                "GoverningCarrier": {
+                                                    "content": "UL"
+                                                },
+                                                "Rules": {
+                                                    "vendor": "ATP",
+                                                    "carrier": "UL",
+                                                    "tariff": "33",
+                                                    "rule": "LK02"
+                                                },
+                                                "FareIndicators": {
+                                                    "publishedFare": true
+                                                }
+                                            }
+                                        ],
+                                        "BaggageDisclosureInd": 6,
+                                        "CommencementDate": "2026-03-12T00:00:00"
+                                    },
+                                    "FeeInfo": [
+                                        []
+                                    ],
+                                    "MiscellaneousInfo": {
+                                        "ValidatingCarrier": [
+                                            {
+                                                "content": "UL"
+                                            }
+                                        ],
+                                        "ItineraryType": "I"
+                                    },
+                                    "MessageInfo": {
+                                        "Message": [
+                                            {
+                                                "type": "WARNING",
+                                                "content": "VALIDATING CARRIER - UL"
+                                            }
+                                        ],
+                                        "Remarks": [
+                                            {
+                                                "type": "ENS",
+                                                "content": "VLD ON UL ONLY\/CHANGE FEE\/MAY APPLY\/AF DEP NONREF"
+                                            }
+                                        ],
+                                        "PricingParameters": "WPP1ADT$RQ"
+                                    },
+                                    "HistoryInfo": [
+                                        {
+                                            "AgentInfo": {
+                                                "sine": "AWS",
+                                                "HomeLocation": "Z7B8"
+                                            },
+                                            "TransactionInfo": {
+                                                "LocalDateTime": "2026-02-26T13:31:00",
+                                                "InputEntry": "WPP1ADT$RQ"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ],
+                            "MiscellaneousData": {
+                                "Value": [
+                                    {
+                                        "type": "sorSource",
+                                        "content": "PSS"
+                                    },
+                                    {
+                                        "type": "PQMMsg",
+                                        "content": "KGFPML-PSS-PQM-NotProcessed"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "Links": [
+                {
+                    "rel": "self",
+                    "href": "https:\/\/api.platform.sabre.com\/v2.4.0\/passenger\/records?mode=create"
+                },
+                {
+                    "rel": "linkTemplate",
+                    "href": "https:\/\/api.platform.sabre.com\/<version>\/passenger\/records?mode=<mode>"
+                }
+            ]
+        },
+        "fetchPnr": {
+            "bookingId": "KGFPML",
+            "startDate": "2026-03-12",
+            "endDate": "2026-03-12",
+            "isCancelable": true,
+            "isTicketed": false,
+            "creationDetails": {
+                "creationUserSine": "AWS",
+                "creationDate": "2026-02-26",
+                "creationTime": "02:01",
+                "userWorkPcc": "Z7B8",
+                "userHomePcc": "Z7B8",
+                "primeHostId": "1B"
+            },
+            "contactInfo": {
+                "phones": [
+                    "LK0712224227-A-1.1",
+                    "LK94741888673-M-1.1"
+                ]
+            },
+            "travelers": [
+                {
+                    "givenName": "THARINDU A MR",
+                    "surname": "HONDAMUNI",
+                    "type": "ADULT",
+                    "passengerCode": "ADT",
+                    "nameAssociationId": "1",
+                    "emails": [
+                        "DIVYATASHIYATRAVELS@GMAIL.COM",
+                        "BETEAM@AAHAAS.COM"
+                    ]
+                }
+            ],
+            "flights": [
+                {
+                    "itemId": "10",
+                    "confirmationId": "DGNO4D",
+                    "sourceType": "ATPCO",
+                    "flightNumber": 225,
+                    "airlineCode": "UL",
+                    "airlineName": "SRILANKAN AIRLINES",
+                    "operatingFlightNumber": 225,
+                    "operatingAirlineCode": "UL",
+                    "operatingAirlineName": "SRILANKAN AIRLINES",
+                    "fromAirportCode": "CMB",
+                    "toAirportCode": "DXB",
+                    "departureDate": "2026-03-12",
+                    "departureTime": "18:40:00",
+                    "arrivalDate": "2026-03-12",
+                    "arrivalTime": "21:50:00",
+                    "arrivalTerminalName": "TERMINAL 1",
+                    "arrivalGate": "1",
+                    "numberOfSeats": 1,
+                    "cabinTypeName": "ECONOMY",
+                    "cabinTypeCode": "Y",
+                    "aircraftTypeCode": "332",
+                    "aircraftTypeName": "AIRBUS INDUSTRIE A330-200",
+                    "bookingClass": "O",
+                    "meals": [
+                        {
+                            "code": "H",
+                            "description": "Hot meal"
+                        }
+                    ],
+                    "flightStatusCode": "HK",
+                    "flightStatusName": "Confirmed",
+                    "durationInMinutes": 280,
+                    "distanceInMiles": 2042,
+                    "travelerIndices": [
+                        1
+                    ]
+                }
+            ],
+            "journeys": [
+                {
+                    "firstAirportCode": "CMB",
+                    "departureDate": "2026-03-12",
+                    "departureTime": "18:40",
+                    "lastAirportCode": "DXB",
+                    "numberOfFlights": 1
+                }
+            ],
+            "fareRules": [
+                {
+                    "originAirportCode": "CMB",
+                    "destinationAirportCode": "DXB",
+                    "owningAirlineCode": "UL",
+                    "passengerCode": "ADT",
+                    "isRefundable": true,
+                    "refundPenalties": [
+                        {
+                            "applicability": "BEFORE_DEPARTURE",
+                            "conditionsApply": true,
+                            "penalty": {
+                                "amount": "48600.0",
+                                "currencyCode": "LKR"
+                            },
+                            "hasNoShowCost": true,
+                            "noShowPenalty": {
+                                "amount": "48600.00",
+                                "currencyCode": "LKR"
+                            }
+                        }
+                    ],
+                    "isChangeable": true,
+                    "exchangePenalties": [
+                        {
+                            "applicability": "BEFORE_DEPARTURE",
+                            "conditionsApply": true,
+                            "penalty": {
+                                "amount": "45500.0",
+                                "currencyCode": "LKR"
+                            },
+                            "hasNoShowCost": true,
+                            "noShowPenalty": {
+                                "amount": "45500.00",
+                                "currencyCode": "LKR"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "fareOffers": [
+                {
+                    "travelerIndices": [
+                        1
+                    ],
+                    "flights": [
+                        {
+                            "itemId": "10"
+                        }
+                    ],
+                    "cabinBaggageAllowance": {
+                        "maximumPieces": 1,
+                        "baggagePieces": [
+                            {
+                                "maximumSizeInInches": 45,
+                                "maximumSizeInCentimeters": 115,
+                                "maximumWeightInPounds": 15,
+                                "maximumWeightInKilograms": 7,
+                                "numberOfPieces": 1
+                            }
+                        ]
+                    },
+                    "checkedBaggageAllowance": {
+                        "totalWeightInKilograms": 30
+                    }
+                }
+            ],
+            "fares": [
+                {
+                    "creationDetails": {
+                        "creationUserSine": "AWS",
+                        "creationDate": "2026-02-26",
+                        "creationTime": "02:01",
+                        "purchaseDeadlineDate": "2026-02-26",
+                        "purchaseDeadlineTime": "23:59",
+                        "userWorkPcc": "Z7B8",
+                        "userHomePcc": "Z7B8"
+                    },
+                    "airlineCode": "UL",
+                    "fareCalculationLine": "CMB UL DXB Q2.00 105.00NUC107.00END ROE1.00",
+                    "isNegotiatedFare": false,
+                    "fareConstruction": [
+                        {
+                            "fareBasisCode": "OSOWP9LK",
+                            "baseRate": {
+                                "amount": "105.00",
+                                "currencyCode": "NUC"
+                            },
+                            "isCurrentItinerary": true,
+                            "checkedBaggageAllowance": {
+                                "totalWeightInKilograms": 30
+                            }
+                        }
+                    ],
+                    "taxBreakdown": [
+                        {
+                            "taxCode": "LK",
+                            "taxAmount": {
+                                "amount": "18789",
+                                "currencyCode": "LKR"
+                            }
+                        },
+                        {
+                            "taxCode": "ZR",
+                            "taxAmount": {
+                                "amount": "427",
+                                "currencyCode": "LKR"
+                            }
+                        },
+                        {
+                            "taxCode": "YQ",
+                            "taxAmount": {
+                                "amount": "15658",
+                                "currencyCode": "LKR"
+                            }
+                        }
+                    ],
+                    "totals": {
+                        "subtotal": "33600",
+                        "taxes": "34874",
+                        "total": "68474",
+                        "currencyCode": "LKR"
+                    },
+                    "pricingTypeCode": "S",
+                    "pricingTypeName": "System",
+                    "pricingStatusCode": "A",
+                    "pricingStatusName": "Active",
+                    "requestedTravelerType": "ADT",
+                    "pricedTravelerType": "ADT",
+                    "recordTypeCode": "PQ",
+                    "recordTypeName": "Price Quote",
+                    "recordId": "1"
+                }
+            ],
+            "remarks": [
+                {
+                    "type": "GENERAL",
+                    "text": "CREATED WITH SABRE APIS CPNR TOOL"
+                },
+                {
+                    "type": "HISTORICAL",
+                    "text": "BOOKING VIA BETEAM PLATFORM"
+                }
+            ],
+            "allSegments": [
+                {
+                    "id": "10",
+                    "type": "FLIGHT",
+                    "text": "225",
+                    "vendorCode": "UL",
+                    "startDate": "2026-03-12",
+                    "startTime": "18:40:00",
+                    "startLocationCode": "CMB",
+                    "endDate": "2026-03-12",
+                    "endTime": "21:50:00",
+                    "endLocationCode": "DXB"
+                }
+            ],
+            "payments": {
+                "flightTotals": [
+                    {
+                        "subtotal": "33600",
+                        "taxes": "34874",
+                        "total": "68474",
+                        "currencyCode": "LKR"
+                    }
+                ]
+            },
+            "otherServices": [
+                {
+                    "airlineCode": "1B",
+                    "serviceMessage": "PLEASE TICKET FARE AS PER TKT\/TL IN PQ"
+                }
+            ],
+            "specialServices": [
+                {
+                    "code": "ADTK",
+                    "message": "TO UL BY 27FEB 1331 CMB TIME ZONE OTHERWISE WILL BE XLD"
+                },
+                {
+                    "code": "OTHS",
+                    "message": "MISSING SSR CTCM MOBILE OR SSR CTCE EMAIL OR SSR CTCR NON-CONSENT FOR UL"
+                }
+            ],
+            "timestamp": "2026-02-26T08:01:25",
+            "bookingSignature": "c7e67cb7b6e76d3f9b829150d1fc9757c87fe1e84e9123eb1285303646c918f912ee092d07936d9a52052311054d94a17452e9e8aeb68144624391f2e2a4934d",
+            "request": {
+                "confirmationId": "KGFPML"
+            }
+        },
+        "endorsement": null,
+        "seatSelection": null,
+        "seatTotalPrice": [],
+        "pnrRequest": {
+            "CreatePassengerNameRecordRQ": {
+                "version": "2.5.0",
+                "haltOnAirPriceError": true,
+                "TravelItineraryAddInfo": {
+                    "AgencyInfo": {
+                        "Ticketing": {
+                            "TicketType": "7TAW"
+                        }
+                    },
+                    "CustomerInfo": {
+                        "ContactNumbers": {
+                            "ContactNumber": [
+                                {
+                                    "LocationCode": "LK",
+                                    "NameNumber": "1.1",
+                                    "Phone": "0712224227",
+                                    "PhoneUseType": "A"
+                                },
+                                {
+                                    "LocationCode": "LK",
+                                    "NameNumber": "1.1",
+                                    "Phone": "+94741888673",
+                                    "PhoneUseType": "M"
+                                }
+                            ]
+                        },
+                        "Email": [
+                            {
+                                "NameNumber": "1.1",
+                                "Address": "beteam@aahaas.com",
+                                "ShortText": "Agency"
+                            },
+                            {
+                                "NameNumber": "1.1",
+                                "Address": "divyatashiyatravels@gmail.com",
+                                "ShortText": "Pax"
+                            }
+                        ],
+                        "PersonName": [
+                            {
+                                "NameNumber": "1.1",
+                                "PassengerType": "ADT",
+                                "GivenName": "THARINDU A Mr",
+                                "Surname": "HONDAMUNI"
+                            }
+                        ]
+                    }
+                },
+                "AirBook": {
+                    "HaltOnStatus": [
+                        {
+                            "Code": "NO"
+                        },
+                        {
+                            "Code": "NN"
+                        },
+                        {
+                            "Code": "UC"
+                        },
+                        {
+                            "Code": "US"
+                        },
+                        {
+                            "Code": "UN"
+                        },
+                        {
+                            "Code": "LL"
+                        },
+                        {
+                            "Code": "HL"
+                        },
+                        {
+                            "Code": "HX"
+                        },
+                        {
+                            "Code": "WL"
+                        }
+                    ],
+                    "OriginDestinationInformation": {
+                        "FlightSegment": [
+                            {
+                                "DepartureDateTime": "2026-03-12T18:40:00",
+                                "FlightNumber": "225",
+                                "Status": "NN",
+                                "ResBookDesigCode": "O",
+                                "NumberInParty": "1",
+                                "DestinationLocation": {
+                                    "LocationCode": "DXB"
+                                },
+                                "MarketingAirline": {
+                                    "FlightNumber": "225",
+                                    "Code": "UL"
+                                },
+                                "MarriageGrp": "I",
+                                "OriginLocation": {
+                                    "LocationCode": "CMB"
+                                }
+                            }
+                        ]
+                    },
+                    "RedisplayReservation": {
+                        "NumAttempts": 3,
+                        "WaitInterval": 3000
+                    }
+                },
+                "AirPrice": [
+                    {
+                        "PriceRequestInformation": {
+                            "Retain": true,
+                            "OptionalQualifiers": {
+                                "PricingQualifiers": {
+                                    "PassengerType": [
+                                        {
+                                            "Quantity": "1",
+                                            "Code": "ADT"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ],
+                "SpecialReqDetails": {
+                    "AddRemark": {
+                        "RemarkInfo": {
+                            "Remark": [
+                                {
+                                    "SegmentNumber": "A",
+                                    "Type": "General",
+                                    "Text": "CREATED WITH SABRE APIS CPNR TOOL"
+                                },
+                                {
+                                    "SegmentNumber": "A",
+                                    "Type": "Historical",
+                                    "Text": "BOOKING VIA BETEAM PLATFORM"
+                                }
+                            ]
+                        }
+                    },
+                    "SpecialService": {
+                        "SpecialServiceInfo": {
+                            "AdvancePassenger": [
+                                {
+                                    "SegmentNumber": "A",
+                                    "Document": {
+                                        "Number": "N8960994",
+                                        "ExpirationDate": "2031-06-14",
+                                        "Type": "P",
+                                        "IssueCountry": "LK",
+                                        "NationalityCountry": "LK"
+                                    },
+                                    "PersonName": {
+                                        "NameNumber": "1.1",
+                                        "GivenName": "THARINDU A Mr",
+                                        "Surname": "HONDAMUNI",
+                                        "Gender": "M",
+                                        "DateOfBirth": "1986-10-26"
+                                    },
+                                    "VendorPrefs": {
+                                        "Airline": {
+                                            "Hosted": false
+                                        }
+                                    },
+                                    "ResidentDestinationAddress": {
+                                        "Country": "LK",
+                                        "Type": "R",
+                                        "Street": "ML 23, REALITY PLAZA",
+                                        "City": "JA -ELA",
+                                        "State": "WESTERN PROVINCE",
+                                        "Zip": "11350"
+                                    }
+                                }
+                            ],
+                            "Service": [
+                                {
+                                    "SegmentNumber": "A",
+                                    "SSR_Code": "CTCM",
+                                    "PersonName": {
+                                        "NameNumber": "1.1"
+                                    },
+                                    "Text": "0712224227"
+                                },
+                                {
+                                    "SegmentNumber": "A",
+                                    "SSR_Code": "CTCE",
+                                    "PersonName": {
+                                        "NameNumber": "1.1"
+                                    },
+                                    "Text": "beteam\/\/aahaas.com"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "PostProcessing": {
+                    "RedisplayReservation": {
+                        "waitInterval": 100,
+                        "returnExtendedPriceQuote": true
+                    },
+                    "EndTransaction": {
+                        "Source": {
+                            "ReceivedFrom": "SabreAPIsTools"
+                        },
+                        "Email": {
+                            "Ind": true
+                        }
+                    }
+                }
+            }
+        },
+        "ticketRequest": {
+            "AirTicketRQ": {
+                "version": "1.3.0",
+                "targetCity": "6ECL",
+                "DesignatePrinter": {
+                    "Printers": {
+                        "Ticket": {
+                            "CountryCode": "LK"
+                        },
+                        "Hardcopy": {
+                            "LNIATA": "22F375"
+                        },
+                        "InvoiceItinerary": {
+                            "LNIATA": "22F375"
+                        }
+                    }
+                },
+                "Itinerary": {
+                    "ID": "KGFPML"
+                },
+                "Ticketing": [
+                    {
+                        "FOP_Qualifiers": {
+                            "BasicFOP": {
+                                "Type": "CA"
+                            }
+                        },
+                        "PricingQualifiers": {
+                            "PriceQuote": [
+                                {
+                                    "Record": [
+                                        {
+                                            "Number": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "MiscQualifiers": {
+                            "Ticket": {
+                                "Type": "ETR"
+                            },
+                            "Commission": {
+                                "Percent": 0
+                            }
+                        }
+                    }
+                ],
+                "PostProcessing": {
+                    "EndTransaction": {
+                        "Source": {
+                            "ReceivedFrom": "Sabre"
+                        },
+                        "Email": {
+                            "Ind": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "pnr": "KGFPML",
+    "pnr_deadline": "2026-02-27T07:01:00",
+    "airType": "atpco"
+}

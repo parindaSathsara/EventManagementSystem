@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "name": "EventSocial UI Tokens",
+    "version": "1.0.0",
+    "theme": "MonochromeDualAccent",
+    "source": "RequirementDocs/eventsocial_full_requirements.md"
+  },
+  "color": {
+    "bg": {
+      "strong": "#000000",
+      "default": "#0A0A0A",
+      "soft": "#111111"
+    },
+    "surface": {
+      "1": "#121212",
+      "2": "#1A1A1A",
+      "3": "#222222"
+    },
+    "line": {
+      "subtle": "#2A2A2A",
+      "strong": "#3A3A3A"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#F3F4F6",
+      "muted": "#E5E7EB",
+      "inverse": "#000000"
+    },
+    "paper": {
+      "default": "#FFFFFF",
+      "soft": "#F4F5F7",
+      "line": "#DBDEE5",
+      "ink": "#000000",
+      "inkMuted": "#515866"
+    },
+    "accent": {
+      "blue": "#2563EB",
+      "highlightBlue": "#3B82F6",
+      "neonPink": "#FF2BD6",
+      "neonPinkSoft": "#FF4DDA"
+    },
+    "uiWhites": {
+      "softWhite": "#F3F4F6",
+      "lightWhiteGlow": "#E5E7EB"
+    },
+    "state": {
+      "ok": "#2563EB",
+      "warn": "#FFB020",
+      "error": "#FF5C7A",
+      "info": "#3B82F6"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "heading": "Sora, sans-serif",
+      "body": "Manrope, sans-serif"
+    },
+    "size": {
+      "displayLg": 48,
+      "displayMd": 40,
+      "h1": 32,
+      "h2": 28,
+      "h3": 24,
+      "h4": 20,
+      "title": 18,
+      "bodyLg": 16,
+      "bodyMd": 14,
+      "bodySm": 13,
+      "caption": 12
+    },
+    "lineHeight": {
+      "displayLg": 56,
+      "displayMd": 48,
+      "h1": 40,
+      "h2": 36,
+      "h3": 32,
+      "h4": 28,
+      "title": 26,
+      "bodyLg": 24,
+      "bodyMd": 22,
+      "bodySm": 20,
+      "caption": 18
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    }
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "8": 32,
+    "10": 40,
+    "12": 48,
+    "16": 64
+  },
+  "radius": {
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "pill": 999
+  },
+  "border": {
+    "hairline": 1,
+    "emphasis": 2
+  },
+  "elevation": {
+    "surface": "0 0 0 1px rgba(255,255,255,0.04)",
+    "raised": "0 6px 24px rgba(0,0,0,0.35)",
+    "overlay": "0 12px 36px rgba(0,0,0,0.45)"
+  },
+  "motion": {
+    "duration": {
+      "fast": 120,
+      "base": 180,
+      "slow": 240
+    },
+    "easing": {
+      "enter": "cubic-bezier(0.2, 0, 0, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    }
+  }
+}

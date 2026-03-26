@@ -1,0 +1,66 @@
+flowchart TB
+    %% ============================================================
+    %% Customer flow: Discover -> Engage -> Attend
+    %% ============================================================
+    subgraph CUSTOMER["Customer Flow"]
+        C1[Open App] --> C2[Reels Feed]
+        C2 --> C3{Interact?}
+        C3 -->|React| C4[Send Reaction]
+        C3 -->|Repost| C5[Create Repost]
+        C3 -->|Follow| C6[Follow Artist]
+        C3 -->|Open Artist| C7[Artist Profile]
+        C2 -->|Open Event| C8[Event Detail]
+        C7 --> C8
+        C8 --> C9{Action}
+        C9 -->|Save| C10[Save Event]
+        C9 -->|Book| C11[Book Ticket]
+        C11 --> C12[Ticket in My Tickets]
+    end
+
+    %% ============================================================
+    %% Artist flow: Verify -> Publish -> Promote
+    %% ============================================================
+    subgraph ARTIST["Artist Flow"]
+        A1[Artist Signup/Login] --> A2[Verification Application]
+        A2 --> A3{Verification Decision}
+        A3 -->|Approved| A4[Publishing Enabled]
+        A3 -->|Rejected| A2
+        A4 --> A5[Create Reel]
+        A4 --> A6[Create Event]
+        A6 --> A7{Approval Required?}
+        A7 -->|No| A8[Event Published]
+        A7 -->|Yes| A9[Pending Admin Approval]
+        A9 --> A8
+        A5 --> A10[Link Reel to Event]
+        A10 --> A11[Event Storyline Updated]
+        A8 --> A12[Track Insights]
+    end
+
+    %% ============================================================
+    %% Admin flow: Verify -> Moderate -> Operate
+    %% ============================================================
+    subgraph ADMIN["Admin Operations Flow"]
+        D1[Admin Dashboard] --> D2[Verification Queue]
+        D2 --> D3[Approve/Reject/Suspend Artist]
+        D1 --> D4[Events Management]
+        D4 --> D5[Create/Edit/Cancel/Reschedule]
+        D5 --> D6[Event Change Log]
+        D1 --> D7[Moderation Queue]
+        D7 --> D8{Report Review}
+        D8 -->|Valid| D9[Remove Content / Suspend / Ban]
+        D8 -->|Invalid| D10[Dismiss Report]
+        D9 --> D11[Moderation Action Logged]
+    end
+
+    %% ============================================================
+    %% Deep-link flow: Installed vs Not installed
+    %% ============================================================
+    subgraph DEEPLINK["Deep Link Flow"]
+        L1[User Opens Shared/Ad Link] --> L2{App Installed?}
+        L2 -->|Yes| L3[Open Target in App]
+        L2 -->|No| L4[Open Web Preview]
+        L4 --> L5[Store Redirect]
+        L5 --> L6[Install App]
+        L6 --> L7[Deferred Open to Original Target]
+    end
+
