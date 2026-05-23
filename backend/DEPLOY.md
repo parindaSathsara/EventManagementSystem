@@ -88,7 +88,8 @@ Fill in:
 | `SEED_ADMIN_PASSWORD` | A strong one — leave only if you're going to run the seed |
 
 > **URL-encoding the DB password.** Special chars must be percent-encoded.
-> Your password `&l+>XV7=Q@iF&B9s` becomes `%26l%2B%3EXV7%3DQ%40iF%26B9s`.
+> Example only: a password like `Foo&Bar+Baz` would become `Foo%26Bar%2BBaz`.
+> Do **not** paste the real password into this file.
 > Other chars: `@`→`%40`, `:`→`%3A`, `/`→`%2F`, `?`→`%3F`, `#`→`%23`.
 
 ### 1.5 Bootstrap

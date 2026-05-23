@@ -69,9 +69,11 @@ backend/
    Fill in `DATABASE_URL`, `JWT_SECRET`, and (optionally) `CORS_ORIGINS`.
 
    > Special characters in the MySQL password **must be URL-encoded** in the
-   > `DATABASE_URL`. e.g. `&` → `%26`, `@` → `%40`, `+` → `%2B`. Your password
-   > `&l+>XV7=Q@iF&B9s` becomes
-   > `%26l%2B%3EXV7%3DQ%40iF%26B9s`.
+   > `DATABASE_URL`. The common ones: `&` → `%26`, `@` → `%40`, `+` → `%2B`,
+   > `>` → `%3E`, `=` → `%3D`. e.g. an example like `Foo&Bar+Baz` would become
+   > `Foo%26Bar%2BBaz`. Generate the real value with
+   > `node -e "console.log(encodeURIComponent('your-password-here'))"`
+   > — do not commit the real password to source.
 
 4. **Generate the Prisma client and create tables:**
    ```bash
