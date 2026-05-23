@@ -31,3 +31,6 @@ coverage/
 
 # user uploads (videos, images)
 uploads/
+
+# local deploy config (gcloud project IDs, instance names)
+deploy/.deploy-config

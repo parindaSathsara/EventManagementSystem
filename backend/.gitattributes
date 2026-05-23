@@ -1,0 +1,8 @@
+# Force LF line endings for files that run on the Linux server.
+# Without this, Windows-side commits convert .sh to CRLF and `bash:
+# ^M: bad interpreter` greets you on the remote.
+
+*.sh        text eol=lf
+*.conf      text eol=lf
+Dockerfile  text eol=lf
+.env*       text eol=lf

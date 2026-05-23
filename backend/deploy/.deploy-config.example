@@ -1,0 +1,21 @@
+# =============================================================================
+# Local deploy config for `deploy/gcloud-connect.sh` and friends.
+# Copy to `.deploy-config` (gitignored) and fill in. Never commit secrets.
+# =============================================================================
+
+# GCP project hosting the backend VM.
+PROJECT=aahaas-prod
+
+# Compute Engine instance name + zone for the backend host
+# (the one I saw at 192.168.126.7 / aahaas-staging-backend).
+INSTANCE=aahaas-staging-backend
+ZONE=asia-south1-a
+
+# Workspace container running on the VM (the one with /var/www/*).
+CONTAINER=aahaas-workspace-1
+
+# Path inside the container where the app lives.
+APP_DIR=/var/www/events-ai
+
+# Git branch deploy.sh will pull. Override per-deploy with `BRANCH=hotfix ./deploy.sh`.
+BRANCH=main

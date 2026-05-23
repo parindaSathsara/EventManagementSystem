@@ -20,18 +20,49 @@ mobile app  ─►  https://events-api.aahaas.dev  ─►  nginx (host) ─►  
 
 ## 1. First-time deploy
 
-### 1.1 SSH chain to the workspace container
+### 1.0 Local gcloud setup (once per laptop)
 
 ```bash
-# from your laptop
-ssh -i .ssh/id_rsa techlabs@aahaas-staging-dbproxy
-ssh -i .ssh/id_rsa techlabs@192.168.126.7
-sudo docker exec -it --user root aahaas-workspace-1 bash
+# install: https://cloud.google.com/sdk/docs/install   (or `brew install --cask google-cloud-sdk`)
+gcloud auth login
+gcloud auth application-default login
+
+# verify you can see the project + VM
+gcloud config set project <PROJECT_ID>
+gcloud compute instances list --filter="name~aahaas-staging-backend"
 ```
 
-You're now inside the workspace container, prompt `root@…:/var/www#`.
+You need these IAM roles on the project (or directly on the VM):
+- `roles/iap.tunnelResourceAccessor` — to use the IAP tunnel
+- `roles/compute.instanceAdmin.v1` — to SSH via gcloud
 
-### 1.2 Clone
+### 1.1 Wire up the local deploy config
+
+```bash
+cd backend
+cp deploy/.deploy-config.example deploy/.deploy-config
+# edit PROJECT / INSTANCE / ZONE / CONTAINER to match
+nano deploy/.deploy-config
+
+chmod +x deploy/gcloud-connect.sh deploy/gcloud-deploy.sh deploy/bootstrap.sh deploy/deploy.sh
+```
+
+### 1.2 Open a shell on the box
+
+```bash
+./deploy/gcloud-connect.sh
+```
+
+That's `gcloud compute ssh --tunnel-through-iap` to the VM, then `docker
+exec` into the workspace container — same prompt as before
+(`root@…:/var/www#`), no jump-host or SSH-key juggling.
+
+> **Why IAP?** No public SSH port needed on the VM, no firewall rules
+> for your laptop IP, all access goes through Google's auth proxy. If
+> someone leaves the team, revoking their IAM role kills their access
+> instantly — no per-machine key rotation.
+
+### 1.3 Clone (inside the workspace container)
 
 ```bash
 cd /var/www
@@ -39,7 +70,7 @@ git clone <your-repo-url> events-ai
 cd events-ai/backend
 ```
 
-### 1.3 Create the production `.env`
+### 1.4 Create the production `.env`
 
 ```bash
 cp .env.production.example .env
@@ -60,7 +91,7 @@ Fill in:
 > Your password `&l+>XV7=Q@iF&B9s` becomes `%26l%2B%3EXV7%3DQ%40iF%26B9s`.
 > Other chars: `@`→`%40`, `:`→`%3A`, `/`→`%2F`, `?`→`%3F`, `#`→`%23`.
 
-### 1.4 Bootstrap
+### 1.5 Bootstrap
 
 ```bash
 chmod +x deploy/bootstrap.sh deploy/deploy.sh
@@ -80,9 +111,10 @@ Bootstrap will:
 You should see `✓ health OK …` and a banner. If anything fails, the script
 exits with the failing step shown.
 
-### 1.5 Install the nginx site (on the host, NOT inside the container)
+### 1.6 Install the nginx site (on the host, NOT inside the container)
 
-Exit out of the workspace container (`exit`) back to the host, then:
+`exit` once to leave the container, you're now on the host
+(`techlabs@aahaas-staging-backend`). Then:
 
 ```bash
 # Copy the nginx server block. Adjust the source path to wherever you
@@ -107,17 +139,25 @@ Test the plain-HTTP path works (will redirect / pre-cert):
 curl -I http://events-api.aahaas.dev/api/health
 ```
 
-### 1.6 Point DNS
+### 1.7 Point DNS
 
-In the GCP DNS console (or wherever `aahaas.dev` lives), add an `A` record:
+In Cloud DNS (or wherever `aahaas.dev` lives), add an `A` record:
 
 ```
-events-api.aahaas.dev   →   <public IP of the load balancer / server>
+events-api.aahaas.dev   →   <public IP of the LB / VM>
 ```
 
-Wait for propagation (`dig +short events-api.aahaas.dev` should resolve).
+If you don't know the IP:
+```bash
+gcloud compute addresses list
+# or, for the VM directly:
+gcloud compute instances describe <INSTANCE> --zone=<ZONE> \
+  --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+```
 
-### 1.7 Issue TLS with Let's Encrypt
+Wait for propagation (`dig +short events-api.aahaas.dev`).
+
+### 1.8 Issue TLS with Let's Encrypt
 
 On the host:
 
@@ -138,7 +178,7 @@ curl -I https://events-api.aahaas.dev/api/health
 # HTTP/2 200 …
 ```
 
-### 1.8 Point the mobile app at the new URL
+### 1.9 Point the mobile app at the new URL
 
 Edit `Project/src/services/api/client.js`:
 
@@ -154,26 +194,43 @@ should also remove the cleartext exceptions from `Project/app.json`
 
 ## 2. Ongoing deploys
 
-After pushing changes to `main` on GitHub:
+Once you've pushed to `main` on GitHub, deploy is **one command from your
+laptop** — no manual SSH, no chained shells:
 
 ```bash
-# from your laptop: ssh into the workspace container (1.1)
-cd /var/www/events-ai/backend
-./deploy/deploy.sh
+cd backend
+./deploy/gcloud-deploy.sh
 ```
 
-`deploy.sh` will:
-- `git fetch && git reset --hard origin/main`
-- skip `npm ci` if `package*.json` and `prisma/schema.prisma` are unchanged
-- always run `prisma migrate deploy` (idempotent — no-op when nothing to apply)
-- `pm2 reload` (zero-downtime restart)
-- poll `/api/health` until it answers, fail loudly if not
+That single script:
+1. `gcloud compute ssh --tunnel-through-iap` to the VM
+2. `docker exec` into the workspace container
+3. Inside the container, runs `cd /var/www/events-ai/backend && ./deploy/deploy.sh`
 
-Useful flags:
+`deploy.sh` then:
+- `git fetch && git reset --hard origin/main`
+- skips `npm ci` if `package*.json` and `prisma/schema.prisma` are unchanged
+- always runs `prisma migrate deploy` (idempotent — no-op when nothing to apply)
+- `pm2 reload events-ai` (zero-downtime restart)
+- polls `/api/health` until it answers, fails loudly if not
+
+Useful flags (work both locally and on the box):
 ```bash
-SKIP_INSTALL=1 ./deploy/deploy.sh   # only code changed
-SKIP_MIGRATE=1 ./deploy/deploy.sh   # avoid running migrations
-BRANCH=hotfix ./deploy/deploy.sh    # deploy a non-main branch
+SKIP_INSTALL=1 ./deploy/gcloud-deploy.sh   # only code changed
+SKIP_MIGRATE=1 ./deploy/gcloud-deploy.sh   # avoid running migrations
+BRANCH=hotfix ./deploy/gcloud-deploy.sh    # deploy a non-main branch / tag / SHA
+```
+
+### Running ad-hoc remote commands
+
+`gcloud-connect.sh` accepts an arbitrary command and runs it inside the
+container — useful for one-off ops without opening an interactive shell:
+
+```bash
+./deploy/gcloud-connect.sh "pm2 status"
+./deploy/gcloud-connect.sh "pm2 logs events-ai --lines 80 --nostream"
+./deploy/gcloud-connect.sh "cd /var/www/events-ai/backend && npx prisma studio"
+./deploy/gcloud-connect.sh   # no args = interactive shell inside container
 ```
 
 ---
