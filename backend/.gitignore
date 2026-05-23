@@ -34,3 +34,4 @@ uploads/
 
 # local deploy config (gcloud project IDs, instance names)
 deploy/.deploy-config
+deploy/.env.production.staged

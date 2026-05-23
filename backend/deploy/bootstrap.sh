@@ -64,8 +64,15 @@ echo "✓ log dir:    $LOG_DIR"
 echo "✓ upload dir: $UPLOAD_DIR"
 
 # ---- 4. Install deps + generate Prisma client -------------------------------
-echo "→ npm ci…"
-npm ci
+if [ -f package-lock.json ]; then
+  echo "→ npm ci (reproducible install from package-lock.json)…"
+  npm ci
+else
+  # No lockfile shipped — fall back to a regular install. Should be a
+  # one-time path on first ever deploy; subsequent deploys will use ci.
+  echo "→ no package-lock.json found; running npm install instead…"
+  npm install
+fi
 
 echo "→ prisma generate…"
 npx prisma generate
