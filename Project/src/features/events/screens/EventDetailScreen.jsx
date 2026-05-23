@@ -25,12 +25,18 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
   const [selectedTicket, setSelectedTicket] = useState(
     event && event.ticketTypes && event.ticketTypes.length ? event.ticketTypes[0].id : null,
   );
+  // Booking is in-flight when this is true — the Book button is disabled
+  // and a second tap is a no-op. Prevents the double-purchase race we saw
+  // in the load test (5 simultaneous taps = 5 tickets created).
+  const [booking, setBooking] = useState(false);
   const alert = useAlert();
 
   async function handleBook() {
+    if (booking) return; // guard against re-entry from a fast double-tap
     if (!event || !selectedTicket) return;
     const tt = event.ticketTypes.find((t) => t.id === selectedTicket);
     if (!tt || tt.remaining === 0) return;
+    setBooking(true);
     try {
       const ticket = await ticketsRepo.create({
         eventId: event.id,
@@ -47,6 +53,8 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
       );
     } catch (err) {
       alert.error('Booking failed', err?.message || 'Could not book this ticket. Please try again.');
+    } finally {
+      setBooking(false);
     }
   }
 
@@ -171,9 +179,18 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
           <Text style={styles.bookPrice}>{selected ? selected.priceLabel : '—'}</Text>
         </View>
         <Button
-          title={canBook ? (selected.priceLabel.toLowerCase() === 'free' ? 'Reserve' : 'Book now') : 'Sold out'}
+          title={
+            booking
+              ? 'Booking…'
+              : canBook
+              ? (selected.priceLabel.toLowerCase() === 'free' ? 'Reserve' : 'Book now')
+              : 'Sold out'
+          }
           variant="primary"
-          disabled={!canBook}
+          // disable while a purchase is in flight so a double-tap can't
+          // create two tickets — the backend has no per-request idempotency.
+          disabled={!canBook || booking}
+          loading={booking}
           onPress={handleBook}
           style={styles.bookBtn}
         />

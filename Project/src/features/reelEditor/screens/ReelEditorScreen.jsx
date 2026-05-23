@@ -284,11 +284,21 @@ export default function ReelEditorScreen({ onBack, onPublish }) {
     } catch (err) {
       setPublishing(false);
       setUploadPct(null);
+      // Cloudflare/nginx return 413 BEFORE the backend sees the upload when
+      // the file exceeds the platform cap (CF Free/Pro = 100MB). The response
+      // body is HTML, not our JSON error shape, so map it explicitly here.
+      const status = err instanceof ApiError ? err.status : undefined;
       const isNetwork = err instanceof ApiError && (err.status === 0 || err.code === 'NETWORK');
-      alert.error(
-        isNetwork ? 'Upload failed' : 'Upload error',
-        err?.message || 'Could not upload your video. Try again.',
-      );
+      let title = 'Upload failed';
+      let message = err?.message || 'Could not upload your video. Try again.';
+      if (status === 413) {
+        title = 'Video too large';
+        message = 'Your clip is over the 100 MB upload limit. Trim it or use a lower-quality version, then try again.';
+      } else if (isNetwork) {
+        title = 'No connection';
+        message = 'We couldn\'t reach the server. Check your connection and retry.';
+      }
+      alert.error(title, message);
       return;
     }
 
