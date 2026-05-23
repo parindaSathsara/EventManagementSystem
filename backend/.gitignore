@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# env (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client
+prisma/migrations/.tmp/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# build
+dist/
+build/
+coverage/
+
+# user uploads (videos, images)
+uploads/

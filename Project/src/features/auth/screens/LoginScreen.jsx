@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
 import { Button, Input } from '../../../shared/components';
+import { useAlert } from '../../../shared/hooks';
 
 const { width, height } = Dimensions.get('window');
 const coverImage = require('../../../../assets/Covers/coverLow.png');
@@ -24,6 +25,9 @@ export default function LoginScreen({ onBack, onLogin, onGoToSignup, onGoToForgo
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const alert = useAlert();
+  const handleSocial = (provider) =>
+    alert.info(`${provider} login`, 'OAuth flows are wired to the backend in Phase 2. For the demo, please use email login.');
 
   function validate() {
     const newErrors = {};
@@ -41,13 +45,16 @@ export default function LoginScreen({ onBack, onLogin, onGoToSignup, onGoToForgo
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleLogin() {
+  async function handleLogin() {
     if (!validate()) return;
     setLoading(true);
-    if (onLogin) {
-      onLogin({ email: email.trim(), password });
+    try {
+      if (onLogin) {
+        await onLogin({ email: email.trim(), password });
+      }
+    } finally {
+      setLoading(false);
     }
-    setTimeout(() => setLoading(false), 1500);
   }
 
   return (
@@ -122,13 +129,13 @@ export default function LoginScreen({ onBack, onLogin, onGoToSignup, onGoToForgo
 
                 {/* Social login row */}
                 <View style={styles.socialRow}>
-                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Google')}>
                     <Ionicons name="logo-google" size={22} color={COLORS.textPrimary} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Apple')}>
                     <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+                  <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Phone')}>
                     <Ionicons name="call-outline" size={22} color={COLORS.textPrimary} />
                   </TouchableOpacity>
                 </View>
@@ -184,7 +191,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.cardBackground,
+    backgroundColor: COLORS.surface1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.lg,

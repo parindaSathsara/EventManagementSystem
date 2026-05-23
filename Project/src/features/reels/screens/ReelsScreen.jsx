@@ -13,13 +13,16 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
+import { Share } from 'react-native';
 import useReels from '../hooks/useReels';
 import ReelCard from '../components/ReelCard';
 import ReactionPicker from '../components/ReactionPicker';
+import { useAlert } from '../../../shared/hooks';
+import { ConnectionError, EmptyState } from '../../../shared/components';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function ReelsScreen({ onNavigateToEvent }) {
+export default function ReelsScreen({ onNavigateToEvent, onNavigateToArtist, initialIndex = 0 }) {
   const {
     reels,
     activeIndex,
@@ -39,6 +42,30 @@ export default function ReelsScreen({ onNavigateToEvent }) {
 
   const [reactionPickerReel, setReactionPickerReel] = useState(null);
   const flatListRef = useRef(null);
+  const alert = useAlert();
+
+  async function handleShare(reel) {
+    try {
+      await Share.share({
+        message: `Check out ${reel.artist.name} on EventSocial: "${reel.caption}"`,
+      });
+    } catch (_e) {
+      // user cancelled — silent
+    }
+  }
+
+  function handleMore(reel) {
+    alert.confirm(
+      reel.artist.name,
+      'What would you like to do?',
+      {
+        confirmText: 'Report reel',
+        cancelText: 'Not interested',
+        onConfirm: () => alert.success('Reported', 'Thanks — our team will review this reel.'),
+        onCancel: () => alert.info('Got it', 'We\'ll show fewer reels like this.'),
+      },
+    );
+  }
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
@@ -72,9 +99,14 @@ export default function ReelsScreen({ onNavigateToEvent }) {
         onReactionPress={() => setReactionPickerReel(item)}
         onRepost={() => handleRepost(item.id)}
         onSave={() => handleSave(item.id)}
-        onShare={() => {}}
-        onMore={() => {}}
+        onShare={() => handleShare(item)}
+        onMore={() => handleMore(item)}
         onFollowPress={() => handleFollow(item.artist.id)}
+        onArtistPress={
+          onNavigateToArtist
+            ? () => onNavigateToArtist(item.artist.id)
+            : undefined
+        }
         onEventPress={
           item.linkedEvent && onNavigateToEvent
             ? () => onNavigateToEvent(item.linkedEvent.id)
@@ -94,10 +126,41 @@ export default function ReelsScreen({ onNavigateToEvent }) {
       handleFollow,
       totalReactions,
       onNavigateToEvent,
+      onNavigateToArtist,
     ],
   );
 
   const keyExtractor = useCallback((item) => item.id, []);
+
+  // Empty + error states. The hook exposes them via array-attached properties.
+  const loading = reels.loading;
+  const fetchError = reels.error;
+  const refresh = reels.refresh;
+
+  if (reels.length === 0 && fetchError && !loading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <ConnectionError error={fetchError} onRetry={refresh} loading={loading} />
+      </View>
+    );
+  }
+
+  if (reels.length === 0) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <EmptyState
+          icon="film-outline"
+          title={loading ? 'Loading reels…' : 'No reels yet'}
+          message={loading ? 'Hang on while we pull the latest from your artists.' : 'Be the first to publish a reel — switch to the artist side and create one.'}
+        />
+      </View>
+    );
+  }
+
+  // FlatList rejects initialScrollIndex >= data.length — clamp defensively.
+  const safeInitial = Math.max(0, Math.min(initialIndex || 0, reels.length - 1));
 
   return (
     <View style={styles.container}>
@@ -130,6 +193,7 @@ export default function ReelsScreen({ onNavigateToEvent }) {
         maxToRenderPerBatch={3}
         windowSize={5}
         initialNumToRender={2}
+        initialScrollIndex={safeInitial}
       />
 
       {/* Top header overlay */}
@@ -196,6 +260,8 @@ export default function ReelsScreen({ onNavigateToEvent }) {
 
 ReelsScreen.propTypes = {
   onNavigateToEvent: PropTypes.func,
+  onNavigateToArtist: PropTypes.func,
+  initialIndex: PropTypes.number,
 };
 
 const styles = StyleSheet.create({
@@ -203,6 +269,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.bgStrong,
   },
+  center: { alignItems: 'center', justifyContent: 'center' },
   headerOverlay: {
     position: 'absolute',
     top: 0,

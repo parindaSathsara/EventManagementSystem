@@ -27,21 +27,25 @@ export const COLORS = {
   ink: '#000000',
   inkMuted: '#515866',
 
-  // Accents
-  accent: '#2563EB',
-  highlight: '#3B82F6',
-  neonPink: '#FF2BD6',
-  neonPinkSoft: '#FF4DDA',
+  // Accents (per design system: monochrome + dual accent)
+  accent: '#FF5482',          // pink — primary action / focus / active
+  accentSoft: '#FF7DA1',
+  accentDeep: '#E63E6E',
+  highlight: '#00FFA1',       // green — verified / live / success
+  highlightSoft: '#5BFFC2',
+  neonPink: '#FF5482',
+  neonPinkSoft: '#FF7DA1',
+  neonGreen: '#00FFA1',
 
   // UI Whites
   softWhite: '#F3F4F6',
   lightWhiteGlow: '#E5E7EB',
 
   // Functional
-  ok: '#2563EB',
+  ok: '#00FFA1',
   warn: '#FFB020',
   error: '#FF5C7A',
-  info: '#3B82F6',
+  info: '#6BA8FF',
 
   // Overlays
   overlayLight: 'rgba(255, 255, 255, 0.06)',

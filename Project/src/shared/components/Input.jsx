@@ -12,6 +12,9 @@ export default function Input({
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'none',
+  autoComplete,
+  textContentType,
+  returnKeyType,
   error,
   helper,
   variant = 'dark',
@@ -42,6 +45,9 @@ export default function Input({
           secureTextEntry={hidden}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          autoComplete={autoComplete}
+          textContentType={textContentType}
+          returnKeyType={returnKeyType}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
@@ -72,6 +78,9 @@ Input.propTypes = {
   secureTextEntry: PropTypes.bool,
   keyboardType: PropTypes.string,
   autoCapitalize: PropTypes.string,
+  autoComplete: PropTypes.string,
+  textContentType: PropTypes.string,
+  returnKeyType: PropTypes.string,
   error: PropTypes.string,
   helper: PropTypes.string,
   variant: PropTypes.oneOf(['dark', 'light']),

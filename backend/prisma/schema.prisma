@@ -1,0 +1,310 @@
+// EventSocial — Prisma schema (MySQL)
+//
+// Design notes:
+//   * `cuid()` IDs everywhere — opaque, URL-safe, sortable enough for our needs.
+//   * Soft FKs where the FE cares more about presence than strict referential
+//     integrity at write time (e.g. linkedEventId on Reel can be nullable).
+//   * Composite unique keys on join tables prevent dup follows / saves /
+//     reactions without a separate index round-trip.
+//
+// To apply: `npx prisma migrate dev --name init` (dev) or
+// `npx prisma migrate deploy` (prod).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Users & artists
+// -----------------------------------------------------------------------------
+
+enum UserRole {
+  customer
+  artist
+  admin
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?  // captured by the Complete Profile step on first login
+  city         String?
+  avatarUrl    String?
+  role         UserRole @default(customer)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  artist          Artist?         @relation
+  tickets         Ticket[]
+  savedEvents     SavedEvent[]
+  savedReels      SavedReel[]
+  reactions       ReelReaction[]
+  reposts         ReelRepost[]
+  follows         Follow[]
+
+  @@index([role])
+}
+
+model Artist {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  handle          String   @unique
+  bio             String?  @db.Text
+  category        String?  // DJ / Singer / Band — surfaced on the profile
+  isVerified      Boolean  @default(false)
+  // Preferred artists skip the manual approval queue — their reels/events
+  // go live immediately on publish (per FR-S5b / FR-E4).
+  isPreferred     Boolean  @default(false)
+  followerCount   Int      @default(0)
+  totalReelViews  Int      @default(0)
+  totalEventTickets Int    @default(0)
+  // Cosmetic — JSON blob for socials (instagram/spotify/youtube/etc).
+  socialsJson     String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events      Event[]
+  reels       Reel[]
+  lineups     LineupEntry[]
+  followers   Follow[]
+}
+
+// -----------------------------------------------------------------------------
+// Events & tickets
+// -----------------------------------------------------------------------------
+
+enum EventStatus {
+  draft
+  published
+  live
+  cancelled
+  ended
+}
+
+model Event {
+  id                 String      @id @default(cuid())
+  organizerArtistId  String
+  title              String
+  description        String?     @db.Text
+  category           String      @default("Concert")
+  coverColor         String      @default("#1a0a2e")
+  coverImageUrl      String?
+  startsAt           DateTime
+  endsAt             DateTime
+  timezone           String      @default("Asia/Colombo")
+  venueName          String
+  cityName           String
+  addressLine        String?
+  geoLat             Float?
+  geoLng             Float?
+  ageRestriction     String      @default("All ages")
+  status             EventStatus @default(published)
+  refundPolicy       String?     @db.Text
+  cancellationPolicy String?     @db.Text
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  organizer    Artist         @relation(fields: [organizerArtistId], references: [id], onDelete: Cascade)
+  ticketTypes  TicketType[]
+  tickets      Ticket[]
+  savedBy      SavedEvent[]
+  lineup       LineupEntry[]
+  linkedReels  Reel[]         @relation("ReelLinkedEvent")
+
+  @@index([organizerArtistId, status])
+  @@index([startsAt])
+  @@index([cityName])
+}
+
+model TicketType {
+  id         String   @id @default(cuid())
+  eventId    String
+  name       String
+  priceLabel String   // "LKR 4500" / "Free" — display string, kept simple
+  priceCents Int      @default(0)
+  currency   String   @default("LKR")
+  total      Int
+  remaining  Int
+  createdAt  DateTime @default(now())
+
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets Ticket[]
+
+  @@index([eventId])
+}
+
+enum TicketStatus {
+  active
+  used
+  refunded
+  cancelled
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  eventId      String
+  ticketTypeId String
+  userId       String
+  qrPayload    String       @unique
+  status       TicketStatus @default(active)
+  holderName   String
+  issuedAt     DateTime     @default(now())
+  usedAt       DateTime?
+
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([eventId])
+}
+
+model LineupEntry {
+  id        String @id @default(cuid())
+  eventId   String
+  artistId  String
+  order     Int    @default(0)
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, artistId])
+  @@index([eventId])
+}
+
+// -----------------------------------------------------------------------------
+// Reels & social
+// -----------------------------------------------------------------------------
+
+enum Visibility {
+  public
+  followers
+  private
+}
+
+// Per FR-S5: every reel travels through a lifecycle. Preferred artists go
+// from draft → published; non-preferred go draft → pending_approval → published.
+enum ReelStatus {
+  draft
+  pending_approval
+  published
+  hidden
+  removed
+  rejected
+}
+
+model Reel {
+  id                  String     @id @default(cuid())
+  artistId            String
+  caption             String     @db.Text
+  musicTrackTitle     String?
+  musicTrackArtistName String?
+  linkedEventId       String?
+  coverColor          String     @default("#1a0a2e")
+  coverImageUrl       String?    // optional artist-picked thumbnail
+  videoUrl            String?
+  visibility          Visibility @default(public)
+  status              ReelStatus @default(published)
+  rejectionReason     String?    @db.Text
+  views               Int        @default(0)
+  publishedAt         DateTime   @default(now())
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  artist      Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  linkedEvent Event?         @relation("ReelLinkedEvent", fields: [linkedEventId], references: [id], onDelete: SetNull)
+  tags        ReelTag[]
+  reactions   ReelReaction[]
+  reposts     ReelRepost[]
+  saves       SavedReel[]
+
+  @@index([artistId, publishedAt(sort: Desc)])
+  @@index([linkedEventId])
+}
+
+model ReelTag {
+  id     String @id @default(cuid())
+  reelId String
+  tag    String
+
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@unique([reelId, tag])
+  @@index([tag])
+}
+
+model Follow {
+  id         String   @id @default(cuid())
+  followerId String
+  artistId   String
+  createdAt  DateTime @default(now())
+
+  follower User   @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, artistId])
+  @@index([artistId])
+}
+
+model SavedEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([userId])
+}
+
+model SavedReel {
+  id        String   @id @default(cuid())
+  userId    String
+  reelId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reelId])
+  @@index([userId])
+}
+
+model ReelReaction {
+  id           String   @id @default(cuid())
+  userId       String
+  reelId       String
+  reactionCode String   // fire | love | handsUp | wow | party
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  // One reaction per user per reel — code is overwritten on change.
+  @@unique([userId, reelId])
+  @@index([reelId, reactionCode])
+}
+
+model ReelRepost {
+  id        String   @id @default(cuid())
+  userId    String
+  reelId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reelId])
+  @@index([userId])
+}

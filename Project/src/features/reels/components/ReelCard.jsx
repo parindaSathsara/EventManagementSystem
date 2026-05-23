@@ -7,6 +7,7 @@ import {
   Animated,
   Image,
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
@@ -34,6 +35,7 @@ export default function ReelCard({
   onMore,
   onFollowPress,
   onEventPress,
+  onArtistPress,
   totalReactions,
 }) {
   const pauseOpacity = useRef(new Animated.Value(0)).current;
@@ -93,25 +95,38 @@ export default function ReelCard({
 
   return (
     <View style={styles.container}>
-      {/* Background — gradient placeholder for video */}
-      <LinearGradient
-        colors={[reel.coverColor || '#0a0a0a', '#000000', reel.coverColor || '#0a0a0a']}
-        locations={[0, 0.5, 1]}
-        style={styles.background}
-      />
-
-      {/* Video placeholder visual — abstract pattern */}
-      <View style={styles.visualContainer}>
-        <LinearGradient
-          colors={['rgba(37, 99, 235, 0.08)', 'transparent', 'rgba(255, 43, 214, 0.06)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
+      {/* Background — video if available, gradient placeholder otherwise.
+          Backend reels carry `videoUrl` (string from /uploads); legacy local
+          reels used `videoSource` (asset). Accept either shape. */}
+      {reel.videoUrl || reel.videoSource ? (
+        <Video
+          source={reel.videoUrl ? { uri: reel.videoUrl } : reel.videoSource}
+          style={styles.background}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay={isActive && !isPaused}
+          isLooping
+          isMuted={isMuted}
         />
-        <View style={styles.playIconWrap}>
-          <Ionicons name="play" size={48} color="rgba(255,255,255,0.15)" />
-        </View>
-      </View>
+      ) : (
+        <>
+          <LinearGradient
+            colors={[reel.coverColor || '#0a0a0a', '#000000', reel.coverColor || '#0a0a0a']}
+            locations={[0, 0.5, 1]}
+            style={styles.background}
+          />
+          <View style={styles.visualContainer}>
+            <LinearGradient
+              colors={['rgba(37, 99, 235, 0.08)', 'transparent', 'rgba(255, 43, 214, 0.06)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.playIconWrap}>
+              <Ionicons name="play" size={48} color="rgba(255,255,255,0.15)" />
+            </View>
+          </View>
+        </>
+      )}
 
       <TouchableWithoutFeedback onPress={handleTap}>
         <View style={styles.touchArea}>
@@ -120,6 +135,7 @@ export default function ReelCard({
             reel={reel}
             onFollowPress={onFollowPress}
             onEventPress={onEventPress}
+            onArtistPress={onArtistPress}
           />
 
           {/* Right action rail */}
@@ -182,6 +198,7 @@ ReelCard.propTypes = {
   onMore: PropTypes.func,
   onFollowPress: PropTypes.func,
   onEventPress: PropTypes.func,
+  onArtistPress: PropTypes.func,
   totalReactions: PropTypes.func,
 };
 
@@ -213,7 +230,9 @@ const styles = StyleSheet.create({
   actionsContainer: {
     position: 'absolute',
     right: SPACING.md,
-    bottom: SPACING.huge + SPACING.xxl,
+    // Lowered: was `huge + xxl + xxxl` (= 120). Drop by SPACING.xxl (32)
+    // so the rail sits closer to the caption / tab bar.
+    bottom: SPACING.huge + SPACING.xxxl,
     alignItems: 'center',
   },
   pauseIndicator: {

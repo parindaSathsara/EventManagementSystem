@@ -107,7 +107,9 @@ ReelActions.propTypes = {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: SPACING.lg,
+    // Tightened from SPACING.lg (20) → SPACING.md (12) so the rail reads as
+    // one stack instead of five separate icons.
+    gap: SPACING.md,
   },
   actionButton: {
     alignItems: 'center',

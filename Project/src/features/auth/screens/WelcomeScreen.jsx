@@ -13,10 +13,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
 import { Button, BackgroundOverlay, BrushedGlow, AnimatedGradient } from '../../../shared/components';
+import { useAlert } from '../../../shared/hooks';
 
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen({ onJoinNow, onLogIn }) {
+  const alert = useAlert();
+  const handleSocial = (provider) =>
+    alert.info(`${provider} login`, 'OAuth flows are wired to the backend in Phase 2. For the demo, please use email signup.');
+
   const fadeIn = useRef(new Animated.Value(0)).current;
   const slideUp = useRef(new Animated.Value(40)).current;
 
@@ -169,13 +174,13 @@ export default function WelcomeScreen({ onJoinNow, onLogIn }) {
 
         {/* Social login row */}
         <View style={styles.socialRow}>
-          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Google')}>
             <Ionicons name="logo-google" size={22} color={COLORS.textPrimary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Apple')}>
             <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.socialButton} activeOpacity={0.7} onPress={() => handleSocial('Phone')}>
             <Ionicons name="call-outline" size={22} color={COLORS.textPrimary} />
           </TouchableOpacity>
         </View>

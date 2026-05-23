@@ -1,17 +1,54 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useFonts, Sora_400Regular, Sora_500Medium, Sora_600SemiBold, Sora_700Bold, Sora_800ExtraBold } from '@expo-google-fonts/sora';
-import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
+import {
+  useFonts,
+  Sora_400Regular,
+  Sora_500Medium,
+  Sora_600SemiBold,
+  Sora_700Bold,
+  Sora_800ExtraBold,
+} from '@expo-google-fonts/sora';
+import {
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+} from '@expo-google-fonts/manrope';
 import * as SplashScreenModule from 'expo-splash-screen';
-import { SplashScreen, WelcomeScreen, LoginScreen, SignupScreen, ForgotPasswordScreen } from './src/features/auth';
-import { ReelsScreen } from './src/features/reels';
-import { AlertProvider } from './src/shared/providers';
+import {
+  SplashScreen,
+  WelcomeScreen,
+  LoginScreen,
+  SignupScreen,
+  ForgotPasswordScreen,
+  CompleteProfileScreen,
+} from './src/features/auth';
+import { BecomeArtistScreen } from './src/features/artistApp';
+import { CustomerTabs, ArtistTabs, RoleSelectScreen } from './src/navigation';
+import { AlertProvider, UserProvider, useUser } from './src/shared/providers';
 import { useAlert } from './src/shared/hooks';
+import { hydrateAll, clearAll } from './src/services';
+import { auth as authApi } from './src/services/api';
 
 SplashScreenModule.preventAutoHideAsync();
 
+/**
+ * Boot sequence
+ * -------------
+ *   splash → welcome → login|signup|forgot → completeProfile → roleSelect
+ *                                                              ↓
+ *                                                  customer  OR  artist
+ *
+ * No mock data anywhere. Everything renders from the backend; if it's
+ * unreachable, screens surface a ConnectionError state and the user can
+ * retry from there.
+ */
+
 function AppContent() {
-  const [screen, setScreen] = useState('splash');
+  const [stage, setStage] = useState('splash');
+  const [bootReady, setBootReady] = useState(false);
+  const { user, artist, setUser, logout } = useUser();
   const alert = useAlert();
 
   const [fontsLoaded] = useFonts({
@@ -27,66 +64,182 @@ function AppContent() {
     Manrope_800ExtraBold,
   });
 
+  // On boot: restore the session (if a JWT is on disk), then hydrate the
+  // repos from the backend. Both calls are tolerant of network failure so
+  // we never block the splash screen waiting on a dead server.
+  useEffect(() => {
+    (async () => {
+      try {
+        const restored = await authApi.restoreSession();
+        if (restored) {
+          await setUser(restored);
+          // hydrateAll runs in parallel; each repo swallows its own error
+          // and surfaces it via the per-hook ConnectionError component.
+          hydrateAll().catch(() => {});
+          setStage(restored.phone ? 'roleSelect' : 'completeProfile');
+        }
+      } catch (e) {
+        console.warn('[boot] session restore failed', e);
+      } finally {
+        setBootReady(true);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
+    if (fontsLoaded && bootReady) {
       await SplashScreenModule.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, bootReady]);
 
-  if (!fontsLoaded) {
-    return null;
+  async function handleLogout() {
+    await logout();
+    clearAll();
+    setStage('welcome');
   }
 
-  if (screen === 'splash') {
+  async function handleLoginSuccess(authedUser) {
+    await setUser(authedUser);
+    // Warm the caches as soon as the JWT is on the client.
+    hydrateAll().catch(() => {});
+    if (!authedUser?.phone) {
+      setStage('completeProfile');
+    } else {
+      alert.success(
+        'Login',
+        `Welcome back, ${authedUser.name || authedUser.email}!`,
+        () => setStage('roleSelect'),
+      );
+    }
+  }
+
+  async function handleSignupSuccess(authedUser) {
+    await setUser(authedUser);
+    hydrateAll().catch(() => {});
+    setStage('completeProfile');
+  }
+
+  async function handleProfileComplete({ phone, city }) {
+    try {
+      const updated = await authApi.updateProfile({ phone, city });
+      await setUser(updated);
+    } catch (e) {
+      alert.error('Could not save profile', e?.message || 'Please try again.');
+      return;
+    }
+    setStage('roleSelect');
+  }
+
+  if (!fontsLoaded || !bootReady) return null;
+
+  if (stage === 'splash') {
     return (
       <View style={styles.root} onLayout={onLayoutRootView}>
-        <SplashScreen onFinish={() => setScreen('welcome')} />
+        <SplashScreen onFinish={() => setStage('welcome')} />
       </View>
     );
   }
 
-  if (screen === 'reels') {
-    return <ReelsScreen />;
+  if (stage === 'welcome') {
+    return (
+      <WelcomeScreen
+        onJoinNow={() => setStage('signup')}
+        onLogIn={() => setStage('login')}
+      />
+    );
   }
 
-  if (screen === 'login') {
+  if (stage === 'login') {
     return (
       <LoginScreen
-        onBack={() => setScreen('welcome')}
-        onLogin={(data) => {
-          alert.success('Login', `Welcome back, ${data.email}!`, () => setScreen('reels'));
+        onBack={() => setStage('welcome')}
+        onLogin={async (data) => {
+          try {
+            const authed = await authApi.login(data);
+            await handleLoginSuccess(authed);
+          } catch (e) {
+            alert.error('Login failed', e?.message || 'Please check your credentials.');
+          }
         }}
-        onGoToSignup={() => setScreen('signup')}
-        onGoToForgotPassword={() => setScreen('forgotPassword')}
+        onGoToSignup={() => setStage('signup')}
+        onGoToForgotPassword={() => setStage('forgotPassword')}
       />
     );
   }
 
-  if (screen === 'forgotPassword') {
-    return (
-      <ForgotPasswordScreen
-        onBack={() => setScreen('login')}
-        onResetPassword={(data) => alert.info('Reset', `Reset link sent to ${data.email}`)}
-      />
-    );
-  }
-
-  if (screen === 'signup') {
+  if (stage === 'signup') {
     return (
       <SignupScreen
-        onBack={() => setScreen('welcome')}
-        onSignup={(data) => {
-          alert.success('Signed Up', `Welcome, ${data.fullName}!`, () => setScreen('reels'));
+        onBack={() => setStage('welcome')}
+        onSignup={async (data) => {
+          try {
+            const authed = await authApi.signup(data);
+            await handleSignupSuccess(authed);
+          } catch (e) {
+            alert.error('Sign up failed', e?.message || 'Please try again.');
+          }
         }}
-        onGoToLogin={() => setScreen('login')}
+        onGoToLogin={() => setStage('login')}
+      />
+    );
+  }
+
+  if (stage === 'forgotPassword') {
+    return (
+      <ForgotPasswordScreen
+        onBack={() => setStage('login')}
+        onResetPassword={(data) =>
+          alert.info('Reset', `Reset link sent to ${data.email}`)
+        }
+      />
+    );
+  }
+
+  if (stage === 'completeProfile') {
+    return (
+      <CompleteProfileScreen
+        user={user}
+        onSubmit={handleProfileComplete}
+        onSkip={() => setStage('roleSelect')}
+      />
+    );
+  }
+
+  if (stage === 'roleSelect') {
+    return (
+      <RoleSelectScreen
+        onPickCustomer={() => setStage('customer')}
+        // First-time artist? Route them through the Become an Artist flow
+        // before dropping them into the artist tabs.
+        onPickArtist={() => setStage(artist ? 'artist' : 'becomeArtist')}
+      />
+    );
+  }
+
+  if (stage === 'becomeArtist') {
+    return (
+      <BecomeArtistScreen
+        onSuccess={() => setStage('artist')}
+        onBack={() => setStage('roleSelect')}
+      />
+    );
+  }
+
+  if (stage === 'artist') {
+    return (
+      <ArtistTabs
+        onSwitchToCustomer={() => setStage('customer')}
+        onLogout={handleLogout}
+        onNeedArtistProfile={() => setStage('becomeArtist')}
       />
     );
   }
 
   return (
-    <WelcomeScreen
-      onJoinNow={() => setScreen('signup')}
-      onLogIn={() => setScreen('login')}
+    <CustomerTabs
+      onSwitchToArtist={() => setStage('artist')}
+      onLogout={handleLogout}
     />
   );
 }
@@ -94,13 +247,13 @@ function AppContent() {
 export default function App() {
   return (
     <AlertProvider>
-      <AppContent />
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </AlertProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
 });

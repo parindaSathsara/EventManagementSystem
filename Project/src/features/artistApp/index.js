@@ -1,0 +1,9 @@
+export { default as ArtistHomeScreen } from './screens/ArtistHomeScreen';
+export { default as InsightsScreen } from './screens/InsightsScreen';
+export { default as VerificationScreen } from './screens/VerificationScreen';
+export { default as ArtistMyProfileScreen } from './screens/ArtistMyProfileScreen';
+export { default as CreateHubScreen } from './screens/CreateHubScreen';
+export { default as EventCreatorScreen } from './screens/EventCreatorScreen';
+export { default as MyEventsScreen } from './screens/MyEventsScreen';
+export { default as BecomeArtistScreen } from './screens/BecomeArtistScreen';
+export { default as EditArtistProfileScreen } from './screens/EditArtistProfileScreen';

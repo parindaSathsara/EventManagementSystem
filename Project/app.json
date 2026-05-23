@@ -1,31 +1,58 @@
 {
   "expo": {
-    "name": "EventManagementSystem",
-    "slug": "event-management-system",
+    "name": "EventSocial",
+    "slug": "event-social",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/Logo/logo.png",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Logo/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#050505"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aahaas.eventsocial",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
+      "package": "com.aahaas.eventsocial",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/Logo/logo.png",
+        "backgroundColor": "#050505"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Logo/logo.png"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "EventSocial needs access to your photo library so you can pick videos for your reels.",
+          "cameraPermission": "EventSocial needs access to your camera to record videos for your reels.",
+          "microphonePermission": "EventSocial needs access to your microphone to capture audio with your reels."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "df709ac8-60e3-4f63-8ef4-9a8c61b5724d"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/df709ac8-60e3-4f63-8ef4-9a8c61b5724d"
+    }
   }
 }

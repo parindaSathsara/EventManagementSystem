@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
 
-export default function ReelOverlay({ reel, onFollowPress, onEventPress }) {
+export default function ReelOverlay({ reel, onFollowPress, onEventPress, onArtistPress }) {
   const { artist, caption, musicTrack, linkedEvent, tags } = reel;
 
   return (
@@ -21,10 +21,16 @@ export default function ReelOverlay({ reel, onFollowPress, onEventPress }) {
       <View style={styles.content}>
         {/* Artist row */}
         <View style={styles.artistRow}>
-          <View style={styles.avatarPlaceholder}>
+          <TouchableOpacity
+            onPress={onArtistPress}
+            activeOpacity={0.7}
+            style={styles.avatarPlaceholder}
+          >
             <Ionicons name="person" size={16} color={COLORS.textMuted} />
-          </View>
-          <Text style={styles.artistName}>{artist.name}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onArtistPress} activeOpacity={0.7}>
+            <Text style={styles.artistName}>{artist.name}</Text>
+          </TouchableOpacity>
           {!artist.isFollowing && (
             <TouchableOpacity style={styles.followBadge} onPress={onFollowPress} activeOpacity={0.7}>
               <Text style={styles.followText}>Follow</Text>
@@ -37,11 +43,13 @@ export default function ReelOverlay({ reel, onFollowPress, onEventPress }) {
           {caption}
         </Text>
 
-        {/* Tags */}
+        {/* Tags — backend stores them lower-case without #; render with the prefix. */}
         {tags && tags.length > 0 && (
           <View style={styles.tagsRow}>
             {tags.slice(0, 3).map((tag) => (
-              <Text key={tag} style={styles.tag}>{tag}</Text>
+              <Text key={tag} style={styles.tag}>
+                {tag.startsWith('#') ? tag : `#${tag}`}
+              </Text>
             ))}
           </View>
         )}
@@ -59,11 +67,11 @@ export default function ReelOverlay({ reel, onFollowPress, onEventPress }) {
         {/* Linked event */}
         {linkedEvent && (
           <TouchableOpacity style={styles.eventTag} onPress={onEventPress} activeOpacity={0.7}>
-            <Ionicons name="ticket-outline" size={14} color={COLORS.accent} />
+            <Ionicons name="ticket-outline" size={14} color="#000" />
             <Text style={styles.eventText} numberOfLines={1}>
               {linkedEvent.title}
             </Text>
-            <Ionicons name="chevron-forward" size={12} color={COLORS.textMuted} />
+            <Ionicons name="chevron-forward" size={12} color="rgba(0,0,0,0.7)" />
           </TouchableOpacity>
         )}
       </View>
@@ -75,6 +83,7 @@ ReelOverlay.propTypes = {
   reel: PropTypes.object.isRequired,
   onFollowPress: PropTypes.func,
   onEventPress: PropTypes.func,
+  onArtistPress: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -83,7 +92,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 80,
-    paddingBottom: SPACING.huge,
+    paddingBottom: SPACING.huge + SPACING.xxl,
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
@@ -165,7 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
-    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    backgroundColor: COLORS.accent,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs + 2,
     borderRadius: RADII.pill,
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
   eventText: {
     fontSize: 12,
     fontFamily: FONT_FAMILY.bodySemiBold,
-    color: COLORS.textPrimary,
+    color: '#000',
     maxWidth: 180,
   },
 });
