@@ -14,16 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aahaas.eventsocial",
-      "infoPlist": {
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        }
-      }
+      "bundleIdentifier": "com.aahaas.eventsocial"
     },
     "android": {
       "package": "com.aahaas.eventsocial",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo/logo.png",
         "backgroundColor": "#050505"

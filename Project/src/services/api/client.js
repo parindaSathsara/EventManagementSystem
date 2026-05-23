@@ -15,9 +15,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const TOKEN_KEY = '@eventsocial.v1.authToken';
 const USER_KEY = '@eventsocial.v1.authUser';
 
-// Default points at the live API. Override via `EXPO_PUBLIC_API_BASE_URL` if
-// you want to point Expo dev builds at localhost without touching code.
-const DEFAULT_BASE_URL = 'http://35.197.143.222:8000/api';
+// Default points at the live production API. Override via
+// `EXPO_PUBLIC_API_BASE_URL` if you want to aim a dev build at localhost or
+// a staging host without touching code.
+const DEFAULT_BASE_URL = 'https://events-api.aahaas.com/api';
 
 let baseUrl =
   (typeof process !== 'undefined' && process.env && process.env.EXPO_PUBLIC_API_BASE_URL) ||
