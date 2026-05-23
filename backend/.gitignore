@@ -29,8 +29,10 @@ dist/
 build/
 coverage/
 
-# user uploads (videos, images)
-uploads/
+# User-uploaded files (videos, images). Anchor with leading slash so the
+# pattern only matches backend/uploads/ — NOT the source dir
+# backend/src/modules/uploads/ which holds the upload-endpoint code.
+/uploads/
 
 # local deploy config (gcloud project IDs, instance names)
 deploy/.deploy-config

@@ -1,0 +1,5 @@
+# Tracks which DB engine these migrations target. Locked at create-time.
+# Changing providers later (e.g. mysql -> postgres) requires regenerating
+# every migration and a manual data migration; don't edit this file by hand.
+
+provider = "mysql"
