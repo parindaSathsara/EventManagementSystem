@@ -19,6 +19,9 @@ import ProfileSheet from '../components/ProfileSheet';
 import { eventsByArtistName, eventsByOrganizer } from '../utils/eventDates';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
+// The BottomTabBar is an absolute overlay — reserve its height so each event
+// page (incl. the Book button) sits fully above it and the feed scrolls.
+const TAB_BAR_H = Platform.OS === 'ios' ? 90 : 70;
 const VISIBLE_STATUS = new Set(['published', 'live']);
 const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
 
@@ -173,5 +176,5 @@ const styles = StyleSheet.create({
   tabUnderline: { height: 2, width: 18, borderRadius: 1, backgroundColor: COLORS.accent, marginTop: 3 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   iconBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  body: { flex: 1 },
+  body: { flex: 1, marginBottom: TAB_BAR_H },
 });
