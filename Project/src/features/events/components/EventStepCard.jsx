@@ -41,23 +41,12 @@ export default function EventStepCard({
   const ownerName = org.user?.name || org.handle || 'Event Company';
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
   const { date, time } = fmt(event.startsAt);
+  // Smaller banner — a fixed slice of the page so everything fits on one screen.
+  const posterHeight = Math.round(height * 0.36);
 
   return (
     <View style={[styles.page, { height }]}>
-      {/* Poster — tap to open the event */}
-      <TouchableOpacity style={styles.poster} activeOpacity={0.95} onPress={() => onOpenEvent && onOpenEvent(event.id)}>
-        {poster ? (
-          <ImageBackground source={{ uri: poster }} style={styles.posterBg} imageStyle={styles.posterImg} resizeMode="cover">
-            <PosterOverlay event={event} date={date} time={time} />
-          </ImageBackground>
-        ) : (
-          <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
-            <PosterOverlay event={event} date={date} time={time} />
-          </LinearGradient>
-        )}
-      </TouchableOpacity>
-
-      {/* Owner (event manager) */}
+      {/* Owner (event manager) — top of the event */}
       <View style={styles.ownerRow}>
         <TouchableOpacity style={styles.ownerMain} activeOpacity={0.8} onPress={() => onOpenManager && onOpenManager(org)}>
           <Avatar uri={org.user?.avatarUrl} name={ownerName} size={34} verified={org.isVerified} />
@@ -77,18 +66,36 @@ export default function EventStepCard({
         </TouchableOpacity>
       </View>
 
-      {/* Event description */}
-      {event.description ? (
-        <Text style={styles.desc} numberOfLines={3}>{event.description}</Text>
-      ) : null}
+      {/* Poster (smaller) — tap to open the event */}
+      <TouchableOpacity
+        style={[styles.poster, { height: posterHeight }]}
+        activeOpacity={0.95}
+        onPress={() => onOpenEvent && onOpenEvent(event.id)}
+      >
+        {poster ? (
+          <ImageBackground source={{ uri: poster }} style={styles.posterBg} imageStyle={styles.posterImg} resizeMode="cover">
+            <PosterOverlay event={event} date={date} time={time} />
+          </ImageBackground>
+        ) : (
+          <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
+            <PosterOverlay event={event} date={date} time={time} />
+          </LinearGradient>
+        )}
+      </TouchableOpacity>
 
-      {/* This event's line up */}
-      {event.lineup && event.lineup.length ? (
-        <View style={styles.lineupWrap}>
-          <Text style={styles.sectionLabel}>Line Up</Text>
-          <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
-        </View>
-      ) : null}
+      {/* Middle — description + line up (absorbs slack so it stays one page) */}
+      <View style={styles.middle}>
+        {event.description ? (
+          <Text style={styles.desc} numberOfLines={3}>{event.description}</Text>
+        ) : null}
+
+        {event.lineup && event.lineup.length ? (
+          <View style={styles.lineupWrap}>
+            <Text style={styles.sectionLabel}>Line Up</Text>
+            <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
+          </View>
+        ) : null}
+      </View>
 
       {/* Book */}
       <TouchableOpacity style={styles.bookBtn} activeOpacity={0.9} onPress={() => onOpenBooking && onOpenBooking(event.id)}>
@@ -102,7 +109,7 @@ export default function EventStepCard({
 function PosterOverlay({ event, date, time }) {
   return (
     <>
-      <LinearGradient colors={['rgba(0,0,0,0.25)', 'transparent', 'rgba(0,0,0,0.92)']} locations={[0, 0.4, 1]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(0,0,0,0.2)', 'transparent', 'rgba(0,0,0,0.9)']} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
       <View style={styles.posterTop}>
         {event.status === 'live' ? (
           <View style={styles.liveTag}>
@@ -116,12 +123,11 @@ function PosterOverlay({ event, date, time }) {
       <View style={styles.posterMeta}>
         <Text style={styles.eventName} numberOfLines={2}>{event.title}</Text>
         <View style={styles.metaLine}>
-          <Ionicons name="calendar-outline" size={14} color="#fff" />
+          <Ionicons name="calendar-outline" size={13} color="#fff" />
           <Text style={styles.metaText}>{date} · {time}</Text>
-        </View>
-        <View style={styles.metaLine}>
-          <Ionicons name="location-outline" size={14} color="#fff" />
-          <Text style={styles.metaText} numberOfLines={1}>{event.venueName}{event.cityName ? ` · ${event.cityName}` : ''}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Ionicons name="location-outline" size={13} color="#fff" />
+          <Text style={styles.metaText} numberOfLines={1}>{event.venueName}</Text>
         </View>
       </View>
     </>
@@ -146,14 +152,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.sm,
     paddingBottom: SPACING.md,
-    gap: SPACING.md,
+    gap: SPACING.sm,
+    overflow: 'hidden',
   },
   poster: {
-    flex: 1,
     borderRadius: RADII.lg,
     overflow: 'hidden',
     backgroundColor: COLORS.surface2,
   },
+  middle: { flex: 1, gap: SPACING.sm, overflow: 'hidden' },
   posterBg: { flex: 1, justifyContent: 'flex-end' },
   posterImg: { borderRadius: RADII.lg },
   posterTop: {
@@ -172,20 +179,21 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
   catText: { fontSize: 10, letterSpacing: 1, fontFamily: FONT_FAMILY.bodyBold, color: '#fff' },
-  posterMeta: { padding: SPACING.base, gap: 5 },
+  posterMeta: { padding: SPACING.md, gap: 4 },
   eventName: {
-    ...TYPE_SCALE.h1,
+    ...TYPE_SCALE.h2,
     fontFamily: FONT_FAMILY.headingExtraBold,
     color: '#fff',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
   },
-  metaLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  metaLine: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   metaText: {
-    ...TYPE_SCALE.bodySm,
+    ...TYPE_SCALE.caption,
     fontFamily: FONT_FAMILY.bodyMedium,
     color: 'rgba(255,255,255,0.92)',
     flexShrink: 1,
   },
+  metaDot: { color: 'rgba(255,255,255,0.6)', marginHorizontal: 2 },
   ownerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   ownerMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   ownerLabel: {
