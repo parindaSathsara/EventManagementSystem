@@ -77,6 +77,11 @@ export default function EventStepCard({
         </TouchableOpacity>
       </View>
 
+      {/* Event description */}
+      {event.description ? (
+        <Text style={styles.desc} numberOfLines={3}>{event.description}</Text>
+      ) : null}
+
       {/* This event's line up */}
       {event.lineup && event.lineup.length ? (
         <View style={styles.lineupWrap}>
@@ -187,6 +192,12 @@ const styles = StyleSheet.create({
     fontSize: 9, letterSpacing: 1.2, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.textMuted, textTransform: 'uppercase',
   },
   ownerName: { ...TYPE_SCALE.bodyMd, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },
+  desc: {
+    ...TYPE_SCALE.bodySm,
+    fontFamily: FONT_FAMILY.body,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
   followBtn: {
     paddingHorizontal: SPACING.md, paddingVertical: 7, borderRadius: RADII.pill, borderWidth: 1, borderColor: COLORS.accent,
   },
