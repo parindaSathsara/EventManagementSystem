@@ -41,8 +41,6 @@ export default function EventStepCard({
   const ownerName = org.user?.name || org.handle || 'Event Company';
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
   const { date, time } = fmt(event.startsAt);
-  // Smaller banner — a fixed slice of the page so everything fits on one screen.
-  const posterHeight = Math.round(height * 0.36);
 
   return (
     <View style={[styles.page, { height }]}>
@@ -66,9 +64,14 @@ export default function EventStepCard({
         </TouchableOpacity>
       </View>
 
-      {/* Poster (smaller) — tap to open the event */}
+      {/* Description — directly under EVENT BY */}
+      {event.description ? (
+        <Text style={styles.desc} numberOfLines={2}>{event.description}</Text>
+      ) : null}
+
+      {/* Poster — fills the remaining space so the page is full (tap to open) */}
       <TouchableOpacity
-        style={[styles.poster, { height: posterHeight }]}
+        style={styles.poster}
         activeOpacity={0.95}
         onPress={() => onOpenEvent && onOpenEvent(event.id)}
       >
@@ -83,19 +86,13 @@ export default function EventStepCard({
         )}
       </TouchableOpacity>
 
-      {/* Middle — description + line up (absorbs slack so it stays one page) */}
-      <View style={styles.middle}>
-        {event.description ? (
-          <Text style={styles.desc} numberOfLines={3}>{event.description}</Text>
-        ) : null}
-
-        {event.lineup && event.lineup.length ? (
-          <View style={styles.lineupWrap}>
-            <Text style={styles.sectionLabel}>Line Up</Text>
-            <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
-          </View>
-        ) : null}
-      </View>
+      {/* This event's line up */}
+      {event.lineup && event.lineup.length ? (
+        <View style={styles.lineupWrap}>
+          <Text style={styles.sectionLabel}>Line Up</Text>
+          <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
+        </View>
+      ) : null}
 
       {/* Book */}
       <TouchableOpacity style={styles.bookBtn} activeOpacity={0.9} onPress={() => onOpenBooking && onOpenBooking(event.id)}>
@@ -156,11 +153,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   poster: {
+    flex: 1,
     borderRadius: RADII.lg,
     overflow: 'hidden',
     backgroundColor: COLORS.surface2,
   },
-  middle: { flex: 1, gap: SPACING.sm, overflow: 'hidden' },
   posterBg: { flex: 1, justifyContent: 'flex-end' },
   posterImg: { borderRadius: RADII.lg },
   posterTop: {
