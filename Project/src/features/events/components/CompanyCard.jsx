@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
@@ -11,14 +11,11 @@ import EventListRow from './EventListRow';
 import SocialRow from './SocialRow';
 
 /**
- * The core of the Events page — one card per event company (organizer).
+ * One event manager (organizer). The structure mirrors the domain:
+ *   Manager → Events (banner carousel) → each Event has its own description + Line Up.
  *
- *   Company name + verified
- *   Company info (2 lines + "more")
- *   Flyer slider  (CTA → booking)
- *   Events list   (Title · Date · Time/Place)
- *   Line Up       (artists)
- *   Socials       (ig / fb / tiktok)
+ * Swiping the banner carousel selects an event; the description and line-up below
+ * update to that event. The manager's socials sit in their own tagged container.
  */
 export default function CompanyCard({
   company,
@@ -30,23 +27,12 @@ export default function CompanyCard({
   onOpenManager,
 }) {
   const { organizer, events } = company;
+  const [active, setActive] = useState(0);
   const [expanded, setExpanded] = useState(false);
 
   const name = organizer?.user?.name || organizer?.handle || 'Event Company';
   const socials = organizer?.socials || events.find((e) => e.socials)?.socials || null;
-
-  // Aggregate a de-duplicated lineup across this company's events (by name —
-  // free-form lineup ids ('g0', 'g1') repeat across events).
-  const lineup = useMemo(() => {
-    const seen = new Map();
-    events.forEach((e) => {
-      (e.lineup || []).forEach((a) => {
-        const key = (a?.name || a?.id || '').toLowerCase();
-        if (a && key && !seen.has(key)) seen.set(key, a);
-      });
-    });
-    return [...seen.values()];
-  }, [events]);
+  const selected = events[Math.min(active, events.length - 1)] || events[0];
 
   return (
     <View style={styles.card}>
@@ -81,39 +67,59 @@ export default function CompanyCard({
         </TouchableOpacity>
       </View>
 
-      {/* Flyers — banner carousel leads the page (CTA to booking) */}
-      <FlyerSlider events={events} onPressFlyer={onOpenBooking} />
+      {/* Banner carousel — swipe to select an event */}
+      <FlyerSlider
+        events={events}
+        onPressFlyer={onOpenBooking}
+        onIndexChange={(i) => { setActive(i); setExpanded(false); }}
+      />
 
-      {/* Company info — 2 lines + more */}
-      {organizer?.bio ? (
-        <View style={styles.bioWrap}>
-          <Text style={styles.bio} numberOfLines={expanded ? undefined : 2}>
-            {organizer.bio}
-          </Text>
-          <TouchableOpacity onPress={() => setExpanded((x) => !x)} activeOpacity={0.7}>
-            <Text style={styles.more}>{expanded ? 'less' : 'more'}</Text>
-          </TouchableOpacity>
+      {/* Selected event — title + its own description */}
+      {selected ? (
+        <TouchableOpacity
+          style={styles.eventBlock}
+          activeOpacity={0.85}
+          onPress={() => onOpenEvent && onOpenEvent(selected.id)}
+        >
+          <Text style={styles.eventTitle} numberOfLines={1}>{selected.title}</Text>
+          {selected.description ? (
+            <>
+              <Text style={styles.desc} numberOfLines={expanded ? undefined : 3}>
+                {selected.description}
+              </Text>
+              {selected.description.length > 120 ? (
+                <Text style={styles.more} onPress={() => setExpanded((x) => !x)}>
+                  {expanded ? 'less' : 'more'}
+                </Text>
+              ) : null}
+            </>
+          ) : null}
+        </TouchableOpacity>
+      ) : null}
+
+      {/* Selected event's Line Up */}
+      {selected && selected.lineup && selected.lineup.length > 0 ? (
+        <View style={styles.lineupWrap}>
+          <Text style={styles.sectionLabel}>Line Up</Text>
+          <LineupRow lineup={selected.lineup} onArtistPress={onOpenArtist} />
         </View>
       ) : null}
 
-      {/* Events list */}
+      {/* All events by this manager */}
       <View style={styles.events}>
+        <Text style={styles.sectionLabel}>All events</Text>
         {events.map((e) => (
           <EventListRow key={e.id} event={e} onPress={() => onOpenEvent && onOpenEvent(e.id)} />
         ))}
       </View>
 
-      {/* Line up */}
-      {lineup.length > 0 ? (
-        <View style={styles.lineupWrap}>
-          <Text style={styles.sectionLabel}>Line Up</Text>
-          <LineupRow lineup={lineup} onArtistPress={onOpenArtist} />
-        </View>
-      ) : null}
-
-      {/* Socials */}
+      {/* Manager socials — tagged container */}
       {socials ? (
-        <View style={styles.socialWrap}>
+        <View style={styles.socialCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.socialTagline}>Visit {name}</Text>
+            <Text style={styles.socialSub}>Follow on social media</Text>
+          </View>
           <SocialRow socials={socials} />
         </View>
       ) : null}
@@ -190,10 +196,17 @@ const styles = StyleSheet.create({
   followTextActive: {
     color: '#000',
   },
-  bioWrap: {
+  eventBlock: {
     paddingHorizontal: SPACING.base,
+    gap: 4,
   },
-  bio: {
+  eventTitle: {
+    ...TYPE_SCALE.h4,
+    fontFamily: FONT_FAMILY.headingExtraBold,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.2,
+  },
+  desc: {
     ...TYPE_SCALE.bodySm,
     fontFamily: FONT_FAMILY.body,
     color: COLORS.textSecondary,
@@ -220,7 +233,26 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     paddingHorizontal: SPACING.base,
   },
-  socialWrap: {
-    paddingHorizontal: SPACING.base,
+  socialCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginHorizontal: SPACING.base,
+    padding: SPACING.md,
+    borderRadius: RADII.md,
+    backgroundColor: COLORS.surface1,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+  },
+  socialTagline: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+  },
+  socialSub: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
+    marginTop: 1,
   },
 });

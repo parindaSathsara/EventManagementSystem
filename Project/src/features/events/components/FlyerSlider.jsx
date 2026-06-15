@@ -26,11 +26,17 @@ const GAP = SPACING.sm;
  * One banner per event; swipe left/right, page dots track position. Tapping a
  * banner fires `onPressFlyer(eventId)` (the booking CTA).
  */
-export default function FlyerSlider({ events, onPressFlyer }) {
+export default function FlyerSlider({ events, onPressFlyer, onIndexChange }) {
   const [index, setIndex] = useState(0);
   if (!events || events.length === 0) return null;
 
   const stride = BANNER_W + GAP;
+
+  function handleScrollEnd(e) {
+    const i = Math.round(e.nativeEvent.contentOffset.x / stride);
+    setIndex(i);
+    if (onIndexChange) onIndexChange(i);
+  }
 
   return (
     <View>
@@ -42,7 +48,7 @@ export default function FlyerSlider({ events, onPressFlyer }) {
         snapToInterval={stride}
         decelerationRate="fast"
         contentContainerStyle={styles.scroll}
-        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / stride))}
+        onMomentumScrollEnd={handleScrollEnd}
       >
         {events.map((ev) => {
           const img = ev.bannerImageUrl || (ev.flyers && ev.flyers[0]) || ev.coverImageUrl;
@@ -100,6 +106,7 @@ Overlay.propTypes = { ev: PropTypes.object.isRequired };
 FlyerSlider.propTypes = {
   events: PropTypes.array,
   onPressFlyer: PropTypes.func,
+  onIndexChange: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
