@@ -19,6 +19,7 @@ function formatDay(iso) {
 
 export default function EventCard({ event, onPress, variant = 'default' }) {
   const { day, month, time } = formatDay(event.startsAt);
+  const imgUrl = event.coverImageUrl || event.bannerImageUrl || (event.flyers && event.flyers[0]) || null;
 
   if (variant === 'compact') {
     return (
@@ -48,8 +49,8 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
       <View style={styles.coverWrap}>
         {/* Backend returns a `coverImageUrl` string; legacy mocks used a
             local `coverImage` asset. Accept both, fall back to the gradient. */}
-        {event.coverImageUrl ? (
-          <Image source={{ uri: event.coverImageUrl }} style={styles.cover} />
+        {imgUrl ? (
+          <Image source={{ uri: imgUrl }} style={styles.cover} />
         ) : event.coverImage ? (
           <Image source={event.coverImage} style={styles.cover} />
         ) : (

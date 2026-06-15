@@ -1,14 +1,12 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  FlatList,
   TouchableOpacity,
   StatusBar,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
@@ -21,25 +19,22 @@ import ProfileSheet from '../components/ProfileSheet';
 import { eventsByArtistName, eventsByOrganizer } from '../utils/eventDates';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
-const { width: SCREEN_W } = Dimensions.get('window');
 const VISIBLE_STATUS = new Set(['published', 'live']);
 
 const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
 
 /**
- * The app's landing page (guest experience). A **horizontally swipeable** feed of
- * event managers — one manager per screen, with a manager tab strip on top.
- * Tapping a lineup artist or the manager opens a bottom sheet (socials + events),
- * never a full artist page.
+ * The app's landing page (guest experience). One event manager shown at a time,
+ * chosen via the manager tab strip on top (tap to switch). The only horizontal
+ * swipe is the banner carousel inside each manager. Tapping a lineup artist or
+ * the manager opens a bottom sheet (socials + events), never a full artist page.
  */
 export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSearch }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
   const [feed, setFeed] = useState('forYou');
   const [index, setIndex] = useState(0);
-  const [bodyH, setBodyH] = useState(0);
   const [sheet, setSheet] = useState(EMPTY_SHEET);
-  const listRef = useRef(null);
 
   const managers = useMemo(() => {
     const map = new Map();
@@ -60,16 +55,12 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
     () => (feed === 'following' ? managers.filter((c) => isFollowing(c.organizer.id)) : managers),
     [managers, feed, isFollowing],
   );
+  const current = visible[Math.min(index, Math.max(0, visible.length - 1))] || null;
 
-  function goTo(i) {
-    setIndex(i);
-    listRef.current?.scrollToOffset({ offset: i * SCREEN_W, animated: true });
-  }
   function switchFeed(next) {
     if (next === feed) return;
     setFeed(next);
     setIndex(0);
-    listRef.current?.scrollToOffset({ offset: 0, animated: false });
   }
   function openArtist(artist) {
     setSheet({
@@ -122,7 +113,7 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
             return (
               <TouchableOpacity
                 key={c.organizer.id}
-                onPress={() => goTo(i)}
+                onPress={() => setIndex(i)}
                 activeOpacity={0.8}
                 style={[styles.chip, active && styles.chipActive]}
               >
@@ -133,11 +124,11 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
         </ScrollView>
       ) : null}
 
-      {/* Body — swipe between managers */}
-      <View style={styles.body} onLayout={(e) => setBodyH(e.nativeEvent.layout.height)}>
+      {/* Body — the selected manager (switch via the tabs above) */}
+      <View style={styles.body}>
         {events.error && managers.length === 0 ? (
           <ConnectionError error={events.error} onRetry={events.refresh} loading={events.loading} />
-        ) : visible.length === 0 ? (
+        ) : !current ? (
           <EmptyState
             icon={feed === 'following' ? 'heart-outline' : 'flame-outline'}
             title={feed === 'following' ? 'No managers followed yet' : 'No events yet'}
@@ -147,32 +138,19 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
                 : 'Check back soon — new events are added all the time.'
             }
           />
-        ) : bodyH > 0 ? (
-          <FlatList
-            ref={listRef}
-            data={visible}
-            keyExtractor={(c) => c.organizer.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_W))}
-            getItemLayout={(_d, i) => ({ length: SCREEN_W, offset: SCREEN_W * i, index: i })}
-            renderItem={({ item: c }) => (
-              <ScrollView style={{ width: SCREEN_W, height: bodyH }} showsVerticalScrollIndicator={false}>
-                <CompanyCard
-                  company={c}
-                  isFollowing={isFollowing(c.organizer.id)}
-                  onToggleFollow={() => toggle(c.organizer.id)}
-                  onOpenEvent={onOpenEvent}
-                  onOpenBooking={onOpenBooking}
-                  onOpenArtist={openArtist}
-                  onOpenManager={openManager}
-                />
-                <View style={{ height: 100 }} />
-              </ScrollView>
-            )}
-          />
-        ) : null}
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+            <CompanyCard
+              company={current}
+              isFollowing={isFollowing(current.organizer.id)}
+              onToggleFollow={() => toggle(current.organizer.id)}
+              onOpenEvent={onOpenEvent}
+              onOpenBooking={onOpenBooking}
+              onOpenArtist={openArtist}
+              onOpenManager={openManager}
+            />
+          </ScrollView>
+        )}
       </View>
 
       <ProfileSheet
