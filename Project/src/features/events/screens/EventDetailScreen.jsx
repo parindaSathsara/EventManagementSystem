@@ -19,7 +19,7 @@ import EventHero from '../components/EventHero';
 import LineupRow from '../components/LineupRow';
 import TicketTypeRow from '../components/TicketTypeRow';
 
-export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBookConfirmed }) {
+export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBook, onBookConfirmed }) {
   const allEvents = useEventsData();
   const event = useMemo(() => allEvents.find((e) => e.id === eventId) || null, [allEvents, eventId]);
   const [selectedTicket, setSelectedTicket] = useState(
@@ -32,6 +32,13 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
   const alert = useAlert();
 
   async function handleBook() {
+    // Guest flow: hand off to the dedicated BookingScreen (captures contact
+    // details and reserves without an account). Manager/authed flow keeps the
+    // inline purchase below.
+    if (onBook) {
+      onBook(event.id, selectedTicket);
+      return;
+    }
     if (booking) return; // guard against re-entry from a fast double-tap
     if (!event || !selectedTicket) return;
     const tt = event.ticketTypes.find((t) => t.id === selectedTicket);
@@ -203,6 +210,7 @@ EventDetailScreen.propTypes = {
   eventId: PropTypes.string.isRequired,
   onBack: PropTypes.func,
   onArtistPress: PropTypes.func,
+  onBook: PropTypes.func,
   onBookConfirmed: PropTypes.func,
 };
 

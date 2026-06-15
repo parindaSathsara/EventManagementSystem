@@ -10,12 +10,25 @@ const ticketTypeInput = z.object({
   total: z.number().int().positive(),
 });
 
+const socialsInput = z
+  .object({
+    facebook: z.string().trim().max(300).optional().nullable(),
+    instagram: z.string().trim().max(300).optional().nullable(),
+    tiktok: z.string().trim().max(300).optional().nullable(),
+  })
+  .partial()
+  .optional()
+  .nullable();
+
 const createEventBody = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().max(5000).optional(),
   category: z.string().trim().max(40).default('Concert'),
   coverColor: z.string().trim().max(20).default('#1a0a2e'),
   coverImageUrl: z.string().url().optional().nullable(),
+  bannerImageUrl: z.string().url().optional().nullable(),
+  flyers: z.array(z.string().url()).max(20).optional().default([]),
+  socials: socialsInput,
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
   timezone: z.string().trim().max(40).default('Asia/Colombo'),

@@ -4,7 +4,17 @@ const { NotFound, Forbidden, BadRequest } = require('../../lib/errors');
 const EVENT_INCLUDE = {
   ticketTypes: { orderBy: { createdAt: 'asc' } },
   lineup: { include: { artist: { include: { user: { select: { name: true, avatarUrl: true } } } } } },
-  organizer: { select: { id: true, handle: true, isVerified: true, user: { select: { name: true, avatarUrl: true } } } },
+  organizer: {
+    select: {
+      id: true,
+      handle: true,
+      isVerified: true,
+      bio: true,
+      category: true,
+      socialsJson: true,
+      user: { select: { name: true, avatarUrl: true } },
+    },
+  },
   linkedReels: { select: { id: true } },
   _count: { select: { savedBy: true, tickets: true } },
 };
@@ -18,6 +28,15 @@ const EVENT_INCLUDE = {
  * Centralising the shape here means every screen reads the same object
  * whether it came from list, getById, create, or update.
  */
+function safeParse(json, fallback) {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return fallback;
+  }
+}
+
 function shape(row, { isSaved = false } = {}) {
   if (!row) return row;
   return {
@@ -25,6 +44,11 @@ function shape(row, { isSaved = false } = {}) {
     geo: row.geoLat != null && row.geoLng != null
       ? { lat: row.geoLat, lng: row.geoLng }
       : null,
+    flyers: safeParse(row.flyersJson, []),
+    socials: safeParse(row.socialsJson, null),
+    organizer: row.organizer
+      ? { ...row.organizer, socials: safeParse(row.organizer.socialsJson, null) }
+      : row.organizer,
     storylineReelIds: (row.linkedReels || []).map((r) => r.id),
     lineup: (row.lineup || []).map((entry, idx) => ({
       id: entry.artist?.id || entry.artistId,
@@ -114,13 +138,15 @@ async function create(input, artistId) {
   if (input.endsAt <= input.startsAt) {
     throw new BadRequest('Event endsAt must be after startsAt.');
   }
-  const { ticketTypes, lineupArtistIds, ...rest } = input;
+  const { ticketTypes, lineupArtistIds, flyers, socials, ...rest } = input;
   // The organizer is always part of their own event's lineup if not already.
   const lineupIds = lineupArtistIds.length ? lineupArtistIds : [artistId];
 
   const created = await prisma.event.create({
     data: {
       ...rest,
+      ...(flyers !== undefined ? { flyersJson: JSON.stringify(flyers || []) } : {}),
+      ...(socials !== undefined ? { socialsJson: socials ? JSON.stringify(socials) : null } : {}),
       organizerArtistId: artistId,
       ticketTypes: {
         create: ticketTypes.map((t) => ({
@@ -148,10 +174,14 @@ async function update(id, input, requesterArtistId, requesterRole) {
     requesterRole === 'admin' || existing.organizerArtistId === requesterArtistId;
   if (!canEdit) throw new Forbidden('You can only edit your own events.');
 
-  const { ticketTypes, lineupArtistIds, ...rest } = input;
+  const { ticketTypes, lineupArtistIds, flyers, socials, ...rest } = input;
   const updated = await prisma.event.update({
     where: { id },
-    data: rest,
+    data: {
+      ...rest,
+      ...(flyers !== undefined ? { flyersJson: JSON.stringify(flyers || []) } : {}),
+      ...(socials !== undefined ? { socialsJson: socials ? JSON.stringify(socials) : null } : {}),
+    },
     include: EVENT_INCLUDE,
   });
   return shape(updated);

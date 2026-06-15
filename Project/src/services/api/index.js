@@ -13,4 +13,5 @@ export * as reels from './reels';
 export * as tickets from './tickets';
 export * as artists from './artists';
 export * as uploads from './uploads';
+export * as notifications from './notifications';
 export { api, ApiError, setBaseUrl, getBaseUrl } from './client';

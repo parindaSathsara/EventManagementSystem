@@ -1,13 +1,23 @@
 const { Router } = require('express');
 const asyncHandler = require('../../lib/async-handler');
 const validate = require('../../middleware/validate');
-const { requireAuth } = require('../../middleware/auth');
+const { requireAuth, optionalAuth } = require('../../middleware/auth');
 const ctrl = require('./controller');
 const schema = require('./schema');
 
 const router = Router();
 
-// All ticket endpoints require auth — tickets are user-owned.
+// Guest-capable reservation — browse + book without an account. A logged-in
+// user reserving here just uses their account. Must come before the global
+// requireAuth below.
+router.post(
+  '/reserve',
+  optionalAuth,
+  validate({ body: schema.reserveBody }),
+  asyncHandler(ctrl.reserve),
+);
+
+// Everything else is user-owned and requires auth.
 router.use(requireAuth);
 
 router.get('/', asyncHandler(ctrl.list));

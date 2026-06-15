@@ -7,9 +7,12 @@
 import * as reelsRepo from './reelsRepo';
 import * as eventsRepo from './eventsRepo';
 import * as ticketsRepo from './ticketsRepo';
+import * as notificationsRepo from './notificationsRepo';
+import * as followRepo from './followRepo';
 
-export { reelsRepo, eventsRepo, ticketsRepo };
+export { reelsRepo, eventsRepo, ticketsRepo, notificationsRepo, followRepo };
 export { subscribe, emit, CHANNELS } from './store';
+export * as notificationScheduler from './notifications';
 export * as api from './api';
 
 /**
@@ -23,6 +26,8 @@ export async function hydrateAll() {
     reelsRepo.hydrate(),
     eventsRepo.hydrate(),
     ticketsRepo.hydrate(),
+    notificationsRepo.hydrate(),
+    followRepo.hydrate(),
   ]);
 }
 
@@ -32,6 +37,7 @@ export async function reloadAll() {
     reelsRepo.reload(),
     eventsRepo.reload(),
     ticketsRepo.reload(),
+    notificationsRepo.reload(),
   ]);
 }
 
@@ -40,4 +46,7 @@ export function clearAll() {
   reelsRepo.clear();
   eventsRepo.clear();
   ticketsRepo.clear();
+  notificationsRepo.clear();
+  // followRepo is intentionally NOT cleared on logout — guest follows are
+  // device-local and should persist across manager login/logout.
 }

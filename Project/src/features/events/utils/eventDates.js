@@ -30,3 +30,16 @@ export function dayKeysWithEvents(events) {
   });
   return set;
 }
+
+/**
+ * Returns a Set of month indices (0–11) that have at least one event in the
+ * given year. Used by the calendar's Year view to highlight active months.
+ */
+export function monthsWithEvents(events, year) {
+  const set = new Set();
+  events.forEach((e) => {
+    const d = new Date(e.startsAt);
+    if (d.getUTCFullYear() === year) set.add(d.getUTCMonth());
+  });
+  return set;
+}

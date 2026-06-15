@@ -58,7 +58,11 @@ async function getMine(userId, ticketId) {
  * Atomic booking — decrements the ticket type remaining count and creates
  * the ticket in a single transaction. Rolls back on stock exhaustion.
  */
-async function purchase({ eventId, ticketTypeId, holderName }, userId) {
+/**
+ * Book a ticket. Works for both account holders (`userId` set) and guests
+ * (`userId` null + `guest` contact). Atomic stock decrement either way.
+ */
+async function purchase({ eventId, ticketTypeId, holderName, guest = null }, userId = null) {
   return prisma.$transaction(async (tx) => {
     const ticketType = await tx.ticketType.findUnique({ where: { id: ticketTypeId } });
     if (!ticketType || ticketType.eventId !== eventId) {
@@ -77,8 +81,11 @@ async function purchase({ eventId, ticketTypeId, holderName }, userId) {
       data: {
         eventId,
         ticketTypeId,
-        userId,
-        holderName,
+        userId: userId || null,
+        holderName: holderName || guest?.name || 'Guest',
+        guestName: guest?.name || null,
+        guestPhone: guest?.phone || null,
+        guestEmail: guest?.email || null,
         qrPayload: generateQrPayload(eventId),
       },
       include: TICKET_INCLUDE,

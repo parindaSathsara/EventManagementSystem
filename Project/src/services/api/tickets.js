@@ -17,6 +17,16 @@ export function purchase({ eventId, ticketTypeId, holderName }) {
   return api.post('/tickets', { eventId, ticketTypeId, holderName });
 }
 
+/**
+ * Guest reservation — no account required. The backend uses optionalAuth:
+ * the client attaches the JWT only if one exists, so a logged-in manager
+ * reserving uses their account while a guest's contact details are stored
+ * on the ticket instead.
+ */
+export function reserve({ eventId, ticketTypeId, holderName, phone, email }) {
+  return api.post('/tickets/reserve', { eventId, ticketTypeId, holderName, phone, email });
+}
+
 export function updateStatus(id, status) {
   return api.patch(`/tickets/${encodeURIComponent(id)}/status`, { status });
 }

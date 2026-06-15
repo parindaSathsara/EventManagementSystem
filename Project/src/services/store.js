@@ -35,4 +35,6 @@ export const CHANNELS = {
   REELS: 'reels',
   EVENTS: 'events',
   TICKETS: 'tickets',
+  NOTIFICATIONS: 'notifications',
+  FOLLOWS: 'follows',
 };

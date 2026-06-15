@@ -49,7 +49,7 @@ function deriveVenues(events) {
   return Array.from(map.values());
 }
 
-export default function SearchScreen({ onOpenEvent, onOpenArtist }) {
+export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('all');
 
@@ -105,7 +105,7 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
 
-      <ScreenHeader title="Search" />
+      <ScreenHeader title="Search" onBack={onBack} />
 
       <View style={styles.searchBar}>
         <Ionicons name="search" size={18} color={COLORS.textMuted} />
@@ -249,6 +249,7 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist }) {
 SearchScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenArtist: PropTypes.func,
+  onBack: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

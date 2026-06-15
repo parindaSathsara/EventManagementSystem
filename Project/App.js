@@ -25,7 +25,7 @@ import {
   CompleteProfileScreen,
 } from './src/features/auth';
 import { BecomeArtistScreen } from './src/features/artistApp';
-import { CustomerTabs, ArtistTabs, RoleSelectScreen } from './src/navigation';
+import { GuestTabs, CustomerTabs, ArtistTabs, RoleSelectScreen } from './src/navigation';
 import { AlertProvider, UserProvider, useUser } from './src/shared/providers';
 import { useAlert } from './src/shared/hooks';
 import { hydrateAll, clearAll } from './src/services';
@@ -34,16 +34,24 @@ import { auth as authApi } from './src/services/api';
 SplashScreenModule.preventAutoHideAsync();
 
 /**
- * Boot sequence
- * -------------
- *   splash → welcome → login|signup|forgot → completeProfile → roleSelect
- *                                                              ↓
- *                                                  customer  OR  artist
+ * Boot sequence (guest-first)
+ * ---------------------------
+ *   splash → guest (GuestTabs: Reels · Events · Notifications)
  *
- * No mock data anywhere. Everything renders from the backend; if it's
- * unreachable, screens surface a ConnectionError state and the user can
- * retry from there.
+ * The app no longer gates browsing behind login — everyone is a guest. Event
+ * managers reach the publishing app via a discreet "manager login" entry in
+ * the guest UI, which routes through the (preserved) auth flow:
+ *
+ *   guest → login|signup → completeProfile → roleSelect → artist (manager app)
+ *
+ * The dormant customer experience (`CustomerTabs`, the role chooser's customer
+ * branch) is kept for reversibility — see docs/REWORK-2026-06-guest-mode.md.
+ * No mock data anywhere; everything renders from the backend.
  */
+
+function isManager(u) {
+  return u && (u.role === 'artist' || u.role === 'admin');
+}
 
 function AppContent() {
   const [stage, setStage] = useState('splash');
@@ -71,13 +79,20 @@ function AppContent() {
     (async () => {
       try {
         const restored = await authApi.restoreSession();
+        // hydrateAll runs in parallel; each repo swallows its own error and
+        // surfaces it via the per-hook ConnectionError component. We hydrate
+        // for guests too so the Events/Calendar/Notifications tabs warm up.
+        hydrateAll().catch(() => {});
         if (restored) {
           await setUser(restored);
-          // hydrateAll runs in parallel; each repo swallows its own error
-          // and surfaces it via the per-hook ConnectionError component.
-          hydrateAll().catch(() => {});
-          setStage(restored.phone ? 'roleSelect' : 'completeProfile');
+          if (isManager(restored)) {
+            // A returning manager resumes in the publishing app.
+            setStage(restored.phone ? 'roleSelect' : 'completeProfile');
+          } else {
+            setStage('guest');
+          }
         }
+        // No session → stay on splash; SplashScreen.onFinish drops into guest.
       } catch (e) {
         console.warn('[boot] session restore failed', e);
       } finally {
@@ -96,7 +111,7 @@ function AppContent() {
   async function handleLogout() {
     await logout();
     clearAll();
-    setStage('welcome');
+    setStage('guest');
   }
 
   async function handleLoginSuccess(authedUser) {
@@ -105,12 +120,15 @@ function AppContent() {
     hydrateAll().catch(() => {});
     if (!authedUser?.phone) {
       setStage('completeProfile');
-    } else {
+    } else if (isManager(authedUser)) {
       alert.success(
         'Login',
         `Welcome back, ${authedUser.name || authedUser.email}!`,
         () => setStage('roleSelect'),
       );
+    } else {
+      // A non-manager who logs in just returns to the guest experience.
+      setStage('guest');
     }
   }
 
@@ -136,7 +154,7 @@ function AppContent() {
   if (stage === 'splash') {
     return (
       <View style={styles.root} onLayout={onLayoutRootView}>
-        <SplashScreen onFinish={() => setStage('welcome')} />
+        <SplashScreen onFinish={() => setStage('guest')} />
       </View>
     );
   }
@@ -153,7 +171,7 @@ function AppContent() {
   if (stage === 'login') {
     return (
       <LoginScreen
-        onBack={() => setStage('welcome')}
+        onBack={() => setStage('guest')}
         onLogin={async (data) => {
           try {
             const authed = await authApi.login(data);
@@ -171,7 +189,7 @@ function AppContent() {
   if (stage === 'signup') {
     return (
       <SignupScreen
-        onBack={() => setStage('welcome')}
+        onBack={() => setStage('guest')}
         onSignup={async (data) => {
           try {
             const authed = await authApi.signup(data);
@@ -209,7 +227,7 @@ function AppContent() {
   if (stage === 'roleSelect') {
     return (
       <RoleSelectScreen
-        onPickCustomer={() => setStage('customer')}
+        onPickCustomer={() => setStage('guest')}
         // First-time artist? Route them through the Become an Artist flow
         // before dropping them into the artist tabs.
         onPickArtist={() => setStage(artist ? 'artist' : 'becomeArtist')}
@@ -229,19 +247,26 @@ function AppContent() {
   if (stage === 'artist') {
     return (
       <ArtistTabs
-        onSwitchToCustomer={() => setStage('customer')}
+        onSwitchToCustomer={() => setStage('guest')}
         onLogout={handleLogout}
         onNeedArtistProfile={() => setStage('becomeArtist')}
       />
     );
   }
 
-  return (
-    <CustomerTabs
-      onSwitchToArtist={() => setStage('artist')}
-      onLogout={handleLogout}
-    />
-  );
+  // Dormant customer experience — preserved for reversibility, not reachable
+  // from the guest-first boot flow (see docs/REWORK-2026-06-guest-mode.md).
+  if (stage === 'customer') {
+    return (
+      <CustomerTabs
+        onSwitchToArtist={() => setStage('artist')}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Default: guest experience (Reels · Events · Notifications).
+  return <GuestTabs onManagerLogin={() => setStage('login')} />;
 }
 
 export default function App() {

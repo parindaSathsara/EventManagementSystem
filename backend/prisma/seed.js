@@ -1,7 +1,13 @@
 /**
- * Seed: idempotent. Creates a default admin user, one demo artist, a couple
- * of upcoming events with ticket types, and a few reels so the mobile app
- * has something to render on first connect.
+ * Seed: idempotent. Creates a default admin, a customer, and several EDM
+ * "event companies" (artists that double as organizers) each with upcoming
+ * events — banners, flyers, socials, lineups, and ticket types.
+ *
+ * The events are plausible stand-ins inspired by https://edmcalendar.lk
+ * (e.g. La Foresta · The Sound Garden, Spotseeker · The Key to Happiness).
+ * The live site loads its listings via JavaScript and can't be scraped, so
+ * these are hand-authored. Dates are computed relative to "now" so the
+ * calendar's Year / Month / Day views always have something to show.
  *
  *   node prisma/seed.js
  */
@@ -16,6 +22,19 @@ const prisma = new PrismaClient();
 const SEED_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || 'admin@eventsocial.local';
 const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'ChangeMe!2026';
 
+const DAY = 24 * 3600 * 1000;
+const HOUR = 3600 * 1000;
+
+/** A date N days from now at 21:00 UTC (typical show start). */
+function inDays(n, hourUtc = 16) {
+  const base = new Date(Date.now() + n * DAY);
+  return new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(), hourUtc, 0, 0));
+}
+
+function flyer(slug) {
+  return `https://picsum.photos/seed/${slug}/900/1200`;
+}
+
 async function upsertUser({ email, password, name, role, phone, city, avatarUrl }) {
   const passwordHash = await bcrypt.hash(password, 10);
   return prisma.user.upsert({
@@ -25,10 +44,69 @@ async function upsertUser({ email, password, name, role, phone, city, avatarUrl 
   });
 }
 
+async function upsertCompany({ email, name, handle, category, bio, socials, isPreferred = true }) {
+  const user = await upsertUser({
+    email,
+    password: 'demo1234',
+    name,
+    role: 'artist',
+    phone: '+94770000000',
+    city: 'Colombo',
+  });
+  const data = {
+    handle,
+    category,
+    bio,
+    isVerified: true,
+    isPreferred,
+    socialsJson: socials ? JSON.stringify(socials) : null,
+  };
+  return prisma.artist.upsert({
+    where: { userId: user.id },
+    update: data,
+    create: { userId: user.id, ...data },
+  });
+}
+
+/** Create an event if one with the same title+organizer doesn't exist yet. */
+async function ensureEvent(organizer, ev, lineupArtistIds = []) {
+  const existing = await prisma.event.findFirst({
+    where: { title: ev.title, organizerArtistId: organizer.id },
+  });
+  if (existing) return existing;
+
+  return prisma.event.create({
+    data: {
+      organizerArtistId: organizer.id,
+      title: ev.title,
+      description: ev.description,
+      category: ev.category || 'Festival',
+      coverColor: ev.coverColor || '#1a0a2e',
+      bannerImageUrl: ev.banner,
+      flyersJson: JSON.stringify(ev.flyers || [ev.banner]),
+      socialsJson: ev.socials ? JSON.stringify(ev.socials) : null,
+      startsAt: ev.startsAt,
+      endsAt: ev.endsAt || new Date(ev.startsAt.getTime() + 5 * HOUR),
+      venueName: ev.venueName,
+      cityName: ev.cityName || 'Colombo',
+      addressLine: ev.addressLine,
+      geoLat: ev.geoLat ?? 6.9271,
+      geoLng: ev.geoLng ?? 79.8612,
+      ageRestriction: ev.ageRestriction || '18+',
+      status: 'published',
+      refundPolicy: 'Full refund up to 48 hours before showtime.',
+      ticketTypes: { create: ev.ticketTypes },
+      lineup: {
+        create: lineupArtistIds.map((aid, i) => ({ artistId: aid, order: i })),
+      },
+    },
+  });
+}
+
 async function main() {
   console.log('[seed] starting');
 
-  // 1) Admin
+  // 1) Admin + customer ------------------------------------------------------
   const admin = await upsertUser({
     email: SEED_ADMIN_EMAIL,
     password: SEED_ADMIN_PASSWORD,
@@ -39,105 +117,220 @@ async function main() {
   });
   console.log('[seed] admin:', admin.email);
 
-  // 2) Artist user + artist profile
-  const artistUser = await upsertUser({
-    email: 'mihiran@eventsocial.local',
-    password: 'demo1234',
-    name: 'Mihiran',
-    role: 'artist',
-    phone: '+94771112222',
-    city: 'Colombo',
-    avatarUrl: null,
-  });
-  const artist = await prisma.artist.upsert({
-    where: { userId: artistUser.id },
-    update: {
-      handle: 'mihiran',
-      isVerified: true,
-      // Preferred → reels and events auto-publish (skip the approval queue),
-      // which is what the demo flow expects.
-      isPreferred: true,
-      category: 'DJ',
-      bio: 'Producer, DJ, live electronics. Headlining Stardust Arena this season.',
-    },
-    create: {
-      userId: artistUser.id,
-      handle: 'mihiran',
-      isVerified: true,
-      isPreferred: true,
-      category: 'DJ',
-      bio: 'Producer, DJ, live electronics. Headlining Stardust Arena this season.',
-    },
-  });
-  console.log('[seed] artist:', artist.handle);
-
-  // 3) Customer
-  const customer = await upsertUser({
+  await upsertUser({
     email: 'parinda@eventsocial.local',
     password: 'demo1234',
     name: 'Parinda Sathsader',
     role: 'customer',
-    phone: null, // intentionally null so the Complete Profile screen fires
+    phone: null,
     city: 'Colombo',
   });
-  console.log('[seed] customer:', customer.email);
 
-  // 4) One demo event with ticket types
-  const startsAt = new Date(Date.now() + 14 * 24 * 3600 * 1000);
-  const endsAt = new Date(startsAt.getTime() + 4 * 3600 * 1000);
-
-  const existingEvent = await prisma.event.findFirst({
-    where: { title: 'Stardust Arena · Closing Night', organizerArtistId: artist.id },
+  // 2) Lineup DJs (artists used only inside lineups) -------------------------
+  const djMihiran = await upsertCompany({
+    email: 'mihiran@eventsocial.local',
+    name: 'Mihiran',
+    handle: 'mihiran',
+    category: 'DJ',
+    bio: 'Producer, DJ, live electronics. Headlining Stardust Arena this season.',
+    socials: { instagram: 'https://instagram.com/mihiran', tiktok: 'https://tiktok.com/@mihiran' },
+  });
+  const djAsava = await upsertCompany({
+    email: 'asava@eventsocial.local',
+    name: 'Asava',
+    handle: 'asava',
+    category: 'DJ',
+    bio: 'Melodic techno selector from Colombo.',
+    socials: { instagram: 'https://instagram.com/asava' },
+  });
+  const djRanil = await upsertCompany({
+    email: 'ranil@eventsocial.local',
+    name: 'Ranil B',
+    handle: 'ranilb',
+    category: 'DJ',
+    bio: 'Drum & bass / breakbeat.',
+    socials: { instagram: 'https://instagram.com/ranilb' },
   });
 
-  const event =
-    existingEvent ||
-    (await prisma.event.create({
-      data: {
-        organizerArtistId: artist.id,
-        title: 'Stardust Arena · Closing Night',
-        description: 'Closing night with surprise guests, full lineup TBA.',
-        category: 'Concert',
-        coverColor: '#260b3d',
-        startsAt,
-        endsAt,
-        venueName: 'Stardust Arena',
-        cityName: 'Colombo',
-        addressLine: '12 Marine Drive, Colombo 03',
-        geoLat: 6.9271,
-        geoLng: 79.8612,
-        ageRestriction: '18+',
-        status: 'published',
-        refundPolicy: 'Full refund up to 48 hours before showtime.',
-        ticketTypes: {
-          create: [
-            { name: 'General Admission', priceLabel: 'LKR 4,500', priceCents: 450000, total: 500, remaining: 500 },
-            { name: 'VIP', priceLabel: 'LKR 12,000', priceCents: 1200000, total: 80, remaining: 80 },
-          ],
-        },
-      },
-    }));
-  console.log('[seed] event:', event.title);
+  // 3) Event companies (organizers) -----------------------------------------
+  const laForesta = await upsertCompany({
+    email: 'laforesta@eventsocial.local',
+    name: 'La Foresta',
+    handle: 'laforesta',
+    category: 'Event Company',
+    bio: 'Open-air label showcases blending progressive house and underground sounds. We build immersive forest stages across the island, bringing world-class production to intimate crowds. Follow for lineup drops and early-bird releases.',
+    socials: {
+      facebook: 'https://facebook.com/laforesta.lk',
+      instagram: 'https://instagram.com/laforesta.lk',
+      tiktok: 'https://tiktok.com/@laforesta.lk',
+    },
+  });
 
-  // 5) One demo reel
+  const spotseeker = await upsertCompany({
+    email: 'spotseeker@eventsocial.local',
+    name: 'Spotseeker',
+    handle: 'spotseeker',
+    category: 'Event Company',
+    bio: 'Sri Lanka’s premier ticketing & events crew. From rooftop sundowners to harbour-side festivals, we curate the moments worth chasing. Tap a flyer to book — secure checkout in seconds.',
+    socials: {
+      facebook: 'https://facebook.com/spotseeker',
+      instagram: 'https://instagram.com/spotseeker.lk',
+    },
+  });
+
+  const pulse = await upsertCompany({
+    email: 'pulse@eventsocial.local',
+    name: 'Pulse Collective',
+    handle: 'pulsecollective',
+    category: 'Event Company',
+    bio: 'A collective of selectors and visual artists throwing high-energy warehouse nights. Tech-house, psytrance and everything that moves a floor till sunrise.',
+    socials: {
+      instagram: 'https://instagram.com/pulse.collective',
+      tiktok: 'https://tiktok.com/@pulse.collective',
+    },
+  });
+
+  // 4) Events — spread across now, +20d, next month, month after ------------
+  const events = [
+    // La Foresta
+    [laForesta, {
+      title: 'The Sound Garden',
+      description: 'A label showcase under the canopy. Progressive house all night with a surprise B2B closing set. Bring your crew, lose yourself in the forest.',
+      category: 'Festival',
+      coverColor: '#123524',
+      banner: flyer('soundgarden'),
+      flyers: [flyer('soundgarden'), flyer('soundgarden2')],
+      socials: { instagram: 'https://instagram.com/laforesta.lk' },
+      startsAt: inDays(2),
+      venueName: 'La Foresta Grove',
+      addressLine: 'Bolgoda Lake, Moratuwa',
+      geoLat: 6.7806, geoLng: 79.9003,
+      ticketTypes: [
+        { name: 'Early Bird', priceLabel: 'LKR 3,500', priceCents: 350000, currency: 'LKR', total: 300, remaining: 300 },
+        { name: 'General', priceLabel: 'LKR 5,000', priceCents: 500000, currency: 'LKR', total: 400, remaining: 400 },
+      ],
+    }, [djAsava.id, djMihiran.id]],
+
+    [laForesta, {
+      title: 'Jungle Terrace',
+      description: 'Sundowner to moonrise. Deep, melodic, hypnotic — an open-air terrace session.',
+      category: 'Party',
+      coverColor: '#1d3a2a',
+      banner: flyer('jungleterrace'),
+      startsAt: inDays(34),
+      venueName: 'Terrace @ La Foresta',
+      addressLine: 'Bolgoda Lake, Moratuwa',
+      ticketTypes: [
+        { name: 'General', priceLabel: 'LKR 4,000', priceCents: 400000, currency: 'LKR', total: 250, remaining: 250 },
+      ],
+    }, [djAsava.id]],
+
+    // Spotseeker
+    [spotseeker, {
+      title: 'The Key to Happiness',
+      description: 'Harbour-side festival at Port City Colombo. International headliner, full production, fireworks finale. The one you’ll talk about all year.',
+      category: 'Festival',
+      coverColor: '#2a1145',
+      banner: flyer('keytohappiness'),
+      flyers: [flyer('keytohappiness'), flyer('keytohappiness2'), flyer('keytohappiness3')],
+      socials: { facebook: 'https://facebook.com/spotseeker', instagram: 'https://instagram.com/spotseeker.lk' },
+      startsAt: inDays(9),
+      venueName: 'Port City Colombo',
+      addressLine: 'Port City, Colombo 01',
+      geoLat: 6.9430, geoLng: 79.8400,
+      ticketTypes: [
+        { name: 'General Admission', priceLabel: 'LKR 6,500', priceCents: 650000, currency: 'LKR', total: 1000, remaining: 1000 },
+        { name: 'VIP', priceLabel: 'LKR 15,000', priceCents: 1500000, currency: 'LKR', total: 150, remaining: 150 },
+      ],
+    }, [djMihiran.id, djRanil.id]],
+
+    [spotseeker, {
+      title: 'Rooftop Sundowners',
+      description: 'Golden-hour house on a Colombo rooftop. Limited capacity, big views.',
+      category: 'Party',
+      coverColor: '#3a1a2a',
+      banner: flyer('rooftopsundowners'),
+      startsAt: inDays(48),
+      venueName: 'Sky Lounge',
+      addressLine: 'Marine Drive, Colombo 03',
+      ticketTypes: [
+        { name: 'General', priceLabel: 'LKR 4,500', priceCents: 450000, currency: 'LKR', total: 180, remaining: 180 },
+      ],
+    }, [djAsava.id]],
+
+    // Pulse Collective
+    [pulse, {
+      title: 'Neon Tide',
+      description: 'Warehouse tech-house marathon. Three rooms, one collective, till sunrise.',
+      category: 'Party',
+      coverColor: '#0b2545',
+      banner: flyer('neontide'),
+      flyers: [flyer('neontide'), flyer('neontide2')],
+      startsAt: inDays(16),
+      venueName: 'The Warehouse',
+      addressLine: 'Orugodawatta, Colombo 09',
+      ticketTypes: [
+        { name: 'Phase 1', priceLabel: 'LKR 3,000', priceCents: 300000, currency: 'LKR', total: 400, remaining: 400 },
+        { name: 'Phase 2', priceLabel: 'LKR 4,000', priceCents: 400000, currency: 'LKR', total: 400, remaining: 400 },
+      ],
+    }, [djRanil.id, djAsava.id]],
+
+    [pulse, {
+      title: 'Afterglow',
+      description: 'Psytrance & breakbeat under blacklight. Visual artists in residence.',
+      category: 'Live Set',
+      coverColor: '#241046',
+      banner: flyer('afterglow'),
+      startsAt: inDays(63),
+      venueName: 'Hangar 7',
+      addressLine: 'Ratmalana',
+      ticketTypes: [
+        { name: 'General', priceLabel: 'LKR 3,800', priceCents: 380000, currency: 'LKR', total: 300, remaining: 300 },
+      ],
+    }, [djRanil.id]],
+
+    // Mihiran (kept from the original demo)
+    [djMihiran, {
+      title: 'Stardust Arena · Closing Night',
+      description: 'Closing night with surprise guests, full lineup TBA.',
+      category: 'Concert',
+      coverColor: '#260b3d',
+      banner: flyer('stardust'),
+      startsAt: inDays(14),
+      venueName: 'Stardust Arena',
+      addressLine: '12 Marine Drive, Colombo 03',
+      ticketTypes: [
+        { name: 'General Admission', priceLabel: 'LKR 4,500', priceCents: 450000, currency: 'LKR', total: 500, remaining: 500 },
+        { name: 'VIP', priceLabel: 'LKR 12,000', priceCents: 1200000, currency: 'LKR', total: 80, remaining: 80 },
+      ],
+    }, [djMihiran.id]],
+  ];
+
+  let firstEvent = null;
+  for (const [organizer, ev, lineup] of events) {
+    const created = await ensureEvent(organizer, ev, lineup);
+    if (!firstEvent) firstEvent = created;
+    console.log('[seed] event:', created.title);
+  }
+
+  // 5) One demo reel linked to an event -------------------------------------
   const existingReel = await prisma.reel.findFirst({
-    where: { artistId: artist.id, caption: { contains: 'soundcheck' } },
+    where: { artistId: djMihiran.id, caption: { contains: 'soundcheck' } },
   });
-  const reel =
-    existingReel ||
-    (await prisma.reel.create({
+  if (!existingReel) {
+    await prisma.reel.create({
       data: {
-        artistId: artist.id,
+        artistId: djMihiran.id,
         caption: 'Stardust soundcheck — get ready for closing night 🔥',
         musicTrackTitle: 'Closing Night (intro)',
         musicTrackArtistName: 'Mihiran',
-        linkedEventId: event.id,
+        linkedEventId: firstEvent ? firstEvent.id : null,
         coverColor: '#260b3d',
         visibility: 'public',
         tags: { create: [{ tag: 'stardust' }, { tag: 'liveset' }] },
       },
-    }));
-  console.log('[seed] reel:', reel.id);
+    });
+  }
 
   console.log('[seed] done.');
 }

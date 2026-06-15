@@ -97,6 +97,12 @@ model Event {
   category           String      @default("Concert")
   coverColor         String      @default("#1a0a2e")
   coverImageUrl      String?
+  // Flyer/banner used as the booking CTA on the company page.
+  bannerImageUrl     String?
+  // JSON array of extra flyer image URLs for the slider.
+  flyersJson         String?     @db.Text
+  // JSON blob of event socials: { facebook, instagram, tiktok }.
+  socialsJson        String?     @db.Text
   startsAt           DateTime
   endsAt             DateTime
   timezone           String      @default("Asia/Colombo")
@@ -152,16 +158,21 @@ model Ticket {
   id           String       @id @default(cuid())
   eventId      String
   ticketTypeId String
-  userId       String
+  // Nullable: guest reservations have no account. Guest contact is captured
+  // in the guest* fields below instead.
+  userId       String?
   qrPayload    String       @unique
   status       TicketStatus @default(active)
   holderName   String
+  guestName    String?
+  guestPhone   String?
+  guestEmail   String?
   issuedAt     DateTime     @default(now())
   usedAt       DateTime?
 
   event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
   @@index([eventId])

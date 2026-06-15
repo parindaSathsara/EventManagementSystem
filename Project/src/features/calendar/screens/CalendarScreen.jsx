@@ -17,6 +17,7 @@ import {
   dayKeysWithEvents,
   eventsForDay,
   eventsByMonth,
+  monthsWithEvents,
 } from '../../events/utils/eventDates';
 import { distanceKm as haversineKm } from '../../../services/geo';
 import { DEFAULT_LOCATION } from '../../../services/config';
@@ -40,11 +41,13 @@ function formatLongDate(key) {
   });
 }
 
-export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
-  // Default the calendar to May 2026 — that's where our mock events live for the demo.
-  const [year, setYear] = useState(2026);
-  const [monthIdx, setMonthIdx] = useState(4); // May
-  const [selectedDate, setSelectedDate] = useState('2026-05-12');
+export default function CalendarScreen({ onOpenEvent, onOpenSearch, onBack }) {
+  // Default to the current month/day so the calendar always opens on "now".
+  const now = new Date();
+  const [view, setView] = useState('Month'); // 'Year' | 'Month' | 'Day'
+  const [year, setYear] = useState(now.getUTCFullYear());
+  const [monthIdx, setMonthIdx] = useState(now.getUTCMonth());
+  const [selectedDate, setSelectedDate] = useState(todayKey());
   const [category, setCategory] = useState('All');
   const [nearMeOn, setNearMeOn] = useState(true);
   const [radiusKm, setRadiusKm] = useState(10);
@@ -76,6 +79,7 @@ export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
     [events, year, monthIdx],
   );
   const dayKeys = useMemo(() => dayKeysWithEvents(monthEvents), [monthEvents]);
+  const yearMonths = useMemo(() => monthsWithEvents(events, year), [events, year]);
   const dayEvents = useMemo(
     () => eventsForDay(events, selectedDate),
     [events, selectedDate],
@@ -88,6 +92,29 @@ export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
     if (m > 11) { m = 0; y += 1; }
     setMonthIdx(m);
     setYear(y);
+  }
+
+  // Prev/next step by the active unit (year / month / day).
+  function navigate(delta) {
+    if (view === 'Year') {
+      setYear((y) => y + delta);
+      return;
+    }
+    if (view === 'Day') {
+      const d = new Date(selectedDate + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + delta);
+      setSelectedDate(d.toISOString().slice(0, 10));
+      setYear(d.getUTCFullYear());
+      setMonthIdx(d.getUTCMonth());
+      return;
+    }
+    navigateMonth(delta);
+  }
+
+  // Tapping a month in the Year view drills into that month.
+  function handleSelectMonth(mIdx) {
+    setMonthIdx(mIdx);
+    setView('Month');
   }
 
   function handleLocationPick(place) {
@@ -107,6 +134,7 @@ export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
       <ScreenHeader
         title="Calendar"
         subtitle={`What's on near ${location.shortName}`}
+        onBack={onBack}
         rightIcon="search-outline"
         onRightPress={onOpenSearch}
       />
@@ -116,13 +144,17 @@ export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
         showsVerticalScrollIndicator={false}
       >
         <MonthCalendar
+          view={view}
+          onChangeView={setView}
           year={year}
           monthIdx={monthIdx}
           selectedDate={selectedDate}
           eventDayKeys={dayKeys}
-          onSelectDate={setSelectedDate}
-          onPrev={() => navigateMonth(-1)}
-          onNext={() => navigateMonth(1)}
+          eventMonths={yearMonths}
+          onSelectDate={(d) => { setSelectedDate(d); if (view === 'Year') setView('Day'); }}
+          onSelectMonth={handleSelectMonth}
+          onPrev={() => navigate(-1)}
+          onNext={() => navigate(1)}
         />
 
         <LocationBar
@@ -230,6 +262,7 @@ export default function CalendarScreen({ onOpenEvent, onOpenSearch }) {
 CalendarScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenSearch: PropTypes.func,
+  onBack: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

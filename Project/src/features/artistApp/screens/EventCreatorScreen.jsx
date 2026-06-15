@@ -67,7 +67,24 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
   ]);
   const [approval, setApproval] = useState('Auto-publish');
   const [refundable, setRefundable] = useState(true);
+  // Promotion: a banner/flyer image URL (the booking CTA) + company socials.
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [tiktok, setTiktok] = useState('');
   const alert = useAlert();
+
+  function buildSocials() {
+    const s = {};
+    if (instagram.trim()) s.instagram = instagram.trim();
+    if (facebook.trim()) s.facebook = facebook.trim();
+    if (tiktok.trim()) s.tiktok = tiktok.trim();
+    return Object.keys(s).length ? s : undefined;
+  }
+  function validBanner() {
+    const u = bannerUrl.trim();
+    return /^https?:\/\/.+/i.test(u) ? u : undefined;
+  }
 
   async function handlePublish() {
     if (!title.trim()) {
@@ -107,11 +124,15 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
     }
 
     try {
+      const banner = validBanner();
+      const socials = buildSocials();
       const newEvent = await eventsRepo.create({
         title: title.trim(),
         description: description.trim(),
         category,
         coverColor: COVER_COLORS[coverIdx] || '#1a0a2e',
+        ...(banner ? { bannerImageUrl: banner, flyers: [banner] } : {}),
+        ...(socials ? { socials } : {}),
         startsAt,
         endsAt,
         venueName: venue.trim(),
@@ -122,6 +143,8 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           ? 'Refunds available up to 24h before event start.'
           : 'Non-refundable.',
         ticketTypes,
+        // The organizer (this manager, acting as the artist) is auto-linked to
+        // the event's lineup by the backend when no explicit lineup is given.
         // Backend rejects unknown statuses; 'pending' is not in the enum.
         status: approval === 'Auto-publish' ? 'published' : 'draft',
       });
@@ -316,6 +339,21 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
             <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
             <Text style={styles.addTicketText}>Add another ticket type</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Promotion & socials */}
+        <Text style={styles.sectionLabel}>Promotion & socials</Text>
+        <View style={styles.card}>
+          <Field
+            icon="image-outline"
+            label="Flyer / banner image URL"
+            value={bannerUrl}
+            onChange={setBannerUrl}
+            placeholder="https://… (the booking CTA image)"
+          />
+          <Field icon="logo-instagram" label="Instagram" value={instagram} onChange={setInstagram} placeholder="https://instagram.com/…" />
+          <Field icon="logo-facebook" label="Facebook" value={facebook} onChange={setFacebook} placeholder="https://facebook.com/…" />
+          <Field icon="logo-tiktok" label="TikTok" value={tiktok} onChange={setTiktok} placeholder="https://tiktok.com/@…" />
         </View>
 
         {/* Policies */}

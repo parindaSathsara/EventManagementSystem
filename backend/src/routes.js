@@ -11,6 +11,7 @@ const reelsRoutes = require('./modules/reels/routes');
 const ticketsRoutes = require('./modules/tickets/routes');
 const artistsRoutes = require('./modules/artists/routes');
 const uploadsRoutes = require('./modules/uploads/routes');
+const notificationsRoutes = require('./modules/notifications/routes');
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/reels', reelsRoutes);
 router.use('/tickets', ticketsRoutes);
 router.use('/artists', artistsRoutes);
 router.use('/uploads', uploadsRoutes);
+router.use('/notifications', notificationsRoutes);
 
 module.exports = router;

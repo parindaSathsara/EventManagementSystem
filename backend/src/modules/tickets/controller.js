@@ -12,6 +12,21 @@ async function purchase(req, res) {
   const ticket = await service.purchase(req.body, req.user.id);
   res.status(201).json(ticket);
 }
+async function reserve(req, res) {
+  const { eventId, ticketTypeId, holderName, phone, email } = req.body;
+  // optionalAuth: a logged-in user reserving uses their account; a guest
+  // (no req.user) stores contact details on the ticket instead.
+  const ticket = await service.purchase(
+    {
+      eventId,
+      ticketTypeId,
+      holderName,
+      guest: req.user ? null : { name: holderName, phone, email },
+    },
+    req.user ? req.user.id : null,
+  );
+  res.status(201).json(ticket);
+}
 async function updateStatus(req, res) {
   const updated = await service.updateStatus(
     req.params.id,
@@ -22,4 +37,4 @@ async function updateStatus(req, res) {
   res.json(updated);
 }
 
-module.exports = { list, getOne, purchase, updateStatus };
+module.exports = { list, getOne, purchase, reserve, updateStatus };
