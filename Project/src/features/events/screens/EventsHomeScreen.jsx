@@ -1,45 +1,46 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   StatusBar,
   Platform,
-  RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
-import { COLORS, SPACING } from '../../../theme';
+import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import { ConnectionError, EmptyState } from '../../../shared/components';
 import { useEventsData, useFollows } from '../../../shared/hooks';
 import CompanyCard from '../components/CompanyCard';
+import ProfileSheet from '../components/ProfileSheet';
+import { eventsByArtistName, eventsByOrganizer } from '../utils/eventDates';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
+const { width: SCREEN_W } = Dimensions.get('window');
 const VISIBLE_STATUS = new Set(['published', 'live']);
 
+const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
+
 /**
- * The app's landing page (guest experience). A vertical feed of **event
- * managers** — scroll down to move from one manager to the next. Each manager
- * card shows a swipeable banner carousel, all of their events, the line up, and
- * socials.
- *
- *   Header:  [ For You | Following ]            🔍  ↻
- *   Body:    CompanyCard per organizer (event manager)
+ * The app's landing page (guest experience). A **horizontally swipeable** feed of
+ * event managers — one manager per screen, with a manager tab strip on top.
+ * Tapping a lineup artist or the manager opens a bottom sheet (socials + events),
+ * never a full artist page.
  */
-export default function EventsHomeScreen({
-  onOpenEvent,
-  onOpenArtist,
-  onOpenBooking,
-  onOpenSearch,
-}) {
+export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSearch }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
-  const [feed, setFeed] = useState('forYou'); // 'forYou' | 'following'
+  const [feed, setFeed] = useState('forYou');
+  const [index, setIndex] = useState(0);
+  const [bodyH, setBodyH] = useState(0);
+  const [sheet, setSheet] = useState(EMPTY_SHEET);
+  const listRef = useRef(null);
 
-  // Group events by organizer → managers, each sorted by soonest event.
   const managers = useMemo(() => {
     const map = new Map();
     for (const e of events) {
@@ -60,6 +61,37 @@ export default function EventsHomeScreen({
     [managers, feed, isFollowing],
   );
 
+  function goTo(i) {
+    setIndex(i);
+    listRef.current?.scrollToOffset({ offset: i * SCREEN_W, animated: true });
+  }
+  function switchFeed(next) {
+    if (next === feed) return;
+    setFeed(next);
+    setIndex(0);
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }
+  function openArtist(artist) {
+    setSheet({
+      visible: true,
+      name: artist.name,
+      subtitle: artist.role || 'Artist',
+      avatarUrl: artist.avatarUrl,
+      socials: artist.socials,
+      relatedEvents: eventsByArtistName(events, artist.name),
+    });
+  }
+  function openManager(org) {
+    setSheet({
+      visible: true,
+      name: org.user?.name || org.handle || 'Event Manager',
+      subtitle: org.category || 'Event Manager',
+      avatarUrl: org.user?.avatarUrl,
+      socials: org.socials,
+      relatedEvents: eventsByOrganizer(events, org.id),
+    });
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
@@ -67,8 +99,8 @@ export default function EventsHomeScreen({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.tabs}>
-          <Tab label="For You" active={feed === 'forYou'} onPress={() => setFeed('forYou')} />
-          <Tab label="Following" active={feed === 'following'} onPress={() => setFeed('following')} />
+          <Tab label="For You" active={feed === 'forYou'} onPress={() => switchFeed('forYou')} />
+          <Tab label="Following" active={feed === 'following'} onPress={() => switchFeed('following')} />
         </View>
         <View style={styles.actions}>
           <IconBtn icon="search-outline" onPress={onOpenSearch} />
@@ -76,13 +108,32 @@ export default function EventsHomeScreen({
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={false} onRefresh={events.refresh} tintColor={COLORS.accent} />
-        }
-      >
+      {/* Manager tab strip */}
+      {visible.length > 1 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipStrip}
+        >
+          {visible.map((c, i) => {
+            const nm = c.organizer.user?.name || c.organizer.handle;
+            const active = i === index;
+            return (
+              <TouchableOpacity
+                key={c.organizer.id}
+                onPress={() => goTo(i)}
+                activeOpacity={0.8}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>{nm}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      ) : null}
+
+      {/* Body — swipe between managers */}
+      <View style={styles.body} onLayout={(e) => setBodyH(e.nativeEvent.layout.height)}>
         {events.error && managers.length === 0 ? (
           <ConnectionError error={events.error} onRetry={events.refresh} loading={events.loading} />
         ) : visible.length === 0 ? (
@@ -95,21 +146,39 @@ export default function EventsHomeScreen({
                 : 'Check back soon — new events are added all the time.'
             }
           />
-        ) : (
-          visible.map((c) => (
-            <CompanyCard
-              key={c.organizer.id}
-              company={c}
-              isFollowing={isFollowing(c.organizer.id)}
-              onToggleFollow={() => toggle(c.organizer.id)}
-              onOpenEvent={onOpenEvent}
-              onOpenBooking={onOpenBooking}
-              onOpenArtist={onOpenArtist}
-            />
-          ))
-        )}
-        <View style={{ height: 120 }} />
-      </ScrollView>
+        ) : bodyH > 0 ? (
+          <FlatList
+            ref={listRef}
+            data={visible}
+            keyExtractor={(c) => c.organizer.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_W))}
+            getItemLayout={(_d, i) => ({ length: SCREEN_W, offset: SCREEN_W * i, index: i })}
+            renderItem={({ item: c }) => (
+              <ScrollView style={{ width: SCREEN_W, height: bodyH }} showsVerticalScrollIndicator={false}>
+                <CompanyCard
+                  company={c}
+                  isFollowing={isFollowing(c.organizer.id)}
+                  onToggleFollow={() => toggle(c.organizer.id)}
+                  onOpenEvent={onOpenEvent}
+                  onOpenBooking={onOpenBooking}
+                  onOpenArtist={openArtist}
+                  onOpenManager={openManager}
+                />
+                <View style={{ height: 100 }} />
+              </ScrollView>
+            )}
+          />
+        ) : null}
+      </View>
+
+      <ProfileSheet
+        {...sheet}
+        onClose={() => setSheet(EMPTY_SHEET)}
+        onOpenEvent={onOpenEvent}
+      />
     </View>
   );
 }
@@ -136,7 +205,6 @@ IconBtn.propTypes = { icon: PropTypes.string, onPress: PropTypes.func };
 
 EventsHomeScreen.propTypes = {
   onOpenEvent: PropTypes.func,
-  onOpenArtist: PropTypes.func,
   onOpenBooking: PropTypes.func,
   onOpenSearch: PropTypes.func,
 };
@@ -154,26 +222,27 @@ const styles = StyleSheet.create({
   },
   tabs: { flexDirection: 'row', gap: SPACING.lg },
   tab: { alignItems: 'center', paddingVertical: 4 },
-  tabText: {
-    ...TYPE_SCALE.h4,
-    fontFamily: FONT_FAMILY.headingBold,
-    color: COLORS.textMuted,
-  },
+  tabText: { ...TYPE_SCALE.h4, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textMuted },
   tabTextActive: { color: COLORS.textPrimary },
-  tabUnderline: {
-    height: 3,
-    width: 22,
-    borderRadius: 2,
-    backgroundColor: COLORS.accent,
-    marginTop: 4,
-  },
+  tabUnderline: { height: 3, width: 22, borderRadius: 2, backgroundColor: COLORS.accent, marginTop: 4 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  chipStrip: {
+    paddingHorizontal: SPACING.base,
+    paddingBottom: SPACING.sm,
+    gap: SPACING.sm,
   },
-  scroll: { paddingBottom: SPACING.xxl },
+  chip: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 7,
+    borderRadius: RADII.pill,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+    backgroundColor: COLORS.surface1,
+    maxWidth: 160,
+  },
+  chipActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  chipText: { fontSize: 13, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.textSecondary },
+  chipTextActive: { color: '#000' },
+  body: { flex: 1 },
 });

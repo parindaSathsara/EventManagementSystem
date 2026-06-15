@@ -7,7 +7,7 @@ import { BottomTabBar } from '../shared/components';
 // import { ReelsScreen } from '../features/reels';
 import { ArtistProfileScreen } from '../features/artists';
 import { EventDetailScreen, EventsHomeScreen, BookingScreen } from '../features/events';
-import { CalendarScreen } from '../features/calendar';
+import { UpcomingEventsScreen } from '../features/calendar';
 import { SearchScreen } from '../features/search';
 import { NotificationsScreen } from '../features/notifications';
 
@@ -38,7 +38,7 @@ export default function GuestTabs({ onManagerLogin }) {
       <EventDetailScreen
         eventId={stack.params.eventId}
         onBack={pop}
-        onArtistPress={(artistId) => push('artist', { artistId })}
+        onOpenEvent={(id) => push('event', { eventId: id })}
         onBook={(eventId) => push('booking', { eventId })}
       />
     );
@@ -92,14 +92,13 @@ export default function GuestTabs({ onManagerLogin }) {
         {tab === 'events' ? (
           <EventsHomeScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
-            onOpenArtist={(id) => push('artist', { artistId: id })}
             onOpenBooking={(eventId) => push('booking', { eventId })}
             onOpenSearch={() => push('search')}
           />
         ) : null}
 
         {tab === 'calendar' ? (
-          <CalendarScreen
+          <UpcomingEventsScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenSearch={() => push('search')}
           />

@@ -31,28 +31,26 @@ function inDays(n, hourUtc = 16) {
   return new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(), hourUtc, 0, 0));
 }
 
-// Landscape concert/EDM banners (Unsplash, stable IDs).
-const BANNERS = [
-  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1280&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=1280&q=80&auto=format&fit=crop',
-];
-let _bannerCursor = 0;
-function flyer() {
-  const url = BANNERS[_bannerCursor % BANNERS.length];
-  _bannerCursor += 1;
-  return url;
+// Real EDM flyer posters + DJ photos served by the backend from uploads/seed/
+// (copied from the edmcalendar.lk reference). Reference via the public base URL.
+const ASSET_BASE = (process.env.PUBLIC_BASE_URL || 'https://events-api.aahaas.com').replace(/\/+$/, '');
+function asset(file) {
+  return `${ASSET_BASE}/uploads/seed/${file}`;
 }
 
-// Avatar placeholders (pravatar — reliable, real faces).
+// Company/organizer avatars (pravatar — reliable, real faces).
 function avatar(n) {
   return `https://i.pravatar.cc/300?img=${n}`;
 }
+
+// Lineup DJs reused across events: real names, photos, and socials.
+const DJ = {
+  manik: { name: 'DJ Manik', avatarUrl: asset('dj-manik.jpg'), socials: { instagram: 'https://instagram.com/djmanik', facebook: 'https://facebook.com/djmanik' } },
+  zaeem: { name: 'Zaeem', avatarUrl: asset('dj-zaeem.jpg'), socials: { instagram: 'https://instagram.com/zaeem', tiktok: 'https://tiktok.com/@zaeem' } },
+  roshan: { name: 'Roshan', avatarUrl: asset('dj-roshan.jpg'), socials: { instagram: 'https://instagram.com/roshan' } },
+  gayan: { name: 'Gayan', avatarUrl: asset('dj-gayan.jpg'), socials: { facebook: 'https://facebook.com/gayan.music' } },
+  bmpi: { name: 'BMPI', avatarUrl: asset('dj-bmpi.jpg'), socials: { instagram: 'https://instagram.com/bmpi' } },
+};
 
 async function upsertUser({ email, password, name, role, phone, city, avatarUrl }) {
   const passwordHash = await bcrypt.hash(password, 10);
@@ -157,24 +155,6 @@ async function main() {
     avatarUrl: avatar(12),
     socials: { instagram: 'https://instagram.com/mihiran', tiktok: 'https://tiktok.com/@mihiran' },
   });
-  const djAsava = await upsertCompany({
-    email: 'asava@eventsocial.local',
-    name: 'Asava',
-    handle: 'asava',
-    category: 'DJ',
-    bio: 'Melodic techno selector from Colombo.',
-    avatarUrl: avatar(33),
-    socials: { instagram: 'https://instagram.com/asava' },
-  });
-  const djRanil = await upsertCompany({
-    email: 'ranil@eventsocial.local',
-    name: 'Ranil B',
-    handle: 'ranilb',
-    category: 'DJ',
-    bio: 'Drum & bass / breakbeat.',
-    avatarUrl: avatar(51),
-    socials: { instagram: 'https://instagram.com/ranilb' },
-  });
 
   // 3) Event companies (organizers) -----------------------------------------
   const laForesta = await upsertCompany({
@@ -217,31 +197,16 @@ async function main() {
     },
   });
 
-  const udara = await upsertCompany({
-    email: 'udara@eventsocial.local',
-    name: 'Udara Jayasanka',
-    handle: 'udarajayasanka',
-    category: 'Event Company',
-    bio: 'Live concerts and artist showcases across Sri Lanka. Big stages, full bands, unforgettable nights — bringing the country’s favourite acts to a venue near you.',
-    avatarUrl: avatar(68),
-    socials: {
-      facebook: 'https://facebook.com/udara.jayasanka',
-      instagram: 'https://instagram.com/udara.jayasanka',
-      tiktok: 'https://tiktok.com/@udara.jayasanka',
-    },
-  });
-
-  // 4) Events — spread across now, +20d, next month, month after ------------
+  // 4) Events — real EDM names + posters, spread across upcoming weeks -------
   const events = [
     // La Foresta
     [laForesta, {
-      title: 'The Sound Garden',
+      title: 'Lost Garden',
       description: 'A label showcase under the canopy. Progressive house all night with a surprise B2B closing set. Bring your crew, lose yourself in the forest.',
       category: 'Festival',
       coverColor: '#123524',
-      banner: flyer('soundgarden'),
-      flyers: [flyer('soundgarden'), flyer('soundgarden2')],
-      socials: { instagram: 'https://instagram.com/laforesta.lk' },
+      banner: asset('lost-garden.jpg'),
+      flyers: [asset('lost-garden.jpg'), asset('chill-bay-fiesta.jpg')],
       startsAt: inDays(2),
       venueName: 'La Foresta Grove',
       addressLine: 'Bolgoda Lake, Moratuwa',
@@ -250,21 +215,23 @@ async function main() {
         { name: 'Early Bird', priceLabel: 'LKR 3,500', priceCents: 350000, currency: 'LKR', total: 300, remaining: 300 },
         { name: 'General', priceLabel: 'LKR 5,000', priceCents: 500000, currency: 'LKR', total: 400, remaining: 400 },
       ],
-    }, [djAsava.id, djMihiran.id]],
+      lineup: [DJ.manik, DJ.roshan],
+    }],
 
     [laForesta, {
-      title: 'Jungle Terrace',
-      description: 'Sundowner to moonrise. Deep, melodic, hypnotic — an open-air terrace session.',
+      title: 'Afro Eclipse',
+      description: 'Sundowner to moonrise. Deep, melodic, afro-house — an open-air terrace session.',
       category: 'Party',
       coverColor: '#1d3a2a',
-      banner: flyer('jungleterrace'),
+      banner: asset('afro-eclipse.jpg'),
       startsAt: inDays(34),
       venueName: 'Terrace @ La Foresta',
       addressLine: 'Bolgoda Lake, Moratuwa',
       ticketTypes: [
         { name: 'General', priceLabel: 'LKR 4,000', priceCents: 400000, currency: 'LKR', total: 250, remaining: 250 },
       ],
-    }, [djAsava.id]],
+      lineup: [DJ.gayan],
+    }],
 
     // Spotseeker
     [spotseeker, {
@@ -272,9 +239,8 @@ async function main() {
       description: 'Harbour-side festival at Port City Colombo. International headliner, full production, fireworks finale. The one you’ll talk about all year.',
       category: 'Festival',
       coverColor: '#2a1145',
-      banner: flyer('keytohappiness'),
-      flyers: [flyer('keytohappiness'), flyer('keytohappiness2'), flyer('keytohappiness3')],
-      socials: { facebook: 'https://facebook.com/spotseeker', instagram: 'https://instagram.com/spotseeker.lk' },
+      banner: asset('the-key-to-happiness.jpg'),
+      flyers: [asset('the-key-to-happiness.jpg'), asset('viral-festival.jpg')],
       startsAt: inDays(9),
       venueName: 'Port City Colombo',
       addressLine: 'Port City, Colombo 01',
@@ -283,30 +249,32 @@ async function main() {
         { name: 'General Admission', priceLabel: 'LKR 6,500', priceCents: 650000, currency: 'LKR', total: 1000, remaining: 1000 },
         { name: 'VIP', priceLabel: 'LKR 15,000', priceCents: 1500000, currency: 'LKR', total: 150, remaining: 150 },
       ],
-    }, [djMihiran.id, djRanil.id]],
+      lineup: [DJ.manik, DJ.zaeem, DJ.bmpi],
+    }],
 
     [spotseeker, {
-      title: 'Rooftop Sundowners',
-      description: 'Golden-hour house on a Colombo rooftop. Limited capacity, big views.',
-      category: 'Party',
+      title: 'Viral Festival',
+      description: 'The biggest open-air on the calendar — multi-stage, all-day into all-night.',
+      category: 'Festival',
       coverColor: '#3a1a2a',
-      banner: flyer('rooftopsundowners'),
+      banner: asset('viral-festival.jpg'),
       startsAt: inDays(48),
-      venueName: 'Sky Lounge',
-      addressLine: 'Marine Drive, Colombo 03',
+      venueName: 'Diyatha Uyana',
+      addressLine: 'Battaramulla',
       ticketTypes: [
-        { name: 'General', priceLabel: 'LKR 4,500', priceCents: 450000, currency: 'LKR', total: 180, remaining: 180 },
+        { name: 'General', priceLabel: 'LKR 4,500', priceCents: 450000, currency: 'LKR', total: 800, remaining: 800 },
       ],
-    }, [djAsava.id]],
+      lineup: [DJ.zaeem, DJ.gayan],
+    }],
 
     // Pulse Collective
     [pulse, {
-      title: 'Neon Tide',
+      title: 'House of Rave',
       description: 'Warehouse tech-house marathon. Three rooms, one collective, till sunrise.',
       category: 'Party',
       coverColor: '#0b2545',
-      banner: flyer('neontide'),
-      flyers: [flyer('neontide'), flyer('neontide2')],
+      banner: asset('house-of-rave.jpg'),
+      flyers: [asset('house-of-rave.jpg'), asset('infinity-rave.jpg')],
       startsAt: inDays(16),
       venueName: 'The Warehouse',
       addressLine: 'Orugodawatta, Colombo 09',
@@ -314,29 +282,32 @@ async function main() {
         { name: 'Phase 1', priceLabel: 'LKR 3,000', priceCents: 300000, currency: 'LKR', total: 400, remaining: 400 },
         { name: 'Phase 2', priceLabel: 'LKR 4,000', priceCents: 400000, currency: 'LKR', total: 400, remaining: 400 },
       ],
-    }, [djRanil.id, djAsava.id]],
+      lineup: [DJ.bmpi, DJ.roshan],
+    }],
 
     [pulse, {
-      title: 'Afterglow',
+      title: 'Infinity Rave 2.0',
       description: 'Psytrance & breakbeat under blacklight. Visual artists in residence.',
       category: 'Live Set',
       coverColor: '#241046',
-      banner: flyer('afterglow'),
+      banner: asset('infinity-rave.jpg'),
       startsAt: inDays(63),
       venueName: 'Hangar 7',
       addressLine: 'Ratmalana',
       ticketTypes: [
         { name: 'General', priceLabel: 'LKR 3,800', priceCents: 380000, currency: 'LKR', total: 300, remaining: 300 },
       ],
-    }, [djRanil.id]],
+      lineup: [DJ.roshan],
+    }],
 
-    // Mihiran (kept from the original demo)
+    // Mihiran
     [djMihiran, {
-      title: 'Stardust Arena · Closing Night',
-      description: 'Closing night with surprise guests, full lineup TBA.',
+      title: 'Lumina 2.0',
+      description: 'A night of melodic techno and immersive light design with surprise guests.',
       category: 'Concert',
       coverColor: '#260b3d',
-      banner: flyer('stardust'),
+      banner: asset('lumina.jpg'),
+      flyers: [asset('lumina.jpg'), asset('lucio-frequencies.jpg')],
       startsAt: inDays(14),
       venueName: 'Stardust Arena',
       addressLine: '12 Marine Drive, Colombo 03',
@@ -344,52 +315,42 @@ async function main() {
         { name: 'General Admission', priceLabel: 'LKR 4,500', priceCents: 450000, currency: 'LKR', total: 500, remaining: 500 },
         { name: 'VIP', priceLabel: 'LKR 12,000', priceCents: 1200000, currency: 'LKR', total: 80, remaining: 80 },
       ],
-    }, [djMihiran.id]],
+      lineup: [DJ.manik, DJ.zaeem],
+    }],
 
-    // Udara Jayasanka — live concerts with named artists + their own socials
-    [udara, {
-      title: 'Sahara Flash Live in Colombo',
-      description: 'A full-band live concert night with the country’s favourite voices. Lights, brass, and an all-star lineup under one roof.',
-      category: 'Concert',
-      coverColor: '#2a1145',
-      banner: flyer(),
-      flyers: [flyer(), flyer()],
-      startsAt: inDays(5),
-      venueName: 'Nelum Pokuna Theatre',
-      addressLine: 'Nelum Pokuna Mawatha, Colombo 07',
+    [djMihiran, {
+      title: 'Maaya Underground',
+      description: 'Late-night underground selectors across two rooms.',
+      category: 'Party',
+      coverColor: '#1a0a2e',
+      banner: asset('maaya-underground.jpg'),
+      startsAt: inDays(40),
+      venueName: 'RHYTHM & Blues',
+      addressLine: 'Colombo 03',
       ticketTypes: [
-        { name: 'Balcony', priceLabel: 'LKR 3,000', priceCents: 300000, currency: 'LKR', total: 300, remaining: 300 },
-        { name: 'Front Row', priceLabel: 'LKR 7,500', priceCents: 750000, currency: 'LKR', total: 100, remaining: 100 },
+        { name: 'General', priceLabel: 'LKR 3,500', priceCents: 350000, currency: 'LKR', total: 250, remaining: 250 },
       ],
-      lineup: [
-        { name: 'Bathiya & Santhush', socials: { facebook: 'https://facebook.com/BnSmusic', instagram: 'https://instagram.com/bns_official' } },
-        { name: 'Umaria Sinhawansa', socials: { instagram: 'https://instagram.com/umariasinhawansa', tiktok: 'https://tiktok.com/@umaria' } },
-        { name: 'Sahara Flash', socials: { facebook: 'https://facebook.com/saharaflashsl' } },
-      ],
-    }, []],
-
-    [udara, {
-      title: 'Unplugged · Acoustic Night',
-      description: 'An intimate acoustic evening — stripped-back sets from Sri Lanka’s finest singer-songwriters.',
-      category: 'Live Set',
-      coverColor: '#123524',
-      banner: flyer(),
-      startsAt: inDays(27),
-      venueName: 'Musaeus College Auditorium',
-      addressLine: 'Colombo 07',
-      ticketTypes: [
-        { name: 'General', priceLabel: 'LKR 2,500', priceCents: 250000, currency: 'LKR', total: 250, remaining: 250 },
-      ],
-      lineup: [
-        { name: 'Sanuka Wickramasinghe', socials: { instagram: 'https://instagram.com/sanukaofficial', facebook: 'https://facebook.com/sanukamusic' } },
-        { name: 'Dinesh Gamage', socials: { instagram: 'https://instagram.com/dineshgamage' } },
-      ],
-    }, []],
+      lineup: [DJ.bmpi],
+    }],
   ];
 
+  // Clean previous seed so re-runs reflect the latest names/posters, and remove
+  // the retired "Udara Jayasanka" manager entirely (cascade deletes its events).
+  const retired = await prisma.artist.findMany({
+    where: { handle: { in: ['udarajayasanka', 'asava', 'ranilb'] } },
+    select: { id: true },
+  });
+  if (retired.length) {
+    await prisma.artist.deleteMany({ where: { id: { in: retired.map((a) => a.id) } } });
+    console.log('[seed] removed retired managers:', retired.length);
+  }
+  const seedOrgIds = [laForesta.id, spotseeker.id, pulse.id, djMihiran.id];
+  const purged = await prisma.event.deleteMany({ where: { organizerArtistId: { in: seedOrgIds } } });
+  console.log('[seed] cleared previous seed events:', purged.count);
+
   let firstEvent = null;
-  for (const [organizer, ev, lineup] of events) {
-    const created = await ensureEvent(organizer, ev, lineup);
+  for (const [organizer, ev] of events) {
+    const created = await ensureEvent(organizer, ev, []);
     if (!firstEvent) firstEvent = created;
     console.log('[seed] event:', created.title);
   }

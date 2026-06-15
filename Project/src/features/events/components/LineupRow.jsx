@@ -44,7 +44,7 @@ export default function LineupRow({ lineup, onArtistPress }) {
           key={a.id}
           style={styles.card}
           activeOpacity={0.8}
-          onPress={() => onArtistPress && onArtistPress(a.id)}
+          onPress={() => onArtistPress && onArtistPress(a)}
         >
           <Avatar uri={a.avatarUrl} name={a.name} size={56} verified={a.role === 'Headliner'} />
           <Text style={styles.name} numberOfLines={1}>{a.name}</Text>

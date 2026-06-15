@@ -27,6 +27,7 @@ export default function CompanyCard({
   onOpenEvent,
   onOpenBooking,
   onOpenArtist,
+  onOpenManager,
 }) {
   const { organizer, events } = company;
   const [expanded, setExpanded] = useState(false);
@@ -34,12 +35,14 @@ export default function CompanyCard({
   const name = organizer?.user?.name || organizer?.handle || 'Event Company';
   const socials = organizer?.socials || events.find((e) => e.socials)?.socials || null;
 
-  // Aggregate a de-duplicated lineup across this company's events.
+  // Aggregate a de-duplicated lineup across this company's events (by name —
+  // free-form lineup ids ('g0', 'g1') repeat across events).
   const lineup = useMemo(() => {
     const seen = new Map();
     events.forEach((e) => {
       (e.lineup || []).forEach((a) => {
-        if (a && a.id && !seen.has(a.id)) seen.set(a.id, a);
+        const key = (a?.name || a?.id || '').toLowerCase();
+        if (a && key && !seen.has(key)) seen.set(key, a);
       });
     });
     return [...seen.values()];
@@ -49,18 +52,24 @@ export default function CompanyCard({
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <Avatar uri={organizer?.user?.avatarUrl} name={name} size={48} verified={organizer?.isVerified} />
-        <View style={{ flex: 1 }}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>{name}</Text>
-            {organizer?.isVerified ? (
-              <Ionicons name="checkmark-circle" size={15} color={COLORS.accent} />
+        <TouchableOpacity
+          style={styles.headerMain}
+          activeOpacity={0.8}
+          onPress={() => onOpenManager && onOpenManager(organizer)}
+        >
+          <Avatar uri={organizer?.user?.avatarUrl} name={name} size={48} verified={organizer?.isVerified} />
+          <View style={{ flex: 1 }}>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>{name}</Text>
+              {organizer?.isVerified ? (
+                <Ionicons name="checkmark-circle" size={15} color={COLORS.accent} />
+              ) : null}
+            </View>
+            {organizer?.category ? (
+              <Text style={styles.category}>{organizer.category}</Text>
             ) : null}
           </View>
-          {organizer?.category ? (
-            <Text style={styles.category}>{organizer.category}</Text>
-          ) : null}
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.followBtn, isFollowing && styles.followBtnActive]}
           activeOpacity={0.8}
@@ -122,6 +131,7 @@ CompanyCard.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenBooking: PropTypes.func,
   onOpenArtist: PropTypes.func,
+  onOpenManager: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -138,6 +148,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
     paddingHorizontal: SPACING.base,
+  },
+  headerMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
   },
   nameRow: {
     flexDirection: 'row',

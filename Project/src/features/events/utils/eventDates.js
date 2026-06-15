@@ -8,6 +8,21 @@
 
 export const CATEGORIES = ['All', 'Concert', 'Festival', 'Party', 'Live Set', 'Experience'];
 
+/** Events that feature a lineup artist with the given (case-insensitive) name. */
+export function eventsByArtistName(events, name) {
+  if (!name) return [];
+  const want = name.trim().toLowerCase();
+  return events.filter((e) =>
+    (e.lineup || []).some((a) => (a?.name || '').trim().toLowerCase() === want),
+  );
+}
+
+/** Events organised by a given organizer id. */
+export function eventsByOrganizer(events, organizerId) {
+  if (!organizerId) return [];
+  return events.filter((e) => e.organizer?.id === organizerId);
+}
+
 /** Returns events whose `startsAt` ISO begins with the given YYYY-MM-DD key. */
 export function eventsForDay(events, dateString) {
   if (!dateString) return [];

@@ -19,6 +19,8 @@ import EventHero from '../components/EventHero';
 import LineupRow from '../components/LineupRow';
 import SocialRow from '../components/SocialRow';
 import TicketTypeRow from '../components/TicketTypeRow';
+import ProfileSheet from '../components/ProfileSheet';
+import { eventsByArtistName, eventsByOrganizer } from '../utils/eventDates';
 
 function fmtDate(iso) {
   const d = new Date(iso);
@@ -30,7 +32,9 @@ function fmtDate(iso) {
   };
 }
 
-export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBook, onBookConfirmed }) {
+const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
+
+export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook, onBookConfirmed }) {
   const allEvents = useEventsData();
   const event = useMemo(() => allEvents.find((e) => e.id === eventId) || null, [allEvents, eventId]);
   const [selectedTicket, setSelectedTicket] = useState(
@@ -40,8 +44,30 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
   // and a second tap is a no-op. Prevents the double-purchase race we saw
   // in the load test (5 simultaneous taps = 5 tickets created).
   const [booking, setBooking] = useState(false);
+  const [sheet, setSheet] = useState(EMPTY_SHEET);
   const alert = useAlert();
   const { isFollowing, toggle } = useFollows();
+
+  function openArtist(artist) {
+    setSheet({
+      visible: true,
+      name: artist.name,
+      subtitle: artist.role || 'Artist',
+      avatarUrl: artist.avatarUrl,
+      socials: artist.socials,
+      relatedEvents: eventsByArtistName(allEvents, artist.name),
+    });
+  }
+  function openManager(orgArg) {
+    setSheet({
+      visible: true,
+      name: orgArg.user?.name || orgArg.handle || 'Event Manager',
+      subtitle: orgArg.category || 'Event Manager',
+      avatarUrl: orgArg.user?.avatarUrl,
+      socials: orgArg.socials,
+      relatedEvents: eventsByOrganizer(allEvents, orgArg.id),
+    });
+  }
 
   async function handleBook() {
     // Guest flow: hand off to the dedicated BookingScreen (captures contact
@@ -130,58 +156,55 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
       >
         <EventHero event={event} onBack={onBack} onSave={handleSaveToggle} />
 
-        {/* Title · date · venue */}
-        <View style={styles.headerBlock}>
-          <View style={styles.tagsRow}>
-            {event.status === 'live' ? (
-              <Chip label="LIVE NOW" variant="live" icon="radio" />
-            ) : (
-              <Chip label={event.category || 'Event'} variant="filter" active />
-            )}
-            {event.ageRestriction ? <Chip label={event.ageRestriction} variant="tag" /> : null}
+        {/* Date square · title · time — no container */}
+        <View style={styles.headerRow}>
+          <View style={styles.dateBadge}>
+            <Text style={styles.dateMonth}>{month}</Text>
+            <Text style={styles.dateDay}>{day}</Text>
+            <Text style={styles.dateWeekday}>{weekday}</Text>
           </View>
-
-          <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
-
-          <View style={styles.dateRow}>
-            <View style={styles.dateBadge}>
-              <Text style={styles.dateMonth}>{month}</Text>
-              <Text style={styles.dateDay}>{day}</Text>
-              <Text style={styles.dateWeekday}>{weekday}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.eventTitle} numberOfLines={3}>{event.title}</Text>
+            <View style={styles.metaLine}>
+              <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <View style={styles.metaLine}>
-                <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
-                <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
-              </View>
-              <View style={styles.metaLine}>
-                <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
-                <Text style={styles.metaText} numberOfLines={1}>
-                  {event.venueName} · {event.cityName}
-                </Text>
-              </View>
+            <View style={styles.metaLine}>
+              <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.metaText} numberOfLines={1}>{event.venueName} · {event.cityName}</Text>
             </View>
           </View>
+        </View>
 
-          {/* Organizer */}
-          <View style={styles.orgRow}>
+        <View style={styles.tagsRow}>
+          {event.status === 'live' ? (
+            <Chip label="LIVE NOW" variant="live" icon="radio" />
+          ) : (
+            <Chip label={event.category || 'Event'} variant="filter" active />
+          )}
+          {event.ageRestriction ? <Chip label={event.ageRestriction} variant="tag" /> : null}
+        </View>
+
+        {/* Organizer */}
+        <View style={styles.orgRow}>
+          <TouchableOpacity style={styles.orgMain} activeOpacity={0.8} onPress={() => openManager(org)}>
             <Avatar uri={org.user?.avatarUrl} name={orgName} size={40} verified={org.isVerified} />
             <View style={{ flex: 1 }}>
               <Text style={styles.orgName} numberOfLines={1}>{orgName}</Text>
               {org.category ? <Text style={styles.orgCat} numberOfLines={1}>{org.category}</Text> : null}
             </View>
-            {orgId ? (
-              <TouchableOpacity
-                style={[styles.followBtn, isFollowing(orgId) && styles.followBtnActive]}
-                activeOpacity={0.85}
-                onPress={() => toggle(orgId)}
-              >
-                <Text style={[styles.followText, isFollowing(orgId) && styles.followTextActive]}>
-                  {isFollowing(orgId) ? 'Following' : 'Follow'}
-                </Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
+          </TouchableOpacity>
+          {orgId ? (
+            <TouchableOpacity
+              style={[styles.followBtn, isFollowing(orgId) && styles.followBtnActive]}
+              activeOpacity={0.85}
+              onPress={() => toggle(orgId)}
+            >
+              <Text style={[styles.followText, isFollowing(orgId) && styles.followTextActive]}>
+                {isFollowing(orgId) ? 'Following' : 'Follow'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* About */}
@@ -195,7 +218,7 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
           <SectionHeader title="Lineup" />
           <LineupRow
             lineup={event.lineup}
-            onArtistPress={onArtistPress}
+            onArtistPress={openArtist}
           />
           {socials ? (
             <View style={styles.socialInLineup}>
@@ -280,6 +303,15 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
           style={styles.bookBtn}
         />
       </View>
+
+      <ProfileSheet
+        {...sheet}
+        onClose={() => setSheet(EMPTY_SHEET)}
+        onOpenEvent={(id) => {
+          setSheet(EMPTY_SHEET);
+          if (id !== eventId && onOpenEvent) onOpenEvent(id);
+        }}
+      />
     </View>
   );
 }
@@ -287,7 +319,7 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
 EventDetailScreen.propTypes = {
   eventId: PropTypes.string.isRequired,
   onBack: PropTypes.func,
-  onArtistPress: PropTypes.func,
+  onOpenEvent: PropTypes.func,
   onBook: PropTypes.func,
   onBookConfirmed: PropTypes.func,
 };
@@ -295,19 +327,25 @@ EventDetailScreen.propTypes = {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgStrong },
   scroll: { paddingBottom: SPACING.xxl },
-  headerBlock: {
+  headerRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.lg,
-    gap: SPACING.md,
   },
-  tagsRow: { flexDirection: 'row', gap: SPACING.sm },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.md,
+  },
   eventTitle: {
-    ...TYPE_SCALE.h2,
+    ...TYPE_SCALE.h3,
     fontFamily: FONT_FAMILY.headingExtraBold,
     color: COLORS.textPrimary,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
+    marginBottom: SPACING.xs,
   },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   dateBadge: {
     backgroundColor: '#fff',
     borderRadius: RADII.md,
@@ -330,9 +368,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.md,
-    paddingTop: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.lineSubtle,
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.md,
+  },
+  orgMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
   },
   orgName: {
     ...TYPE_SCALE.bodyMd,
