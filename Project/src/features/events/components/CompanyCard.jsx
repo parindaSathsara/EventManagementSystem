@@ -81,6 +81,9 @@ export default function CompanyCard({
         </TouchableOpacity>
       </View>
 
+      {/* Flyers — banner carousel leads the page (CTA to booking) */}
+      <FlyerSlider events={events} onPressFlyer={onOpenBooking} />
+
       {/* Company info — 2 lines + more */}
       {organizer?.bio ? (
         <View style={styles.bioWrap}>
@@ -92,9 +95,6 @@ export default function CompanyCard({
           </TouchableOpacity>
         </View>
       ) : null}
-
-      {/* Flyers — CTA to booking */}
-      <FlyerSlider events={events} onPressFlyer={onOpenBooking} />
 
       {/* Events list */}
       <View style={styles.events}>
@@ -137,11 +137,9 @@ CompanyCard.propTypes = {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface0 || COLORS.bgStrong,
-    borderTopWidth: 1,
-    borderColor: COLORS.lineSubtle,
-    paddingTop: SPACING.lg,
+    paddingTop: SPACING.sm,
     paddingBottom: SPACING.lg,
-    gap: SPACING.md,
+    gap: SPACING.sm,
   },
   header: {
     flexDirection: 'row',

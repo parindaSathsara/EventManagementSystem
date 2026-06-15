@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: TOP,
     paddingHorizontal: SPACING.base,
-    paddingBottom: SPACING.sm,
+    paddingBottom: SPACING.xs,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
