@@ -113,6 +113,7 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.chipStripBox}
           contentContainerStyle={styles.chipStrip}
         >
           {visible.map((c, i) => {
@@ -227,9 +228,11 @@ const styles = StyleSheet.create({
   tabUnderline: { height: 2, width: 18, borderRadius: 1, backgroundColor: COLORS.accent, marginTop: 3 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   iconBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  // flexGrow:0 stops the horizontal ScrollView from expanding to fill the
+  // column's vertical space (which pushed the feed half-way down the screen).
+  chipStripBox: { flexGrow: 0, marginBottom: SPACING.xs },
   chipStrip: {
     paddingHorizontal: SPACING.base,
-    paddingBottom: SPACING.xs,
     gap: SPACING.xs,
     alignItems: 'center',
   },
