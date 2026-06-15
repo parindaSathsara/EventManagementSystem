@@ -31,8 +31,27 @@ function inDays(n, hourUtc = 16) {
   return new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(), hourUtc, 0, 0));
 }
 
-function flyer(slug) {
-  return `https://picsum.photos/seed/${slug}/900/1200`;
+// Landscape concert/EDM banners (Unsplash, stable IDs).
+const BANNERS = [
+  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1280&q=80&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=1280&q=80&auto=format&fit=crop',
+];
+let _bannerCursor = 0;
+function flyer() {
+  const url = BANNERS[_bannerCursor % BANNERS.length];
+  _bannerCursor += 1;
+  return url;
+}
+
+// Avatar placeholders (pravatar — reliable, real faces).
+function avatar(n) {
+  return `https://i.pravatar.cc/300?img=${n}`;
 }
 
 async function upsertUser({ email, password, name, role, phone, city, avatarUrl }) {
@@ -44,7 +63,7 @@ async function upsertUser({ email, password, name, role, phone, city, avatarUrl 
   });
 }
 
-async function upsertCompany({ email, name, handle, category, bio, socials, isPreferred = true }) {
+async function upsertCompany({ email, name, handle, category, bio, socials, avatarUrl, isPreferred = true }) {
   const user = await upsertUser({
     email,
     password: 'demo1234',
@@ -52,6 +71,7 @@ async function upsertCompany({ email, name, handle, category, bio, socials, isPr
     role: 'artist',
     phone: '+94770000000',
     city: 'Colombo',
+    avatarUrl,
   });
   const data = {
     handle,
@@ -85,6 +105,7 @@ async function ensureEvent(organizer, ev, lineupArtistIds = []) {
       bannerImageUrl: ev.banner,
       flyersJson: JSON.stringify(ev.flyers || [ev.banner]),
       socialsJson: ev.socials ? JSON.stringify(ev.socials) : null,
+      lineupJson: ev.lineup ? JSON.stringify(ev.lineup) : null,
       startsAt: ev.startsAt,
       endsAt: ev.endsAt || new Date(ev.startsAt.getTime() + 5 * HOUR),
       venueName: ev.venueName,
@@ -133,6 +154,7 @@ async function main() {
     handle: 'mihiran',
     category: 'DJ',
     bio: 'Producer, DJ, live electronics. Headlining Stardust Arena this season.',
+    avatarUrl: avatar(12),
     socials: { instagram: 'https://instagram.com/mihiran', tiktok: 'https://tiktok.com/@mihiran' },
   });
   const djAsava = await upsertCompany({
@@ -141,6 +163,7 @@ async function main() {
     handle: 'asava',
     category: 'DJ',
     bio: 'Melodic techno selector from Colombo.',
+    avatarUrl: avatar(33),
     socials: { instagram: 'https://instagram.com/asava' },
   });
   const djRanil = await upsertCompany({
@@ -149,6 +172,7 @@ async function main() {
     handle: 'ranilb',
     category: 'DJ',
     bio: 'Drum & bass / breakbeat.',
+    avatarUrl: avatar(51),
     socials: { instagram: 'https://instagram.com/ranilb' },
   });
 
@@ -159,6 +183,7 @@ async function main() {
     handle: 'laforesta',
     category: 'Event Company',
     bio: 'Open-air label showcases blending progressive house and underground sounds. We build immersive forest stages across the island, bringing world-class production to intimate crowds. Follow for lineup drops and early-bird releases.',
+    avatarUrl: avatar(15),
     socials: {
       facebook: 'https://facebook.com/laforesta.lk',
       instagram: 'https://instagram.com/laforesta.lk',
@@ -172,6 +197,7 @@ async function main() {
     handle: 'spotseeker',
     category: 'Event Company',
     bio: 'Sri Lanka’s premier ticketing & events crew. From rooftop sundowners to harbour-side festivals, we curate the moments worth chasing. Tap a flyer to book — secure checkout in seconds.',
+    avatarUrl: avatar(8),
     socials: {
       facebook: 'https://facebook.com/spotseeker',
       instagram: 'https://instagram.com/spotseeker.lk',
@@ -184,9 +210,24 @@ async function main() {
     handle: 'pulsecollective',
     category: 'Event Company',
     bio: 'A collective of selectors and visual artists throwing high-energy warehouse nights. Tech-house, psytrance and everything that moves a floor till sunrise.',
+    avatarUrl: avatar(60),
     socials: {
       instagram: 'https://instagram.com/pulse.collective',
       tiktok: 'https://tiktok.com/@pulse.collective',
+    },
+  });
+
+  const udara = await upsertCompany({
+    email: 'udara@eventsocial.local',
+    name: 'Udara Jayasanka',
+    handle: 'udarajayasanka',
+    category: 'Event Company',
+    bio: 'Live concerts and artist showcases across Sri Lanka. Big stages, full bands, unforgettable nights — bringing the country’s favourite acts to a venue near you.',
+    avatarUrl: avatar(68),
+    socials: {
+      facebook: 'https://facebook.com/udara.jayasanka',
+      instagram: 'https://instagram.com/udara.jayasanka',
+      tiktok: 'https://tiktok.com/@udara.jayasanka',
     },
   });
 
@@ -304,6 +345,46 @@ async function main() {
         { name: 'VIP', priceLabel: 'LKR 12,000', priceCents: 1200000, currency: 'LKR', total: 80, remaining: 80 },
       ],
     }, [djMihiran.id]],
+
+    // Udara Jayasanka — live concerts with named artists + their own socials
+    [udara, {
+      title: 'Sahara Flash Live in Colombo',
+      description: 'A full-band live concert night with the country’s favourite voices. Lights, brass, and an all-star lineup under one roof.',
+      category: 'Concert',
+      coverColor: '#2a1145',
+      banner: flyer(),
+      flyers: [flyer(), flyer()],
+      startsAt: inDays(5),
+      venueName: 'Nelum Pokuna Theatre',
+      addressLine: 'Nelum Pokuna Mawatha, Colombo 07',
+      ticketTypes: [
+        { name: 'Balcony', priceLabel: 'LKR 3,000', priceCents: 300000, currency: 'LKR', total: 300, remaining: 300 },
+        { name: 'Front Row', priceLabel: 'LKR 7,500', priceCents: 750000, currency: 'LKR', total: 100, remaining: 100 },
+      ],
+      lineup: [
+        { name: 'Bathiya & Santhush', socials: { facebook: 'https://facebook.com/BnSmusic', instagram: 'https://instagram.com/bns_official' } },
+        { name: 'Umaria Sinhawansa', socials: { instagram: 'https://instagram.com/umariasinhawansa', tiktok: 'https://tiktok.com/@umaria' } },
+        { name: 'Sahara Flash', socials: { facebook: 'https://facebook.com/saharaflashsl' } },
+      ],
+    }, []],
+
+    [udara, {
+      title: 'Unplugged · Acoustic Night',
+      description: 'An intimate acoustic evening — stripped-back sets from Sri Lanka’s finest singer-songwriters.',
+      category: 'Live Set',
+      coverColor: '#123524',
+      banner: flyer(),
+      startsAt: inDays(27),
+      venueName: 'Musaeus College Auditorium',
+      addressLine: 'Colombo 07',
+      ticketTypes: [
+        { name: 'General', priceLabel: 'LKR 2,500', priceCents: 250000, currency: 'LKR', total: 250, remaining: 250 },
+      ],
+      lineup: [
+        { name: 'Sanuka Wickramasinghe', socials: { instagram: 'https://instagram.com/sanukaofficial', facebook: 'https://facebook.com/sanukamusic' } },
+        { name: 'Dinesh Gamage', socials: { instagram: 'https://instagram.com/dineshgamage' } },
+      ],
+    }, []],
   ];
 
   let firstEvent = null;

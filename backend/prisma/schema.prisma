@@ -103,6 +103,10 @@ model Event {
   flyersJson         String?     @db.Text
   // JSON blob of event socials: { facebook, instagram, tiktok }.
   socialsJson        String?     @db.Text
+  // JSON array of free-form lineup artists entered by the manager:
+  // [{ name, avatarUrl?, socials: { facebook, instagram, tiktok } }].
+  // When set, this takes precedence over the relational `lineup` for display.
+  lineupJson         String?     @db.Text
   startsAt           DateTime
   endsAt             DateTime
   timezone           String      @default("Asia/Colombo")

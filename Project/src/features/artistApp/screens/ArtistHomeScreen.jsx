@@ -180,6 +180,7 @@ export default function ArtistHomeScreen({
         {/* Quick actions */}
         <SectionHeader title="Quick actions" />
         <View style={styles.actionsRow}>
+          {/* Reels disabled for now.
           <ActionTile
             icon="film-outline"
             label="New Reel"
@@ -187,10 +188,12 @@ export default function ArtistHomeScreen({
             accent
             onPress={onCreateReel}
           />
+          */}
           <ActionTile
             icon="calendar-outline"
             label="New Event"
             sub="Schedule a show"
+            accent
             onPress={onCreateEvent}
           />
         </View>
@@ -235,42 +238,7 @@ export default function ArtistHomeScreen({
           )}
         </View>
 
-        {/* Recent reels */}
-        <SectionHeader title="Top reels" action="See all" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.reelsStrip}
-        >
-          {reels.length === 0 ? (
-            <View style={styles.emptyMini}>
-              <Ionicons name="film-outline" size={20} color={COLORS.textMuted} />
-              <Text style={styles.emptyMiniText}>No reels yet</Text>
-            </View>
-          ) : (
-            reels.map((r) => (
-              <TouchableOpacity
-                key={r.id}
-                style={styles.reelCard}
-                activeOpacity={0.85}
-                onPress={() => onOpenReelEditor && onOpenReelEditor(r.id)}
-              >
-                <View style={[styles.reelCover, { backgroundColor: r.coverColor || COLORS.surface2 }]}>
-                  <Ionicons name="play" size={24} color="rgba(255,255,255,0.5)" />
-                  <View style={styles.reelStat}>
-                    <Ionicons name="eye-outline" size={11} color="#fff" />
-                    <Text style={styles.reelStatText}>{formatK(r.views || 0)}</Text>
-                  </View>
-                </View>
-                <Text style={styles.reelCaption} numberOfLines={2}>{r.caption}</Text>
-                <View style={styles.reelEditPill}>
-                  <Ionicons name="cut-outline" size={11} color={COLORS.highlight} />
-                  <Text style={styles.reelEditText}>Edit</Text>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+        {/* Reels section disabled for now — everything is an event. */}
       </ScrollView>
     </View>
   );

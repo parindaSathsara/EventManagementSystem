@@ -1,0 +1,25 @@
+(function () {
+  "use strict";
+
+  var done = false;
+  var REMOVE_MS = 320;
+
+  function hidePreloader() {
+    if (done) return;
+    done = true;
+    var el = document.getElementById("edm-preloader");
+    if (!el || el.classList.contains("is-done")) return;
+    el.classList.add("is-done");
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, REMOVE_MS);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", hidePreloader, { once: true });
+  } else {
+    hidePreloader();
+  }
+
+  window.addEventListener("load", hidePreloader, { once: true });
+})();

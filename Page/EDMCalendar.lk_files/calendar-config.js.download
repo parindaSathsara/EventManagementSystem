@@ -1,0 +1,25 @@
+/**
+ * Replace with your public Google Calendar ID and API key from Google Cloud Console.
+ * Enable "Google Calendar API" and restrict the key by HTTP referrer for production.
+ */
+window.CALENDAR_CONFIG = {
+  CALENDAR_ID: "592c1d955ba7040a2fc8b50da6768d50c1b28ca070f4c9da5a424d5abc1abffe@group.calendar.google.com",
+  API_KEY: "AIzaSyCeR657ltdyoDXt660GtvZWmryMvMZOicc",
+};
+
+/**
+ * Optional: one poster image per event (1:1 assets recommended).
+ * Map keys (optional):
+ *   "id:GOOGLE_EVENT_ID" — stable; copy the event id from Calendar API or event JSON.
+ *   Exact event title (summary), or a slug: lowercase, spaces to hyphens.
+ * Values: site-relative path ("images/events/xyz.jpg") or https URL.
+ *
+ * You can also put a line in the event description (any of these labels):
+ *   Poster URL: … / Image URL: … / Event image: … / Flyer URL: …
+ * Values: site-relative path, https image URL, or a Google Drive file link
+ * (https://drive.google.com/file/d/FILE_ID/…). On Drive use “Anyone with the link”
+ * as Viewer (not Editor). If the share dialog says “sign-in required”, the image
+ * cannot load on this site or in <img> tags. Google Calendar’s own month/week tiles
+ * do not show images from description links — only this site’s cards do.
+ */
+window.EVENT_POSTER_MAP = window.EVENT_POSTER_MAP || {};

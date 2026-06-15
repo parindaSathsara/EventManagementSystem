@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import Avatar from '../../../shared/components/Avatar';
+import SocialRow from './SocialRow';
 
 /**
  * Accepts either:
- *   - Flat shape: { id, name, avatarUrl, role }     (legacy)
- *   - Nested shape: { id, order, artist: { id, handle, user: {...} } }  (backend)
+ *   - Flat shape: { id, name, avatarUrl, role, socials }     (backend / free-form)
+ *   - Nested shape: { id, order, artist: { id, handle, user: {...} } }  (legacy)
  */
 function normalize(entry, idx) {
   if (entry?.artist) {
@@ -17,6 +18,7 @@ function normalize(entry, idx) {
       name: entry.artist.user?.name || entry.artist.handle,
       avatarUrl: entry.artist.user?.avatarUrl,
       role: idx === 0 ? 'Headliner' : 'Support',
+      socials: entry.artist.socials || null,
     };
   }
   return {
@@ -24,6 +26,7 @@ function normalize(entry, idx) {
     name: entry?.name,
     avatarUrl: entry?.avatarUrl,
     role: entry?.role || 'Support',
+    socials: entry?.socials || null,
   };
 }
 
@@ -46,6 +49,7 @@ export default function LineupRow({ lineup, onArtistPress }) {
           <Avatar uri={a.avatarUrl} name={a.name} size={56} verified={a.role === 'Headliner'} />
           <Text style={styles.name} numberOfLines={1}>{a.name}</Text>
           <Text style={styles.role}>{a.role}</Text>
+          {a.socials ? <SocialRow socials={a.socials} size={15} bare style={styles.social} /> : null}
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -86,5 +90,8 @@ const styles = StyleSheet.create({
     color: COLORS.accent,
     marginTop: 2,
     textTransform: 'uppercase',
+  },
+  social: {
+    marginTop: SPACING.xs,
   },
 });

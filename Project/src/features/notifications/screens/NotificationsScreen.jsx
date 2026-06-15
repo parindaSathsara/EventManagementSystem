@@ -51,9 +51,6 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
 
       <View style={styles.header}>
         <Text style={styles.title}>Notifications</Text>
-        <TouchableOpacity style={styles.iconBtn} onPress={onManagerLogin} activeOpacity={0.7}>
-          <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -74,6 +71,22 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
         ) : (
           items.map((n) => <ReminderCard key={n.id} item={n} onPress={() => onOpenEvent && onOpenEvent(n.eventId)} />)
         )}
+
+        {/* Register-as-event-manager CTA */}
+        <TouchableOpacity style={styles.ctaCard} activeOpacity={0.85} onPress={onManagerLogin}>
+          <View style={styles.ctaIcon}>
+            <Ionicons name="mic-outline" size={22} color={COLORS.accent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.ctaTitle}>Organising events?</Text>
+            <Text style={styles.ctaSub}>Register as an event manager to publish and sell tickets.</Text>
+          </View>
+          <View style={styles.ctaBtn}>
+            <Text style={styles.ctaBtnText}>Register</Text>
+            <Ionicons name="arrow-forward" size={14} color="#000" />
+          </View>
+        </TouchableOpacity>
+
         <View style={{ height: 120 }} />
       </ScrollView>
     </View>
@@ -134,6 +147,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scroll: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm },
+  ctaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    padding: SPACING.md,
+    marginTop: SPACING.md,
+    backgroundColor: 'rgba(255,84,130,0.06)',
+    borderRadius: RADII.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,84,130,0.3)',
+  },
+  ctaIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,84,130,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaTitle: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+  },
+  ctaSub: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.body,
+    color: COLORS.textMuted,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 8,
+    borderRadius: RADII.pill,
+  },
+  ctaBtnText: {
+    fontSize: 12,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: '#000',
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -3,31 +3,32 @@ import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { COLORS } from '../theme';
 import { BottomTabBar } from '../shared/components';
-import { ReelsScreen } from '../features/reels';
+// Reels are disabled for now — kept on disk, just unwired from the guest app.
+// import { ReelsScreen } from '../features/reels';
 import { ArtistProfileScreen } from '../features/artists';
-import { CalendarScreen } from '../features/calendar';
 import { EventDetailScreen, EventsHomeScreen, BookingScreen } from '../features/events';
+import { CalendarScreen } from '../features/calendar';
 import { SearchScreen } from '../features/search';
 import { NotificationsScreen } from '../features/notifications';
 
 /**
  * Guest navigation — the app's default experience. No login required.
  *
- * Bottom tabs: Reels · Events · Notifications. Lands on **Events** (Reels is
- * now just a tab, no longer the entry point). Event managers reach their own
- * app (ArtistTabs) via the discreet "manager login" entry in the Events
- * header, which calls `onManagerLogin` (owned by App.js).
+ * Bottom tabs: Events · Calendar · Alerts. Lands on **Events**. Reels are
+ * commented out for now. Event managers no longer use a discreet header key —
+ * they register via the CTA on the Alerts tab, which calls `onManagerLogin`
+ * (owned by App.js).
  */
 const TABS = [
-  { key: 'reels', label: 'Reels', icon: 'play-outline', iconActive: 'play' },
-  { key: 'events', label: 'Events', icon: 'calendar-outline', iconActive: 'calendar' },
+  // { key: 'reels', label: 'Reels', icon: 'play-outline', iconActive: 'play' },
+  { key: 'events', label: 'Events', icon: 'flame-outline', iconActive: 'flame' },
+  { key: 'calendar', label: 'Calendar', icon: 'calendar-outline', iconActive: 'calendar' },
   { key: 'notifications', label: 'Alerts', icon: 'notifications-outline', iconActive: 'notifications' },
 ];
 
 export default function GuestTabs({ onManagerLogin }) {
   const [tab, setTab] = useState('events'); // land on Events
   const [stack, setStack] = useState({ name: null, params: {} });
-  const [initialReelIndex, setInitialReelIndex] = useState(0);
 
   const push = useCallback((name, params = {}) => setStack({ name, params }), []);
   const pop = useCallback(() => setStack({ name: null, params: {} }), []);
@@ -59,21 +60,8 @@ export default function GuestTabs({ onManagerLogin }) {
       <ArtistProfileScreen
         artistId={stack.params.artistId}
         onBack={pop}
-        onReelPress={() => {
-          setInitialReelIndex(0);
-          setTab('reels');
-          pop();
-        }}
-      />
-    );
-  }
-
-  if (stack.name === 'calendar') {
-    return (
-      <CalendarScreen
-        onOpenEvent={(id) => push('event', { eventId: id })}
-        onOpenSearch={() => push('search')}
-        onBack={pop}
+        // Reels disabled — opening a reel just returns to the previous screen.
+        onReelPress={pop}
       />
     );
   }
@@ -91,13 +79,15 @@ export default function GuestTabs({ onManagerLogin }) {
   return (
     <View style={styles.container}>
       <View style={styles.body}>
+        {/* Reels tab disabled for now.
         {tab === 'reels' ? (
           <ReelsScreen
-            initialIndex={initialReelIndex}
+            initialIndex={0}
             onNavigateToArtist={(id) => push('artist', { artistId: id })}
             onNavigateToEvent={(id) => push('event', { eventId: id })}
           />
         ) : null}
+        */}
 
         {tab === 'events' ? (
           <EventsHomeScreen
@@ -105,8 +95,13 @@ export default function GuestTabs({ onManagerLogin }) {
             onOpenArtist={(id) => push('artist', { artistId: id })}
             onOpenBooking={(eventId) => push('booking', { eventId })}
             onOpenSearch={() => push('search')}
-            onOpenCalendar={() => push('calendar')}
-            onManagerLogin={onManagerLogin}
+          />
+        ) : null}
+
+        {tab === 'calendar' ? (
+          <CalendarScreen
+            onOpenEvent={(id) => push('event', { eventId: id })}
+            onOpenSearch={() => push('search')}
           />
         ) : null}
 

@@ -14,7 +14,7 @@ const ICONS = [
  * Renders Instagram / Facebook / TikTok icons for whichever links exist in
  * the `socials` blob. Tapping opens the URL. Renders nothing if no links.
  */
-export default function SocialRow({ socials, size = 18, style }) {
+export default function SocialRow({ socials, size = 18, style, bare = false }) {
   if (!socials) return null;
   const present = ICONS.filter((s) => socials[s.key]);
   if (present.length === 0) return null;
@@ -26,15 +26,15 @@ export default function SocialRow({ socials, size = 18, style }) {
   }
 
   return (
-    <View style={[styles.row, style]}>
+    <View style={[bare ? styles.rowBare : styles.row, style]}>
       {present.map((s) => (
         <TouchableOpacity
           key={s.key}
-          style={styles.btn}
+          style={bare ? styles.btnBare : styles.btn}
           activeOpacity={0.75}
           onPress={() => open(socials[s.key])}
         >
-          <Ionicons name={s.icon} size={size} color={COLORS.textPrimary} />
+          <Ionicons name={s.icon} size={size} color={bare ? COLORS.textMuted : COLORS.textPrimary} />
         </TouchableOpacity>
       ))}
     </View>
@@ -45,12 +45,21 @@ SocialRow.propTypes = {
   socials: PropTypes.object,
   size: PropTypes.number,
   style: PropTypes.any,
+  bare: PropTypes.bool,
 };
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: SPACING.sm,
+  },
+  rowBare: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'center',
+  },
+  btnBare: {
+    padding: 2,
   },
   btn: {
     width: 38,

@@ -72,7 +72,33 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
   const [tiktok, setTiktok] = useState('');
+  // Line up: free-form artists, each with their own social links.
+  const [lineup, setLineup] = useState([
+    { name: '', instagram: '', facebook: '', tiktok: '' },
+  ]);
   const alert = useAlert();
+
+  function buildLineup() {
+    return lineup
+      .map((a) => {
+        const name = (a.name || '').trim();
+        const socials = {};
+        if (a.instagram.trim()) socials.instagram = a.instagram.trim();
+        if (a.facebook.trim()) socials.facebook = a.facebook.trim();
+        if (a.tiktok.trim()) socials.tiktok = a.tiktok.trim();
+        return { name, ...(Object.keys(socials).length ? { socials } : {}) };
+      })
+      .filter((a) => a.name);
+  }
+  function addArtist() {
+    setLineup((prev) => [...prev, { name: '', instagram: '', facebook: '', tiktok: '' }]);
+  }
+  function updateArtist(idx, key, value) {
+    setLineup((prev) => prev.map((a, i) => (i === idx ? { ...a, [key]: value } : a)));
+  }
+  function removeArtist(idx) {
+    setLineup((prev) => prev.filter((_, i) => i !== idx));
+  }
 
   function buildSocials() {
     const s = {};
@@ -126,6 +152,7 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
     try {
       const banner = validBanner();
       const socials = buildSocials();
+      const lineupArtists = buildLineup();
       const newEvent = await eventsRepo.create({
         title: title.trim(),
         description: description.trim(),
@@ -133,6 +160,7 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
         coverColor: COVER_COLORS[coverIdx] || '#1a0a2e',
         ...(banner ? { bannerImageUrl: banner, flyers: [banner] } : {}),
         ...(socials ? { socials } : {}),
+        ...(lineupArtists.length ? { lineup: lineupArtists } : {}),
         startsAt,
         endsAt,
         venueName: venue.trim(),
@@ -338,6 +366,56 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           <TouchableOpacity activeOpacity={0.8} onPress={addTicket} style={styles.addTicket}>
             <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
             <Text style={styles.addTicketText}>Add another ticket type</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Line up — multiple artists, each with their own socials */}
+        <Text style={styles.sectionLabel}>Line up</Text>
+        <View style={{ paddingHorizontal: SPACING.base }}>
+          {lineup.map((a, idx) => (
+            <View key={idx} style={styles.ticketCard}>
+              <View style={styles.ticketHead}>
+                <View style={styles.ticketBadge}>
+                  <Text style={styles.ticketBadgeText}>ARTIST #{idx + 1}</Text>
+                </View>
+                {lineup.length > 1 ? (
+                  <TouchableOpacity onPress={() => removeArtist(idx)} activeOpacity={0.7}>
+                    <Ionicons name="trash-outline" size={16} color={COLORS.error} />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              <Field
+                label="Artist name"
+                value={a.name}
+                onChange={(v) => updateArtist(idx, 'name', v)}
+                placeholder="e.g. Bathiya & Santhush"
+              />
+              <Field
+                icon="logo-instagram"
+                label="Instagram"
+                value={a.instagram}
+                onChange={(v) => updateArtist(idx, 'instagram', v)}
+                placeholder="https://instagram.com/…"
+              />
+              <Field
+                icon="logo-facebook"
+                label="Facebook"
+                value={a.facebook}
+                onChange={(v) => updateArtist(idx, 'facebook', v)}
+                placeholder="https://facebook.com/…"
+              />
+              <Field
+                icon="logo-tiktok"
+                label="TikTok"
+                value={a.tiktok}
+                onChange={(v) => updateArtist(idx, 'tiktok', v)}
+                placeholder="https://tiktok.com/@…"
+              />
+            </View>
+          ))}
+          <TouchableOpacity activeOpacity={0.8} onPress={addArtist} style={styles.addTicket}>
+            <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
+            <Text style={styles.addTicketText}>Add another artist</Text>
           </TouchableOpacity>
         </View>
 

@@ -1,0 +1,30 @@
+(function (global) {
+  "use strict";
+
+  var URL_RE = /https?:\/\/[^\s<>'")\]]+/gi;
+  var DRIVE_RE = /\bdrive\.google\.com[^\s<>'")\]]*/gi;
+  var LABEL_LINE_RE =
+    /(?:^|\n)\s*(?:🎫|📎|🖼)?\s*(?:Poster\s*(?:URL|Image)|Image\s+URL|Event\s+image|Flyer\s+URL|Book(?:ing)?\s+URL|Book\s+now\s+link)\s*:[^\n]*/gim;
+  var ORPHAN_LABEL_RE =
+    /(?:🎫|📎|🖼)?\s*(?:Poster\s*(?:URL|Image)|Image\s+URL|Event\s+image|Flyer\s+URL|Book(?:ing)?\s+URL|Book\s+now\s+link)\s*:?\s*/gi;
+
+  function stripVisibleUrls(s) {
+    if (s == null) return "";
+    var t = String(s)
+      .replace(LABEL_LINE_RE, "\n")
+      .replace(URL_RE, "")
+      .replace(DRIVE_RE, "")
+      .replace(ORPHAN_LABEL_RE, " ")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/\s{2,}/g, " ")
+      .replace(/[,;]\s*$/g, "")
+      .trim();
+    if (/^https?:\/\//i.test(t)) return "";
+    return t;
+  }
+
+  global.edmStripVisibleUrls = stripVisibleUrls;
+})(
+  typeof window !== "undefined" ? window : this
+);

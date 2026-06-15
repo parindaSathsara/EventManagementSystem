@@ -21,7 +21,7 @@ import { useEventsData, useReelsData, useAlert, useUser } from '../../../shared/
 
 const TABS = [
   { key: 'events', label: 'Events' },
-  { key: 'reels', label: 'Reels' },
+  // { key: 'reels', label: 'Reels' },  // Reels disabled for now.
   { key: 'about', label: 'About' },
 ];
 
@@ -173,30 +173,7 @@ export default function ArtistMyProfileScreen({
           </View>
         ) : null}
 
-        {tab === 'reels' ? (
-          <View style={styles.reelsGrid}>
-            <TouchableOpacity
-              style={styles.newReelTile}
-              onPress={onCreateReel}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="add" size={28} color={COLORS.accent} />
-              <Text style={styles.newReelText}>New reel</Text>
-            </TouchableOpacity>
-            {reels.map((r) => (
-              <View
-                key={r.id}
-                style={[styles.reelTile, { backgroundColor: r.coverColor || COLORS.surface2 }]}
-              >
-                <Ionicons name="play" size={20} color="rgba(255,255,255,0.45)" />
-                <View style={styles.reelTileFoot}>
-                  <Ionicons name="eye-outline" size={10} color="#fff" />
-                  <Text style={styles.reelTileViews}>{fmt(r.views || 0)}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : null}
+        {/* Reels tab disabled for now — everything is an event. */}
 
         {tab === 'about' ? (
           <View style={{ paddingHorizontal: SPACING.base }}>

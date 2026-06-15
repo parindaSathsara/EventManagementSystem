@@ -18,52 +18,47 @@ import { useEventsData, useFollows } from '../../../shared/hooks';
 import CompanyCard from '../components/CompanyCard';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
+const VISIBLE_STATUS = new Set(['published', 'live']);
 
 /**
- * The app's landing page (guest experience). A company-centric feed:
+ * The app's landing page (guest experience). A vertical feed of **event
+ * managers** — scroll down to move from one manager to the next. Each manager
+ * card shows a swipeable banner carousel, all of their events, the line up, and
+ * socials.
  *
- *   Header:  [ For You | Following ]            🔍  📅  (🔑 manager login)
- *   Body:    CompanyCard per organizer
- *
- * Events are grouped by their organizer (the "event company"). "Following"
- * filters to the device-local follow set (guests have no account).
+ *   Header:  [ For You | Following ]            🔍  ↻
+ *   Body:    CompanyCard per organizer (event manager)
  */
 export default function EventsHomeScreen({
   onOpenEvent,
   onOpenArtist,
   onOpenBooking,
   onOpenSearch,
-  onOpenCalendar,
-  onManagerLogin,
 }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
   const [feed, setFeed] = useState('forYou'); // 'forYou' | 'following'
 
-  // Group events by organizer → companies, sorted by soonest upcoming event.
-  const companies = useMemo(() => {
+  // Group events by organizer → managers, each sorted by soonest event.
+  const managers = useMemo(() => {
     const map = new Map();
-    const VISIBLE = new Set(['published', 'live']);
     for (const e of events) {
       const org = e.organizer;
       if (!org?.id) continue;
-      // Only surface publicly-visible events; drafts/cancelled stay hidden.
-      if (e.status && !VISIBLE.has(e.status)) continue;
+      if (e.status && !VISIBLE_STATUS.has(e.status)) continue;
       if (!map.has(org.id)) map.set(org.id, { organizer: org, events: [] });
       map.get(org.id).events.push(e);
     }
     const list = [...map.values()];
-    list.forEach((c) =>
-      c.events.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt)),
-    );
+    list.forEach((c) => c.events.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt)));
     list.sort((a, b) => new Date(a.events[0]?.startsAt) - new Date(b.events[0]?.startsAt));
     return list;
   }, [events]);
 
-  const visible = useMemo(() => {
-    if (feed === 'following') return companies.filter((c) => isFollowing(c.organizer.id));
-    return companies;
-  }, [companies, feed, isFollowing]);
+  const visible = useMemo(
+    () => (feed === 'following' ? managers.filter((c) => isFollowing(c.organizer.id)) : managers),
+    [managers, feed, isFollowing],
+  );
 
   return (
     <View style={styles.container}>
@@ -77,8 +72,7 @@ export default function EventsHomeScreen({
         </View>
         <View style={styles.actions}>
           <IconBtn icon="search-outline" onPress={onOpenSearch} />
-          <IconBtn icon="calendar-outline" onPress={onOpenCalendar} />
-          <IconBtn icon="key-outline" onPress={onManagerLogin} subtle />
+          <IconBtn icon="refresh-outline" onPress={events.refresh} />
         </View>
       </View>
 
@@ -86,22 +80,18 @@ export default function EventsHomeScreen({
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={events.refresh}
-            tintColor={COLORS.accent}
-          />
+          <RefreshControl refreshing={false} onRefresh={events.refresh} tintColor={COLORS.accent} />
         }
       >
-        {events.error && companies.length === 0 ? (
+        {events.error && managers.length === 0 ? (
           <ConnectionError error={events.error} onRetry={events.refresh} loading={events.loading} />
         ) : visible.length === 0 ? (
           <EmptyState
-            icon={feed === 'following' ? 'heart-outline' : 'calendar-outline'}
-            title={feed === 'following' ? 'No companies followed yet' : 'No events yet'}
+            icon={feed === 'following' ? 'heart-outline' : 'flame-outline'}
+            title={feed === 'following' ? 'No managers followed yet' : 'No events yet'}
             message={
               feed === 'following'
-                ? 'Tap Follow on a company to see them here.'
+                ? 'Tap Follow on an event manager to see them here.'
                 : 'Check back soon — new events are added all the time.'
             }
           />
@@ -133,24 +123,22 @@ function Tab({ label, active, onPress }) {
   );
 }
 
-function IconBtn({ icon, onPress, subtle }) {
+function IconBtn({ icon, onPress }) {
   return (
     <TouchableOpacity style={styles.iconBtn} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name={icon} size={20} color={subtle ? COLORS.textMuted : COLORS.textPrimary} />
+      <Ionicons name={icon} size={20} color={COLORS.textPrimary} />
     </TouchableOpacity>
   );
 }
 
 Tab.propTypes = { label: PropTypes.string, active: PropTypes.bool, onPress: PropTypes.func };
-IconBtn.propTypes = { icon: PropTypes.string, onPress: PropTypes.func, subtle: PropTypes.bool };
+IconBtn.propTypes = { icon: PropTypes.string, onPress: PropTypes.func };
 
 EventsHomeScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenArtist: PropTypes.func,
   onOpenBooking: PropTypes.func,
   onOpenSearch: PropTypes.func,
-  onOpenCalendar: PropTypes.func,
-  onManagerLogin: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -164,22 +152,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: COLORS.bgStrong,
   },
-  tabs: {
-    flexDirection: 'row',
-    gap: SPACING.lg,
-  },
-  tab: {
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
+  tabs: { flexDirection: 'row', gap: SPACING.lg },
+  tab: { alignItems: 'center', paddingVertical: 4 },
   tabText: {
     ...TYPE_SCALE.h4,
     fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.textMuted,
   },
-  tabTextActive: {
-    color: COLORS.textPrimary,
-  },
+  tabTextActive: { color: COLORS.textPrimary },
   tabUnderline: {
     height: 3,
     width: 22,
@@ -187,11 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accent,
     marginTop: 4,
   },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   iconBtn: {
     width: 38,
     height: 38,
@@ -199,7 +175,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: {
-    paddingBottom: SPACING.xxl,
-  },
+  scroll: { paddingBottom: SPACING.xxl },
 });

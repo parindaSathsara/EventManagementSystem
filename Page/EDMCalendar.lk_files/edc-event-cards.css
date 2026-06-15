@@ -1,0 +1,473 @@
+/* Homepage event tiles — poster + Book Now (reference layout) */
+:root {
+  --edc-red: #e50914;
+  --edc-red-dim: rgba(229, 9, 20, 0.45);
+  --edc-card-bg: #14141a;
+  --edc-card-radius: 14px;
+}
+
+.edc-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.edc-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border-radius: var(--edc-card-radius);
+  overflow: visible;
+  background: var(--edc-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.25s ease;
+}
+
+.edc-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--edc-red-dim);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(229, 9, 20, 0.12),
+    0 0 40px rgba(229, 9, 20, 0.08);
+}
+
+.edc-card.edc-card--past {
+  opacity: 0.72;
+}
+
+.edc-card.edc-card--past:hover {
+  transform: translateY(-2px);
+}
+
+.edc-card-poster {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  background: #0a0a0f;
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--edc-card-radius) var(--edc-card-radius) 0 0;
+  overflow: hidden;
+}
+
+.edc-card-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(5, 5, 12, 0.36) 0%, rgba(5, 5, 12, 0.08) 48%, rgba(5, 5, 12, 0.02) 100%);
+}
+
+.edc-card-poster img.edc-poster-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.edc-poster-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  background-size: cover;
+  background-position: center;
+}
+
+.edc-badge-featured {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--edc-red);
+  border: 1px solid rgba(229, 9, 20, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.edc-badge-featured svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.edc-badge-expired {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 230, 236, 0.95);
+  background: rgba(80, 18, 34, 0.9);
+  border: 1px solid rgba(255, 96, 140, 0.45);
+}
+
+.edc-date-corner {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 2;
+  min-width: 3rem;
+  text-align: center;
+  padding: 0.38rem 0.42rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff0033 0%, var(--edc-red) 100%);
+  color: #fff;
+  line-height: 1.1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.edc-date-corner-month {
+  display: block;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.edc-date-corner-day {
+  display: block;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-top: 0.06rem;
+}
+
+.edc-card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem 0.95rem 1rem;
+  min-height: auto;
+}
+
+.edc-card-time {
+  font-size: 0.66rem;
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--edc-red);
+  margin-bottom: 0.5rem;
+  text-transform: none;
+}
+
+.edc-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.48rem;
+  min-width: 0;
+}
+
+.edc-card-title {
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.26;
+  text-transform: none;
+  color: #fff;
+  display: block;
+  overflow: visible;
+  word-break: break-word;
+}
+
+.edc-card-venue {
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-size: 0.8rem;
+  color: rgba(230, 224, 255, 0.66);
+  line-height: 1.4;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+/* Square animated CTA — min 44px touch target (mobile) */
+.edc-book-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(145deg, #ff2742 0%, var(--edc-red) 88%);
+  box-shadow: 0 4px 16px rgba(229, 9, 20, 0.38);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.edc-book-btn--square {
+  width: clamp(2.75rem, 12vw, 3.35rem);
+  height: clamp(2.75rem, 12vw, 3.35rem);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  animation: edc-book-glow 2.4s ease-in-out infinite;
+}
+
+.edc-book-btn--square::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 58%
+  );
+  transform: translateX(-35%) rotate(0deg);
+  animation: edc-book-sheen 3.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.edc-book-btn__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.05;
+  gap: 0.06rem;
+  position: relative;
+  z-index: 3;
+}
+
+.edc-book-btn__line {
+  display: block;
+  font-size: clamp(0.56rem, 2.8vw, 0.62rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.edc-book-btn--square:hover:not(:disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 6px 22px rgba(229, 9, 20, 0.5);
+}
+
+.edc-book-btn--square:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.edc-book-btn--square:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.edc-book-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  animation: none;
+  background: linear-gradient(145deg, rgba(120, 120, 130, 0.65) 0%, rgba(88, 88, 98, 0.72) 100%);
+}
+
+.edc-book-btn:disabled::after {
+  display: none;
+}
+
+@keyframes edc-book-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 16px rgba(229, 9, 20, 0.35),
+      0 0 0 0 rgba(229, 9, 20, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 6px 22px rgba(229, 9, 20, 0.48),
+      0 0 0 8px rgba(229, 9, 20, 0);
+  }
+}
+
+@keyframes edc-book-sheen {
+  0%,
+  28% {
+    transform: translateX(-40%) skewX(-12deg);
+    opacity: 0;
+  }
+  38% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    transform: translateX(120%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edc-book-btn--square {
+    animation: none;
+  }
+
+  .edc-book-btn--square::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .edc-book-btn--square:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.edc-calendar-wrap .edc-events-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.edc-empty-tile {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  border-radius: var(--edc-card-radius);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  color: rgba(230, 224, 255, 0.45);
+  font-size: 0.9rem;
+}
+
+/* Mobile: two-column event tiles (matches narrow-phone storefront layout) */
+@media (max-width: 620px) {
+  .edc-events-grid,
+  .edc-calendar-wrap .edc-events-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    align-items: start;
+  }
+
+  .edc-card {
+    min-height: 0;
+    border-radius: 12px;
+  }
+
+  .edc-card-body {
+    padding: 0.62rem 0.5rem 0.72rem;
+  }
+
+  .edc-card-poster {
+    aspect-ratio: 1 / 1;
+  }
+
+  .edc-badge-featured {
+    top: 0.45rem;
+    left: 0.45rem;
+    padding: 0.22rem 0.45rem;
+    font-size: 0.45rem;
+    gap: 0.22rem;
+  }
+
+  .edc-badge-featured svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .edc-badge-expired {
+    top: 0.45rem;
+    left: 0.45rem;
+    padding: 0.22rem 0.42rem;
+    font-size: 0.45rem;
+  }
+
+  .edc-date-corner {
+    top: 0.45rem;
+    right: 0.45rem;
+    min-width: 2.35rem;
+    padding: 0.28rem 0.3rem;
+  }
+
+  .edc-date-corner-month {
+    font-size: 0.42rem;
+  }
+
+  .edc-date-corner-day {
+    font-size: 0.92rem;
+  }
+
+  .edc-card-time {
+    font-size: 0.58rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .edc-card-title-row {
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+    align-items: center;
+  }
+
+  .edc-card-title {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    word-break: break-word;
+    padding: 0;
+  }
+
+  .edc-card-venue {
+    font-size: 0.62rem;
+    line-height: 1.28;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .edc-book-btn--square {
+    width: 2.65rem;
+    height: 2.65rem;
+    min-width: 2.65rem;
+    min-height: 2.65rem;
+    border-radius: 10px;
+  }
+
+  .edc-book-btn__line {
+    font-size: 0.48rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .edc-events-grid,
+  .edc-calendar-wrap .edc-events-grid {
+    gap: 0.35rem;
+  }
+}

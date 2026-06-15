@@ -12,12 +12,23 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { Button, EmptyState, SectionHeader } from '../../../shared/components';
-import { useEventsData, useAlert } from '../../../shared/hooks';
+import { Button, EmptyState, SectionHeader, Chip, Avatar } from '../../../shared/components';
+import { useEventsData, useAlert, useFollows } from '../../../shared/hooks';
 import { eventsRepo, ticketsRepo } from '../../../services';
 import EventHero from '../components/EventHero';
 import LineupRow from '../components/LineupRow';
+import SocialRow from '../components/SocialRow';
 import TicketTypeRow from '../components/TicketTypeRow';
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return {
+    weekday: d.toLocaleString('en', { weekday: 'short' }).toUpperCase(),
+    day: d.getDate(),
+    month: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
+    time: d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }),
+  };
+}
 
 export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBook, onBookConfirmed }) {
   const allEvents = useEventsData();
@@ -30,6 +41,7 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
   // in the load test (5 simultaneous taps = 5 tickets created).
   const [booking, setBooking] = useState(false);
   const alert = useAlert();
+  const { isFollowing, toggle } = useFollows();
 
   async function handleBook() {
     // Guest flow: hand off to the dedicated BookingScreen (captures contact
@@ -102,6 +114,12 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
   const selected = event.ticketTypes.find((t) => t.id === selectedTicket);
   const canBook = !!selected && selected.remaining > 0;
 
+  const org = event.organizer || {};
+  const orgName = org.user?.name || org.handle || 'Event Company';
+  const orgId = org.id;
+  const socials = event.socials || org.socials || null;
+  const { weekday, day, month, time } = fmtDate(event.startsAt);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
@@ -111,6 +129,60 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
         showsVerticalScrollIndicator={false}
       >
         <EventHero event={event} onBack={onBack} onSave={handleSaveToggle} />
+
+        {/* Title · date · venue */}
+        <View style={styles.headerBlock}>
+          <View style={styles.tagsRow}>
+            {event.status === 'live' ? (
+              <Chip label="LIVE NOW" variant="live" icon="radio" />
+            ) : (
+              <Chip label={event.category || 'Event'} variant="filter" active />
+            )}
+            {event.ageRestriction ? <Chip label={event.ageRestriction} variant="tag" /> : null}
+          </View>
+
+          <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
+
+          <View style={styles.dateRow}>
+            <View style={styles.dateBadge}>
+              <Text style={styles.dateMonth}>{month}</Text>
+              <Text style={styles.dateDay}>{day}</Text>
+              <Text style={styles.dateWeekday}>{weekday}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.metaLine}>
+                <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
+              </View>
+              <View style={styles.metaLine}>
+                <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.metaText} numberOfLines={1}>
+                  {event.venueName} · {event.cityName}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Organizer */}
+          <View style={styles.orgRow}>
+            <Avatar uri={org.user?.avatarUrl} name={orgName} size={40} verified={org.isVerified} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.orgName} numberOfLines={1}>{orgName}</Text>
+              {org.category ? <Text style={styles.orgCat} numberOfLines={1}>{org.category}</Text> : null}
+            </View>
+            {orgId ? (
+              <TouchableOpacity
+                style={[styles.followBtn, isFollowing(orgId) && styles.followBtnActive]}
+                activeOpacity={0.85}
+                onPress={() => toggle(orgId)}
+              >
+                <Text style={[styles.followText, isFollowing(orgId) && styles.followTextActive]}>
+                  {isFollowing(orgId) ? 'Following' : 'Follow'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
 
         {/* About */}
         <View style={styles.section}>
@@ -125,6 +197,12 @@ export default function EventDetailScreen({ eventId, onBack, onArtistPress, onBo
             lineup={event.lineup}
             onArtistPress={onArtistPress}
           />
+          {socials ? (
+            <View style={styles.socialInLineup}>
+              <Text style={styles.socialLabel}>Follow on social</Text>
+              <SocialRow socials={socials} />
+            </View>
+          ) : null}
         </View>
 
         {/* Venue */}
@@ -217,6 +295,80 @@ EventDetailScreen.propTypes = {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgStrong },
   scroll: { paddingBottom: SPACING.xxl },
+  headerBlock: {
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.lg,
+    gap: SPACING.md,
+  },
+  tagsRow: { flexDirection: 'row', gap: SPACING.sm },
+  eventTitle: {
+    ...TYPE_SCALE.h2,
+    fontFamily: FONT_FAMILY.headingExtraBold,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.4,
+  },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  dateBadge: {
+    backgroundColor: '#fff',
+    borderRadius: RADII.md,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    alignItems: 'center',
+    minWidth: 64,
+  },
+  dateMonth: { fontSize: 10, letterSpacing: 1, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.accent },
+  dateDay: { fontSize: 22, fontFamily: FONT_FAMILY.headingBold, color: COLORS.ink, marginVertical: -2 },
+  dateWeekday: { fontSize: 10, letterSpacing: 1, fontFamily: FONT_FAMILY.bodyMedium, color: COLORS.inkMuted },
+  metaLine: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  metaText: {
+    ...TYPE_SCALE.bodySm,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textSecondary,
+    flexShrink: 1,
+  },
+  orgRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lineSubtle,
+  },
+  orgName: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+  },
+  orgCat: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.accent,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginTop: 1,
+  },
+  followBtn: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 7,
+    borderRadius: RADII.pill,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  followBtnActive: { backgroundColor: COLORS.accent },
+  followText: { fontSize: 12, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  followTextActive: { color: '#000' },
+  socialInLineup: {
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.md,
+    gap: SPACING.sm,
+  },
+  socialLabel: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
   section: {
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.lg,

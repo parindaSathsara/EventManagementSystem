@@ -20,6 +20,13 @@ const socialsInput = z
   .optional()
   .nullable();
 
+// Free-form lineup artist entered by the event manager (name + their socials).
+const lineupArtistInput = z.object({
+  name: z.string().trim().min(1).max(120),
+  avatarUrl: z.string().url().optional().nullable(),
+  socials: socialsInput,
+});
+
 const createEventBody = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().max(5000).optional(),
@@ -43,6 +50,8 @@ const createEventBody = z.object({
   cancellationPolicy: z.string().max(2000).optional(),
   ticketTypes: z.array(ticketTypeInput).default([]),
   lineupArtistIds: z.array(id).default([]),
+  // Free-form lineup (name + their socials), stored as lineupJson.
+  lineup: z.array(lineupArtistInput).max(30).optional(),
 });
 
 const updateEventBody = createEventBody.partial();

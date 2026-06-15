@@ -24,6 +24,7 @@ export default function CreateHubScreen({ onCreateReel, onCreateEvent, onOpenDra
         <View style={{ paddingHorizontal: SPACING.base, paddingTop: SPACING.sm }}>
           <Text style={styles.kicker}>What are you publishing today?</Text>
 
+          {/* Reels are disabled for now — everything is an event.
           <TouchableOpacity activeOpacity={0.92} style={styles.bigCard} onPress={onCreateReel}>
             <LinearGradient
               colors={['#FF5482', '#E63E6E']}
@@ -53,18 +54,36 @@ export default function CreateHubScreen({ onCreateReel, onCreateEvent, onOpenDra
               </View>
             </View>
           </TouchableOpacity>
+          */}
 
-          <TouchableOpacity activeOpacity={0.9} style={styles.altCard} onPress={onCreateEvent}>
-            <View style={styles.altIconWrap}>
-              <Ionicons name="calendar" size={22} color={COLORS.highlight} />
+          <TouchableOpacity activeOpacity={0.92} style={styles.bigCard} onPress={onCreateEvent}>
+            <LinearGradient
+              colors={['#00FFA1', '#0a2a1a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.bigCardOverlay}>
+              <View>
+                <View style={styles.bigBadge}>
+                  <Ionicons name="sparkles" size={12} color="#000" />
+                  <Text style={styles.bigBadgeText}>FEATURED</Text>
+                </View>
+                <Text style={styles.bigTitle}>New Event</Text>
+                <Text style={styles.bigSub}>
+                  Schedule a show, set the lineup, configure tickets and policies.
+                </Text>
+                <View style={styles.bigCtaRow}>
+                  <View style={styles.bigCta}>
+                    <Text style={styles.bigCtaText}>Create event</Text>
+                    <Ionicons name="arrow-forward" size={14} color="#000" />
+                  </View>
+                </View>
+              </View>
+              <View style={styles.bigGlyph}>
+                <Ionicons name="calendar" size={64} color="rgba(0,0,0,0.18)" />
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.altTitle}>New Event</Text>
-              <Text style={styles.altSub}>
-                Schedule a show, set the lineup, configure tickets and policies.
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity activeOpacity={0.9} style={styles.altCard} onPress={onOpenDrafts}>

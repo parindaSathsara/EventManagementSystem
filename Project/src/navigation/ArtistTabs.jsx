@@ -13,7 +13,8 @@ import {
   MyEventsScreen,
   EditArtistProfileScreen,
 } from '../features/artistApp';
-import { ReelEditorScreen } from '../features/reelEditor';
+// Reels disabled for now — editor kept on disk, unwired.
+// import { ReelEditorScreen } from '../features/reelEditor';
 import { EventDetailScreen } from '../features/events';
 import { useAlert, useUser } from '../shared/hooks';
 
@@ -51,9 +52,10 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
     [artist, onNeedArtistProfile, push, alert],
   );
 
-  if (stack.name === 'reelEditor') {
-    return <ReelEditorScreen onBack={pop} onPublish={() => pop()} />;
-  }
+  // Reels disabled for now.
+  // if (stack.name === 'reelEditor') {
+  //   return <ReelEditorScreen onBack={pop} onPublish={() => pop()} />;
+  // }
   if (stack.name === 'eventCreator') {
     return <EventCreatorScreen onBack={pop} onSubmit={() => pop()} />;
   }
@@ -80,12 +82,10 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
       <View style={styles.body}>
         {tab === 'home' ? (
           <ArtistHomeScreen
-            onCreateReel={() => pushPublishing('reelEditor')}
             onCreateEvent={() => pushPublishing('eventCreator')}
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenVerification={() => push('verification')}
             onOpenInsights={() => setTab('insights')}
-            onOpenReelEditor={() => pushPublishing('reelEditor')}
             onOpenProfile={() => setTab('profile')}
             onSwitchToCustomer={onSwitchToCustomer}
           />
@@ -110,7 +110,6 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
 
         {tab === 'create' ? (
           <CreateHubScreen
-            onCreateReel={() => pushPublishing('reelEditor')}
             onCreateEvent={() => pushPublishing('eventCreator')}
             onOpenDrafts={() =>
               alert.info(
@@ -129,7 +128,6 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
             onSwitchToCustomer={onSwitchToCustomer}
             onOpenVerification={() => push('verification')}
             onCreateEvent={() => pushPublishing('eventCreator')}
-            onCreateReel={() => pushPublishing('reelEditor')}
             onEditProfile={() => push('editProfile')}
             onLogout={onLogout}
           />

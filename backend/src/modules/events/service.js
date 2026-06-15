@@ -3,7 +3,18 @@ const { NotFound, Forbidden, BadRequest } = require('../../lib/errors');
 
 const EVENT_INCLUDE = {
   ticketTypes: { orderBy: { createdAt: 'asc' } },
-  lineup: { include: { artist: { include: { user: { select: { name: true, avatarUrl: true } } } } } },
+  lineup: {
+    include: {
+      artist: {
+        select: {
+          id: true,
+          handle: true,
+          socialsJson: true,
+          user: { select: { name: true, avatarUrl: true } },
+        },
+      },
+    },
+  },
   organizer: {
     select: {
       id: true,
@@ -50,14 +61,34 @@ function shape(row, { isSaved = false } = {}) {
       ? { ...row.organizer, socials: safeParse(row.organizer.socialsJson, null) }
       : row.organizer,
     storylineReelIds: (row.linkedReels || []).map((r) => r.id),
-    lineup: (row.lineup || []).map((entry, idx) => ({
-      id: entry.artist?.id || entry.artistId,
-      name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
-      avatarUrl: entry.artist?.user?.avatarUrl || null,
-      role: idx === 0 ? 'Headliner' : 'Support',
-    })),
+    lineup: buildLineup(row),
     isSaved,
   };
+}
+
+/**
+ * Lineup display list. Free-form `lineupJson` (artists the manager typed in,
+ * each with their own socials) takes precedence; otherwise we fall back to the
+ * relational lineup (registered artist accounts, socials from their profile).
+ */
+function buildLineup(row) {
+  const free = safeParse(row.lineupJson, null);
+  if (Array.isArray(free) && free.length) {
+    return free.map((a, idx) => ({
+      id: `g${idx}`,
+      name: a?.name || 'Artist',
+      avatarUrl: a?.avatarUrl || null,
+      role: idx === 0 ? 'Headliner' : 'Support',
+      socials: a?.socials || null,
+    }));
+  }
+  return (row.lineup || []).map((entry, idx) => ({
+    id: entry.artist?.id || entry.artistId,
+    name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
+    avatarUrl: entry.artist?.user?.avatarUrl || null,
+    role: idx === 0 ? 'Headliner' : 'Support',
+    socials: safeParse(entry.artist?.socialsJson, null),
+  }));
 }
 
 function whereForStatus(status) {
@@ -138,7 +169,7 @@ async function create(input, artistId) {
   if (input.endsAt <= input.startsAt) {
     throw new BadRequest('Event endsAt must be after startsAt.');
   }
-  const { ticketTypes, lineupArtistIds, flyers, socials, ...rest } = input;
+  const { ticketTypes, lineupArtistIds, lineup, flyers, socials, ...rest } = input;
   // The organizer is always part of their own event's lineup if not already.
   const lineupIds = lineupArtistIds.length ? lineupArtistIds : [artistId];
 
@@ -147,6 +178,7 @@ async function create(input, artistId) {
       ...rest,
       ...(flyers !== undefined ? { flyersJson: JSON.stringify(flyers || []) } : {}),
       ...(socials !== undefined ? { socialsJson: socials ? JSON.stringify(socials) : null } : {}),
+      ...(lineup !== undefined ? { lineupJson: lineup && lineup.length ? JSON.stringify(lineup) : null } : {}),
       organizerArtistId: artistId,
       ticketTypes: {
         create: ticketTypes.map((t) => ({
@@ -174,13 +206,14 @@ async function update(id, input, requesterArtistId, requesterRole) {
     requesterRole === 'admin' || existing.organizerArtistId === requesterArtistId;
   if (!canEdit) throw new Forbidden('You can only edit your own events.');
 
-  const { ticketTypes, lineupArtistIds, flyers, socials, ...rest } = input;
+  const { ticketTypes, lineupArtistIds, lineup, flyers, socials, ...rest } = input;
   const updated = await prisma.event.update({
     where: { id },
     data: {
       ...rest,
       ...(flyers !== undefined ? { flyersJson: JSON.stringify(flyers || []) } : {}),
       ...(socials !== undefined ? { socialsJson: socials ? JSON.stringify(socials) : null } : {}),
+      ...(lineup !== undefined ? { lineupJson: lineup && lineup.length ? JSON.stringify(lineup) : null } : {}),
     },
     include: EVENT_INCLUDE,
   });
