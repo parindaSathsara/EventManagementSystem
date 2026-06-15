@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   ImageBackground,
   Dimensions,
@@ -34,21 +34,21 @@ export default function FlyerSlider({ events, onPressFlyer }) {
 
   return (
     <View>
-      <FlatList
-        data={events}
-        keyExtractor={(e) => e.id}
+      {/* Plain horizontal ScrollView (not FlatList) — reliable horizontal layout
+          even nested inside the manager page's vertical scroll + outer pager. */}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={stride}
         decelerationRate="fast"
         contentContainerStyle={styles.scroll}
-        onMomentumScrollEnd={(e) =>
-          setIndex(Math.round(e.nativeEvent.contentOffset.x / stride))
-        }
-        renderItem={({ item: ev }) => {
+        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / stride))}
+      >
+        {events.map((ev) => {
           const img = ev.bannerImageUrl || (ev.flyers && ev.flyers[0]) || ev.coverImageUrl;
           return (
             <TouchableOpacity
+              key={ev.id}
               style={styles.card}
               activeOpacity={0.92}
               onPress={() => onPressFlyer && onPressFlyer(ev.id)}
@@ -64,8 +64,8 @@ export default function FlyerSlider({ events, onPressFlyer }) {
               )}
             </TouchableOpacity>
           );
-        }}
-      />
+        })}
+      </ScrollView>
       {events.length > 1 ? (
         <View style={styles.dots}>
           {events.map((e, i) => (

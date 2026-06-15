@@ -12,11 +12,17 @@ import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
  */
 export default function EventListRow({ event, onPress }) {
   const d = new Date(event.startsAt);
-  const date = d.toLocaleDateString('en', { day: '2-digit', month: 'short' });
+  const day = d.getDate();
+  const month = d.toLocaleString('en', { month: 'short' }).toUpperCase();
   const time = d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' });
 
   return (
     <TouchableOpacity style={styles.row} activeOpacity={0.8} onPress={onPress}>
+      {/* White date box on the left */}
+      <View style={styles.dateBox}>
+        <Text style={styles.dateDay}>{day}</Text>
+        <Text style={styles.dateMonth}>{month}</Text>
+      </View>
       <View style={styles.left}>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
         <View style={styles.metaLine}>
@@ -30,10 +36,7 @@ export default function EventListRow({ event, onPress }) {
           </Text>
         </View>
       </View>
-      <View style={styles.right}>
-        <Text style={styles.date}>{date}</Text>
-        <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-      </View>
+      <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
     </TouchableOpacity>
   );
 }
@@ -54,6 +57,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lineSubtle,
     gap: SPACING.sm,
+  },
+  dateBox: {
+    backgroundColor: '#fff',
+    borderRadius: RADII.sm,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 50,
+  },
+  dateDay: {
+    fontSize: 20,
+    fontFamily: FONT_FAMILY.headingBold,
+    color: COLORS.ink,
+    lineHeight: 22,
+  },
+  dateMonth: {
+    fontSize: 10,
+    letterSpacing: 1,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
   },
   left: { flex: 1, gap: 3 },
   title: {

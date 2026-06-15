@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   iconBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   // flexGrow:0 stops the horizontal ScrollView from expanding to fill the
   // column's vertical space (which pushed the feed half-way down the screen).
-  chipStripBox: { flexGrow: 0, marginBottom: SPACING.xs },
+  chipStripBox: { flexGrow: 0, marginBottom: SPACING.lg },
   chipStrip: {
     paddingHorizontal: SPACING.base,
     gap: SPACING.xs,
