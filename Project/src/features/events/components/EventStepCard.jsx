@@ -64,11 +64,6 @@ export default function EventStepCard({
         </TouchableOpacity>
       </View>
 
-      {/* Description — directly under EVENT BY */}
-      {event.description ? (
-        <Text style={styles.desc} numberOfLines={2}>{event.description}</Text>
-      ) : null}
-
       {/* Poster — fills the remaining space so the page is full (tap to open) */}
       <TouchableOpacity
         style={styles.poster}
@@ -85,6 +80,11 @@ export default function EventStepCard({
           </LinearGradient>
         )}
       </TouchableOpacity>
+
+      {/* Description — directly under the poster */}
+      {event.description ? (
+        <Text style={styles.desc} numberOfLines={2}>{event.description}</Text>
+      ) : null}
 
       {/* This event's line up */}
       {event.lineup && event.lineup.length ? (

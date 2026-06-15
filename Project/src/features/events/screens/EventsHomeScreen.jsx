@@ -102,7 +102,9 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
           <FlatList
             data={visible}
             keyExtractor={(e) => e.id}
-            pagingEnabled
+            snapToInterval={bodyH}
+            snapToAlignment="start"
+            disableIntervalMomentum
             decelerationRate="fast"
             showsVerticalScrollIndicator={false}
             getItemLayout={(_d, i) => ({ length: bodyH, offset: bodyH * i, index: i })}
