@@ -39,9 +39,9 @@ export default function LineupRow({ lineup, onArtistPress }) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scroll}
     >
-      {items.map((a) => (
+      {items.map((a, idx) => (
         <TouchableOpacity
-          key={a.id}
+          key={`${idx}-${a.name || a.id}`}
           style={styles.card}
           activeOpacity={0.8}
           onPress={() => onArtistPress && onArtistPress(a)}
