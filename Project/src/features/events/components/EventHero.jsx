@@ -3,7 +3,7 @@ import { View, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Platfor
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
-import { COLORS, SPACING } from '../../../theme';
+import { SPACING } from '../../../theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 // One full-width landscape (16:9) banner that covers the top of the page.
@@ -11,7 +11,7 @@ const HERO_HEIGHT = Math.round(SCREEN_W * 9 / 16);
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
 
-export default function EventHero({ event, onBack, onShare, onSave }) {
+export default function EventHero({ event, onBack, onShare }) {
   const banner =
     event.bannerImageUrl || event.coverImageUrl || (event.flyers && event.flyers[0]) || null;
 
@@ -36,18 +36,13 @@ export default function EventHero({ event, onBack, onShare, onSave }) {
         <TouchableOpacity onPress={onBack} style={styles.iconBtn} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
+        {/* Save/bookmark removed — auth-only feature guests can't use.
+            Share is wired to the native share sheet. */}
+        {onShare ? (
           <TouchableOpacity onPress={onShare} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="paper-plane-outline" size={18} color="#fff" />
+            <Ionicons name="share-social-outline" size={18} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onSave} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons
-              name={event.isSaved ? 'bookmark' : 'bookmark-outline'}
-              size={18}
-              color={event.isSaved ? COLORS.accent : '#fff'}
-            />
-          </TouchableOpacity>
-        </View>
+        ) : null}
       </View>
     </View>
   );
@@ -57,7 +52,6 @@ EventHero.propTypes = {
   event: PropTypes.object.isRequired,
   onBack: PropTypes.func,
   onShare: PropTypes.func,
-  onSave: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

@@ -107,6 +107,9 @@ model Event {
   // [{ name, avatarUrl?, socials: { facebook, instagram, tiktok } }].
   // When set, this takes precedence over the relational `lineup` for display.
   lineupJson         String?     @db.Text
+  // Third-party ticketing platform URL. When set, the guest "Buy Now" CTA
+  // opens this link directly — in-app ticket selection is display-only.
+  ticketUrl          String?     @db.Text
   startsAt           DateTime
   endsAt             DateTime
   timezone           String      @default("Asia/Colombo")

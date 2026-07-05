@@ -17,8 +17,7 @@ import {
   StatPill,
   SectionHeader,
 } from '../../../shared/components';
-import { useEventsData, useReelsData, useUser } from '../../../shared/hooks';
-import TrendChart from '../components/TrendChart';
+import { useEventsData, useUser } from '../../../shared/hooks';
 
 function formatK(num) {
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
@@ -27,71 +26,41 @@ function formatK(num) {
 }
 
 /**
- * Derive a 7-day "reels published" trend from the artist's own reels.
- * Cheap, real, no mocks — and the chart automatically scales to whatever
- * the artist has actually posted.
+ * Organizer home — trimmed to essentials per client feedback:
+ * Followers + a countdown to the next event, quick actions (New Event /
+ * Edit Profile), and the active & upcoming events list (moved here from
+ * Insights) with an Edit shortcut on each row.
  */
-function buildWeeklyTrend(reels) {
-  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const buckets = [0, 0, 0, 0, 0, 0, 0];
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setHours(0, 0, 0, 0);
-  // Anchor on Monday (ISO weekday: Mon=1 .. Sun=7; JS Sun=0).
-  const day = weekStart.getDay();
-  const offset = day === 0 ? 6 : day - 1;
-  weekStart.setDate(weekStart.getDate() - offset);
-
-  reels.forEach((r) => {
-    if (!r.publishedAt) return;
-    const d = new Date(r.publishedAt);
-    const diffDays = Math.floor((d - weekStart) / (24 * 3600 * 1000));
-    if (diffDays >= 0 && diffDays < 7) {
-      buckets[diffDays] += r.views || 0;
-    }
-  });
-  return labels.map((label, i) => ({ label, value: buckets[i] }));
-}
-
 export default function ArtistHomeScreen({
-  onCreateReel,
   onCreateEvent,
   onOpenEvent,
+  onEditEvent,
   onOpenVerification,
-  onOpenInsights,
-  onOpenReelEditor,
+  onOpenMyEvents,
   onOpenProfile,
   onSwitchToCustomer,
 }) {
   const { user, artist } = useUser();
-  const allReels = useReelsData();
   const allEvents = useEventsData();
 
-  const reels = useMemo(
-    () => (artist ? allReels.filter((r) => r.artist?.id === artist.id) : []),
-    [allReels, artist],
-  );
   const events = useMemo(
     () => (artist ? allEvents.filter((e) => e.organizerArtistId === artist.id) : []),
     [allEvents, artist],
   );
-  const upcoming = events.filter((e) => new Date(e.startsAt).getTime() >= Date.now());
+  const active = useMemo(() => {
+    const now = Date.now();
+    return events
+      .filter((e) => e.status === 'live' || new Date(e.startsAt).getTime() >= now)
+      .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+  }, [events]);
   const verifiedOk = !!artist?.isVerified;
 
-  const trend = useMemo(() => buildWeeklyTrend(reels), [reels]);
-
-  // Stats from real records (or zeroes when the user is brand-new).
   const followers = artist?.followerCount ?? artist?._count?.followers ?? 0;
-  const totalReelViews = reels.reduce((s, r) => s + (r.views || 0), 0);
-  const totalEventTickets = artist?.totalEventTickets ?? 0;
-  const totalReactions = reels.reduce((s, r) => {
-    const codes = r.stats?.reactions || {};
-    return s + Object.values(codes).reduce((a, b) => a + b, 0);
-  }, 0);
-  const engagementPct =
-    totalReelViews > 0
-      ? `${Math.min(100, Math.round((totalReactions / totalReelViews) * 100))}%`
-      : '—';
+  // Day count — days until the next upcoming event.
+  const next = active.find((e) => new Date(e.startsAt).getTime() > Date.now());
+  const daysToNext = next
+    ? Math.max(0, Math.ceil((new Date(next.startsAt).getTime() - Date.now()) / (24 * 3600 * 1000)))
+    : null;
 
   const displayName = artist?.user?.name || user?.name || 'Artist';
   const avatarUrl = user?.avatarUrl || artist?.user?.avatarUrl;
@@ -133,24 +102,24 @@ export default function ArtistHomeScreen({
             <View style={{ flex: 1 }}>
               <Text style={styles.statusTitle}>
                 {verifiedOk
-                  ? 'Verified Artist'
+                  ? 'Verified Organizer'
                   : artist
                   ? 'Verification pending'
-                  : 'No artist profile yet'}
+                  : 'No organizer profile yet'}
               </Text>
               <Text style={styles.statusSub}>
                 {verifiedOk
-                  ? 'You can publish reels and events.'
+                  ? 'You can publish events.'
                   : artist
                   ? 'Submit documents to start publishing.'
-                  : 'Create an artist profile to publish reels and events.'}
+                  : 'Create a profile to publish events.'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>
 
-        {/* KPI grid — real numbers from the artist record + reels list */}
+        {/* KPIs — Followers + day count to the next event only. */}
         <View style={styles.kpiGrid}>
           <StatPill
             icon="people-outline"
@@ -158,37 +127,16 @@ export default function ArtistHomeScreen({
             value={formatK(followers)}
           />
           <StatPill
-            icon="play-outline"
-            label="Reel views"
-            value={formatK(totalReelViews)}
+            icon="hourglass-outline"
+            label={next ? 'Days to next event' : 'Next event'}
+            value={daysToNext != null ? String(daysToNext) : '—'}
             accent
-          />
-        </View>
-        <View style={[styles.kpiGrid, { marginTop: SPACING.sm }]}>
-          <StatPill
-            icon="ticket-outline"
-            label="Tickets sold"
-            value={formatK(totalEventTickets)}
-          />
-          <StatPill
-            icon="flame-outline"
-            label="Engagement"
-            value={engagementPct}
           />
         </View>
 
         {/* Quick actions */}
         <SectionHeader title="Quick actions" />
         <View style={styles.actionsRow}>
-          {/* Reels disabled for now.
-          <ActionTile
-            icon="film-outline"
-            label="New Reel"
-            sub="Edit & publish"
-            accent
-            onPress={onCreateReel}
-          />
-          */}
           <ActionTile
             icon="calendar-outline"
             label="New Event"
@@ -196,49 +144,43 @@ export default function ArtistHomeScreen({
             accent
             onPress={onCreateEvent}
           />
-        </View>
-        <View style={[styles.actionsRow, { marginTop: SPACING.sm }]}>
-          <ActionTile
-            icon="bar-chart-outline"
-            label="Insights"
-            sub="See what's hitting"
-            onPress={onOpenInsights}
-          />
           <ActionTile
             icon="brush-outline"
             label="Edit Profile"
-            sub="Public artist page"
+            sub="Public organizer page"
             onPress={onOpenProfile}
           />
         </View>
 
-        {/* This week chart */}
-        <SectionHeader title="This week" kicker="REEL VIEWS" />
+        {/* Active & upcoming events (moved here from Insights) */}
+        <SectionHeader title="Active events" action="Manage" onActionPress={onOpenMyEvents} />
         <View style={{ paddingHorizontal: SPACING.base }}>
-          <TrendChart data={trend} />
-        </View>
-
-        {/* Upcoming events */}
-        <SectionHeader title="Your upcoming events" action="Manage" onActionPress={onOpenInsights} />
-        <View style={{ paddingHorizontal: SPACING.base }}>
-          {upcoming.length === 0 ? (
+          {active.length === 0 ? (
             <View style={styles.emptyMini}>
               <Ionicons name="calendar-outline" size={20} color={COLORS.textMuted} />
-              <Text style={styles.emptyMiniText}>No upcoming events scheduled</Text>
+              <Text style={styles.emptyMiniText}>No active or upcoming events</Text>
             </View>
           ) : (
-            upcoming.map((e) => (
-              <EventCard
-                key={e.id}
-                event={e}
-                variant="compact"
-                onPress={() => onOpenEvent && onOpenEvent(e.id)}
-              />
+            active.map((e) => (
+              <View key={e.id} style={styles.eventRow}>
+                <View style={{ flex: 1 }}>
+                  <EventCard
+                    event={e}
+                    variant="compact"
+                    onPress={() => onOpenEvent && onOpenEvent(e.id)}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.editPill}
+                  activeOpacity={0.8}
+                  onPress={() => onEditEvent && onEditEvent(e.id)}
+                >
+                  <Ionicons name="brush-outline" size={14} color="#000" />
+                </TouchableOpacity>
+              </View>
             ))
           )}
         </View>
-
-        {/* Reels section disabled for now — everything is an event. */}
       </ScrollView>
     </View>
   );
@@ -269,12 +211,11 @@ ActionTile.propTypes = {
 };
 
 ArtistHomeScreen.propTypes = {
-  onCreateReel: PropTypes.func,
   onCreateEvent: PropTypes.func,
   onOpenEvent: PropTypes.func,
+  onEditEvent: PropTypes.func,
   onOpenVerification: PropTypes.func,
-  onOpenInsights: PropTypes.func,
-  onOpenReelEditor: PropTypes.func,
+  onOpenMyEvents: PropTypes.func,
   onOpenProfile: PropTypes.func,
   onSwitchToCustomer: PropTypes.func,
 };
@@ -377,7 +318,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(124,92,255,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -399,64 +340,19 @@ const styles = StyleSheet.create({
   },
   actionSubAccent: { color: 'rgba(0,0,0,0.7)' },
 
-  reelsStrip: {
-    paddingHorizontal: SPACING.base,
-    gap: SPACING.sm,
-    paddingBottom: SPACING.md,
-  },
-  reelCard: {
-    width: 168,
-    backgroundColor: COLORS.surface1,
-    borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.lineSubtle,
-    padding: SPACING.sm,
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: SPACING.sm,
   },
-  reelCover: {
-    height: 200,
-    borderRadius: RADII.sm,
+  editPill: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  reelStat: {
-    position: 'absolute',
-    bottom: 6,
-    left: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  reelStatText: {
-    fontSize: 10,
-    fontFamily: FONT_FAMILY.bodySemiBold,
-    color: '#fff',
-  },
-  reelCaption: {
-    ...TYPE_SCALE.caption,
-    fontFamily: FONT_FAMILY.bodyMedium,
-    color: COLORS.textSecondary,
-    minHeight: 32,
-  },
-  reelEditPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(0,255,161,0.1)',
-    borderRadius: RADII.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    alignSelf: 'flex-start',
-  },
-  reelEditText: {
-    fontSize: 11,
-    fontFamily: FONT_FAMILY.bodyBold,
-    color: COLORS.highlight,
+    marginBottom: SPACING.sm,
   },
 
   emptyMini: {

@@ -13,23 +13,31 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { ConnectionError, EmptyState } from '../../../shared/components';
-import { useNotificationsData, useEventsData, useFollows } from '../../../shared/hooks';
+import { ConnectionError, EmptyState, Avatar } from '../../../shared/components';
+import {
+  useNotificationsData,
+  useEventsData,
+  useFollows,
+  useUnseenAlerts,
+} from '../../../shared/hooks';
 import { notificationScheduler } from '../../../services';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
 
 /**
- * Notifications tab — event reminders 1 and 2 days before showtime.
+ * Alerts tab.
  *
- * The in-app feed comes from the backend (GET /notifications). Separately, we
- * schedule on-device local notifications (T-2 / T-1) for the events whose
- * company the guest follows, so they get alerted even with the app closed.
+ *  - "New from companies you follow": fresh events published by followed
+ *    companies (the follow → publish alert).
+ *  - Reminder feed from the backend (T-1 … T-5, five days' notice) — every
+ *    card shows the event company name.
+ *  - On-device local notifications are (re)scheduled for followed events.
  */
-export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
+export default function NotificationsScreen({ onOpenEvent }) {
   const items = useNotificationsData();
   const events = useEventsData();
   const { ids, isFollowing } = useFollows();
+  const { newFromFollowed } = useUnseenAlerts();
 
   // (Re)schedule local reminders whenever follows or events change.
   const followedUpcoming = useMemo(() => {
@@ -37,7 +45,13 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
     return events
       .filter((e) => e?.organizer?.id && isFollowing(e.organizer.id))
       .filter((e) => new Date(e.startsAt).getTime() > now)
-      .map((e) => ({ id: e.id, title: e.title, startsAt: e.startsAt, venueName: e.venueName }));
+      .map((e) => ({
+        id: e.id,
+        title: e.title,
+        startsAt: e.startsAt,
+        venueName: e.venueName,
+        companyName: e.organizer?.user?.name || e.organizer?.handle,
+      }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, ids]);
 
@@ -45,12 +59,14 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
     notificationScheduler.syncReminders(followedUpcoming).catch(() => {});
   }, [followedUpcoming]);
 
+  const hasAnything = items.length > 0 || newFromFollowed.length > 0;
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
 
       <View style={styles.header}>
-        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.title}>Alerts</Text>
       </View>
 
       <ScrollView
@@ -60,32 +76,37 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
           <RefreshControl refreshing={false} onRefresh={items.refresh} tintColor={COLORS.accent} />
         }
       >
-        {items.error && items.length === 0 ? (
+        {items.error && !hasAnything ? (
           <ConnectionError error={items.error} onRetry={items.refresh} loading={items.loading} />
-        ) : items.length === 0 ? (
+        ) : !hasAnything ? (
           <EmptyState
             icon="notifications-outline"
             title="You're all caught up"
-            message="Reminders for events happening in the next 2 days will show up here. Follow a company to get on-device alerts."
+            message="Reminders for events happening in the next 5 days show up here. Follow a company to get alerted when they publish a new event."
           />
         ) : (
-          items.map((n) => <ReminderCard key={n.id} item={n} onPress={() => onOpenEvent && onOpenEvent(n.eventId)} />)
-        )}
+          <>
+            {/* Follow → publish alerts */}
+            {newFromFollowed.length > 0 ? (
+              <>
+                <Text style={styles.sectionLabel}>New from companies you follow</Text>
+                {newFromFollowed.map((e) => (
+                  <PublishCard key={`pub-${e.id}`} event={e} onPress={() => onOpenEvent && onOpenEvent(e.id)} />
+                ))}
+              </>
+            ) : null}
 
-        {/* Register-as-event-manager CTA */}
-        <TouchableOpacity style={styles.ctaCard} activeOpacity={0.85} onPress={onManagerLogin}>
-          <View style={styles.ctaIcon}>
-            <Ionicons name="mic-outline" size={22} color={COLORS.accent} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.ctaTitle}>Organising events?</Text>
-            <Text style={styles.ctaSub}>Register as an event manager to publish and sell tickets.</Text>
-          </View>
-          <View style={styles.ctaBtn}>
-            <Text style={styles.ctaBtnText}>Register</Text>
-            <Ionicons name="arrow-forward" size={14} color="#000" />
-          </View>
-        </TouchableOpacity>
+            {/* Reminder feed */}
+            {items.length > 0 ? (
+              <>
+                <Text style={styles.sectionLabel}>Coming up</Text>
+                {items.map((n) => (
+                  <ReminderCard key={n.id} item={n} onPress={() => onOpenEvent && onOpenEvent(n.eventId)} />
+                ))}
+              </>
+            ) : null}
+          </>
+        )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
@@ -93,21 +114,48 @@ export default function NotificationsScreen({ onOpenEvent, onManagerLogin }) {
   );
 }
 
+/** "Company published a new event" card. */
+function PublishCard({ event, onPress }) {
+  const org = event.organizer || {};
+  const company = org.user?.name || org.handle || 'Event Company';
+  const d = new Date(event.startsAt);
+  const when = d.toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  return (
+    <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
+      <Avatar uri={org.user?.avatarUrl} name={company} size={40} verified={org.isVerified} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.cardCompany} numberOfLines={1}>{company}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>{event.title}</Text>
+        <Text style={styles.cardMeta} numberOfLines={1}>
+          Published a new event · {when}
+        </Text>
+      </View>
+      <View style={styles.newPill}>
+        <Text style={styles.newPillText}>NEW</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/** T-N reminder card — always shows the event company. */
 function ReminderCard({ item, onPress }) {
   const d = new Date(item.startsAt);
   const when = d.toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
   const time = d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' });
   const urgent = item.daysUntil === 1;
+  const badgeLabel = urgent ? 'Tomorrow' : `In ${item.daysUntil} days`;
 
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
       <View style={[styles.badge, urgent ? styles.badgeUrgent : styles.badgeSoon]}>
         <Ionicons name="alarm-outline" size={16} color={urgent ? '#000' : COLORS.accent} />
-        <Text style={[styles.badgeText, urgent && styles.badgeTextUrgent]}>
-          {urgent ? 'Tomorrow' : 'In 2 days'}
-        </Text>
+        <Text style={[styles.badgeText, urgent && styles.badgeTextUrgent]}>{badgeLabel}</Text>
       </View>
       <View style={{ flex: 1 }}>
+        {item.companyName ? (
+          <Text style={styles.cardCompany} numberOfLines={1}>{item.companyName}</Text>
+        ) : null}
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.cardMeta} numberOfLines={1}>{when} · {time}</Text>
         <Text style={styles.cardMeta} numberOfLines={1}>{item.venueName}{item.cityName ? ` · ${item.cityName}` : ''}</Text>
@@ -117,11 +165,11 @@ function ReminderCard({ item, onPress }) {
   );
 }
 
+PublishCard.propTypes = { event: PropTypes.object.isRequired, onPress: PropTypes.func };
 ReminderCard.propTypes = { item: PropTypes.object.isRequired, onPress: PropTypes.func };
 
 NotificationsScreen.propTypes = {
   onOpenEvent: PropTypes.func,
-  onManagerLogin: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -139,58 +187,15 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.textPrimary,
   },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scroll: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm },
-  ctaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    padding: SPACING.md,
-    marginTop: SPACING.md,
-    backgroundColor: 'rgba(255,84,130,0.06)',
-    borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: 'rgba(255,84,130,0.3)',
-  },
-  ctaIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,84,130,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaTitle: {
-    ...TYPE_SCALE.bodyMd,
-    fontFamily: FONT_FAMILY.headingSemiBold,
-    color: COLORS.textPrimary,
-  },
-  ctaSub: {
+  sectionLabel: {
     ...TYPE_SCALE.caption,
-    fontFamily: FONT_FAMILY.body,
-    color: COLORS.textMuted,
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  ctaBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.accent,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 8,
-    borderRadius: RADII.pill,
-  },
-  ctaBtnText: {
-    fontSize: 12,
     fontFamily: FONT_FAMILY.bodyBold,
-    color: '#000',
+    color: COLORS.accent,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.sm,
   },
   card: {
     flexDirection: 'row',
@@ -213,17 +218,25 @@ const styles = StyleSheet.create({
     minWidth: 72,
   },
   badgeUrgent: { backgroundColor: COLORS.highlight },
-  badgeSoon: { backgroundColor: 'rgba(255,84,130,0.12)' },
+  badgeSoon: { backgroundColor: 'rgba(124,92,255,0.14)' },
   badgeText: {
     fontSize: 11,
     fontFamily: FONT_FAMILY.bodyBold,
     color: COLORS.accent,
   },
   badgeTextUrgent: { color: '#000' },
+  cardCompany: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   cardTitle: {
     ...TYPE_SCALE.bodyMd,
     fontFamily: FONT_FAMILY.headingSemiBold,
     color: COLORS.textPrimary,
+    marginTop: 1,
   },
   cardMeta: {
     ...TYPE_SCALE.caption,
@@ -231,4 +244,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     marginTop: 1,
   },
+  newPill: {
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+    borderRadius: RADII.pill,
+  },
+  newPillText: { fontSize: 9, letterSpacing: 0.8, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
 });

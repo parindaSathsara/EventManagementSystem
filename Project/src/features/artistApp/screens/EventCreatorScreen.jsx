@@ -23,63 +23,133 @@ import { eventsRepo } from '../../../services';
 
 const COVER_COLORS = ['#260b3d', '#0a2a1a', '#3d1a0b', '#0d1b2a', '#5BFFC2'];
 
-function parseDateTime(dateStr, timeStr) {
-  // Parses "Fri, 30 May 2026" + "20:00" into an ISO string.
-  // Best-effort — falls back to current time + 1 day if parsing fails.
-  try {
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime()) && timeStr) {
-      const [h, m] = timeStr.split(':').map((x) => parseInt(x, 10));
-      d.setHours(h || 20, m || 0, 0, 0);
-      return d.toISOString();
-    }
-  } catch (_e) {} // eslint-disable-line no-empty
-  const fallback = new Date();
-  fallback.setDate(fallback.getDate() + 1);
-  return fallback.toISOString();
-}
-
-const CATEGORIES = ['Concert', 'Festival', 'Party', 'Live Set', 'Experience'];
+// Category presets per client feedback.
+const CATEGORIES = ['Live Concert', 'EDM', 'Festival', 'Hip Hop', 'Event', 'Other'];
 const AGES = ['All ages', '13+', '18+', '21+'];
 const APPROVAL_MODES = ['Auto-publish', 'Submit for review'];
 
+// Lineup slot name for artists announced later ("surprise" acts).
+const REVEALED_SOON = 'Revealed Soon';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const MINUTES = [0, 15, 30, 45];
+
 const COVER_GRADIENTS = [
-  ['#FF5482', '#260b3d'],
+  ['#7C5CFF', '#260b3d'],
   ['#00FFA1', '#0a2a1a'],
   ['#FFB020', '#3d1a0b'],
   ['#6BA8FF', '#0d1b2a'],
-  ['#FF7DA1', '#5BFFC2'],
+  ['#9B82FF', '#5BFFC2'],
 ];
 
-export default function EventCreatorScreen({ onBack, onSubmit }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Concert');
-  const [date, setDate] = useState('Fri, 30 May 2026');
-  const [start, setStart] = useState('20:00');
-  const [end, setEnd] = useState('23:30');
-  const [venue, setVenue] = useState('');
-  const [city, setCity] = useState('Colombo');
-  const [age, setAge] = useState('18+');
+function daysInMonth(year, monthIdx) {
+  return new Date(year, monthIdx + 1, 0).getDate();
+}
+
+function fmtHour(h) {
+  const period = h < 12 ? 'AM' : 'PM';
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return `${display} ${period}`;
+}
+
+function pricesDigits(priceLabel) {
+  // "LKR 4500" -> "4500"; "Free" -> ''.
+  const m = (priceLabel || '').replace(/[,\s]/g, '').match(/(\d+)/);
+  return m ? m[1] : '';
+}
+
+/** Initial form state — either blank (create) or prefilled from `event` (edit). */
+function initialState(event) {
+  const now = new Date();
+  const start = event?.startsAt ? new Date(event.startsAt) : null;
+  const end = event?.endsAt ? new Date(event.endsAt) : null;
+  const socials = event?.socials || {};
+  return {
+    title: event?.title || '',
+    description: event?.description || '',
+    category: event?.category && CATEGORIES.includes(event.category) ? event.category : (event?.category || 'Live Concert'),
+    year: start ? start.getFullYear() : now.getFullYear(),
+    monthIdx: start ? start.getMonth() : now.getMonth(),
+    day: start ? start.getDate() : Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth())),
+    startH: start ? start.getHours() : 20,
+    startM: start ? (MINUTES.includes(start.getMinutes()) ? start.getMinutes() : 0) : 0,
+    endH: end ? end.getHours() : 23,
+    endM: end ? (MINUTES.includes(end.getMinutes()) ? end.getMinutes() : 0) : 30,
+    venue: event?.venueName || '',
+    city: event?.cityName || 'Colombo',
+    age: event?.ageRestriction || '18+',
+    ticketUrl: event?.ticketUrl || '',
+    bannerUrl: event?.bannerImageUrl || '',
+    instagram: socials.instagram || '',
+    facebook: socials.facebook || '',
+    tiktok: socials.tiktok || '',
+    tickets: event?.ticketTypes?.length
+      ? event.ticketTypes.map((t) => ({ name: t.name, price: pricesDigits(t.priceLabel) }))
+      : [{ name: 'General Admission', price: '4500' }],
+    lineup: event?.lineup?.length
+      ? event.lineup.map((a) => ({
+          name: a.name || '',
+          instagram: a.socials?.instagram || '',
+          facebook: a.socials?.facebook || '',
+          tiktok: a.socials?.tiktok || '',
+        }))
+      : [{ name: '', instagram: '', facebook: '', tiktok: '' }],
+  };
+}
+
+/**
+ * Create / edit an event.
+ *
+ *  - Pass `event` to edit a published event (surprise artists, price changes).
+ *  - Date & time are picked from selection chips — no typing.
+ *  - Ticket types carry name + price only (sales happen on the third-party
+ *    ticketing platform, linked via the "ticketing link" field).
+ */
+export default function EventCreatorScreen({ onBack, onSubmit, event }) {
+  const editing = !!event?.id;
+  const [form, setForm] = useState(() => initialState(event));
   const [coverIdx, setCoverIdx] = useState(0);
-  const [tickets, setTickets] = useState([
-    { name: 'General Admission', price: '4500', remaining: '500' },
-  ]);
   const [approval, setApproval] = useState('Auto-publish');
   const [refundable, setRefundable] = useState(true);
-  // Promotion: a banner/flyer image URL (the booking CTA) + company socials.
-  const [bannerUrl, setBannerUrl] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [facebook, setFacebook] = useState('');
-  const [tiktok, setTiktok] = useState('');
-  // Line up: free-form artists, each with their own social links.
-  const [lineup, setLineup] = useState([
-    { name: '', instagram: '', facebook: '', tiktok: '' },
-  ]);
+  const [saving, setSaving] = useState(false);
   const alert = useAlert();
 
+  const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+
+  const maxDay = daysInMonth(form.year, form.monthIdx);
+  const dayClamped = Math.min(form.day, maxDay);
+  const dateLabel = `${String(dayClamped).padStart(2, '0')} ${MONTHS[form.monthIdx]} ${form.year}`;
+
+  /* ---------- lineup helpers ---------- */
+  function addArtist(prefillName = '') {
+    setForm((f) => ({
+      ...f,
+      lineup: [...f.lineup, { name: prefillName, instagram: '', facebook: '', tiktok: '' }],
+    }));
+  }
+  function updateArtist(idx, key, value) {
+    setForm((f) => ({
+      ...f,
+      lineup: f.lineup.map((a, i) => (i === idx ? { ...a, [key]: value } : a)),
+    }));
+  }
+  function removeArtist(idx) {
+    setForm((f) => ({ ...f, lineup: f.lineup.filter((_, i) => i !== idx) }));
+  }
+  /** Reorder — slot #1 (headliner) is fixed; the rest can move up/down. */
+  function moveArtist(idx, dir) {
+    setForm((f) => {
+      const next = [...f.lineup];
+      const to = idx + dir;
+      if (idx < 1 || to < 1 || to >= next.length) return f;
+      [next[idx], next[to]] = [next[to], next[idx]];
+      return { ...f, lineup: next };
+    });
+  }
+
   function buildLineup() {
-    return lineup
+    return form.lineup
       .map((a) => {
         const name = (a.name || '').trim();
         const socials = {};
@@ -90,48 +160,52 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
       })
       .filter((a) => a.name);
   }
-  function addArtist() {
-    setLineup((prev) => [...prev, { name: '', instagram: '', facebook: '', tiktok: '' }]);
-  }
-  function updateArtist(idx, key, value) {
-    setLineup((prev) => prev.map((a, i) => (i === idx ? { ...a, [key]: value } : a)));
-  }
-  function removeArtist(idx) {
-    setLineup((prev) => prev.filter((_, i) => i !== idx));
-  }
 
   function buildSocials() {
     const s = {};
-    if (instagram.trim()) s.instagram = instagram.trim();
-    if (facebook.trim()) s.facebook = facebook.trim();
-    if (tiktok.trim()) s.tiktok = tiktok.trim();
+    if (form.instagram.trim()) s.instagram = form.instagram.trim();
+    if (form.facebook.trim()) s.facebook = form.facebook.trim();
+    if (form.tiktok.trim()) s.tiktok = form.tiktok.trim();
     return Object.keys(s).length ? s : undefined;
   }
-  function validBanner() {
-    const u = bannerUrl.trim();
-    return /^https?:\/\/.+/i.test(u) ? u : undefined;
+  function validUrl(u) {
+    const v = (u || '').trim();
+    return /^https?:\/\/.+/i.test(v) ? v : undefined;
   }
 
-  async function handlePublish() {
-    if (!title.trim()) {
+  /* ---------- tickets ---------- */
+  function addTicket() {
+    setForm((f) => ({ ...f, tickets: [...f.tickets, { name: '', price: '' }] }));
+  }
+  function updateTicket(idx, key, value) {
+    setForm((f) => ({
+      ...f,
+      tickets: f.tickets.map((t, i) => (i === idx ? { ...t, [key]: value } : t)),
+    }));
+  }
+  function removeTicket(idx) {
+    setForm((f) => ({ ...f, tickets: f.tickets.filter((_, i) => i !== idx) }));
+  }
+
+  async function handleSubmit() {
+    if (saving) return;
+    if (!form.title.trim()) {
       alert.error('Missing title', 'Please enter an event title.');
       return;
     }
-    if (!venue.trim()) {
+    if (!form.venue.trim()) {
       alert.error('Missing venue', 'Please enter a venue name.');
       return;
     }
-    const startsAt = parseDateTime(date, start);
-    const endsAt = parseDateTime(date, end);
-    // The backend infers the organizer from the JWT and assigns a
-    // ticketTypeId on each entry; we just describe what the user typed.
-    // Drop ticket rows that are blank or have zero capacity — the backend
-    // rejects `total: 0`, so let the user fix it at the source instead of
-    // surfacing a confusing 400.
-    const ticketTypes = tickets
+
+    const startsAt = new Date(form.year, form.monthIdx, dayClamped, form.startH, form.startM, 0, 0);
+    let endsAt = new Date(form.year, form.monthIdx, dayClamped, form.endH, form.endM, 0, 0);
+    // Ends past midnight → next day.
+    if (endsAt <= startsAt) endsAt = new Date(endsAt.getTime() + 24 * 3600 * 1000);
+
+    const ticketTypes = form.tickets
       .map((t) => {
         const trimmedName = t.name.trim();
-        const totalNum = parseInt(t.remaining, 10);
         const cleanPrice = (t.price || '').toString().replace(/[,\s]/g, '');
         const priceNum = cleanPrice ? parseFloat(cleanPrice) : 0;
         return {
@@ -139,77 +213,84 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           priceLabel: cleanPrice ? `LKR ${cleanPrice}` : 'Free',
           priceCents: Number.isFinite(priceNum) ? Math.round(priceNum * 100) : 0,
           currency: 'LKR',
-          total: Number.isFinite(totalNum) ? totalNum : 0,
+          // Quantity is no longer collected — sales are on the third-party
+          // platform; capacity is a display-only high default.
+          total: 10000,
         };
       })
-      .filter((t) => t.name && t.total > 0);
+      .filter((t) => t.name);
 
     if (ticketTypes.length === 0) {
-      alert.error('Add at least one ticket', 'Each ticket needs a name and a capacity above zero.');
+      alert.error('Add at least one ticket type', 'Each ticket needs a type name (price optional).');
       return;
     }
 
-    try {
-      const banner = validBanner();
-      const socials = buildSocials();
-      const lineupArtists = buildLineup();
-      const newEvent = await eventsRepo.create({
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        coverColor: COVER_COLORS[coverIdx] || '#1a0a2e',
-        ...(banner ? { bannerImageUrl: banner, flyers: [banner] } : {}),
-        ...(socials ? { socials } : {}),
-        ...(lineupArtists.length ? { lineup: lineupArtists } : {}),
-        startsAt,
-        endsAt,
-        venueName: venue.trim(),
-        cityName: city.trim() || 'Colombo',
-        addressLine: '',
-        ageRestriction: age,
-        cancellationPolicy: refundable
-          ? 'Refunds available up to 24h before event start.'
-          : 'Non-refundable.',
-        ticketTypes,
-        // The organizer (this manager, acting as the artist) is auto-linked to
-        // the event's lineup by the backend when no explicit lineup is given.
-        // Backend rejects unknown statuses; 'pending' is not in the enum.
-        status: approval === 'Auto-publish' ? 'published' : 'draft',
-      });
-      if (onSubmit) onSubmit(newEvent);
-      alert.success('Event published', `"${newEvent.title}" is live on the customer calendar.`);
-    } catch (e) {
-      alert.error('Could not publish', e?.message || 'Please try again.');
-    }
-  }
+    const banner = validUrl(form.bannerUrl);
+    const ticketUrl = validUrl(form.ticketUrl);
+    const socials = buildSocials();
+    const lineupArtists = buildLineup();
 
-  function addTicket() {
-    setTickets((prev) => [...prev, { name: '', price: '', remaining: '' }]);
-  }
-  function updateTicket(idx, key, value) {
-    setTickets((prev) =>
-      prev.map((t, i) => (i === idx ? { ...t, [key]: value } : t)),
-    );
-  }
-  function removeTicket(idx) {
-    setTickets((prev) => prev.filter((_, i) => i !== idx));
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: form.category,
+      coverColor: COVER_COLORS[coverIdx] || '#1a0a2e',
+      ...(banner ? { bannerImageUrl: banner, flyers: [banner] } : {}),
+      ...(ticketUrl ? { ticketUrl } : {}),
+      ...(socials ? { socials } : {}),
+      lineup: lineupArtists,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      venueName: form.venue.trim(),
+      cityName: form.city.trim() || 'Colombo',
+      ageRestriction: form.age,
+      ticketTypes,
+    };
+
+    setSaving(true);
+    try {
+      if (editing) {
+        const updated = await eventsRepo.update(event.id, payload);
+        if (onSubmit) onSubmit(updated);
+        alert.success('Event updated', `"${payload.title}" has been updated.`);
+      } else {
+        const newEvent = await eventsRepo.create({
+          ...payload,
+          addressLine: '',
+          cancellationPolicy: refundable
+            ? 'Refunds available up to 24h before event start.'
+            : 'Non-refundable.',
+          status: approval === 'Auto-publish' ? 'published' : 'draft',
+        });
+        if (onSubmit) onSubmit(newEvent);
+        alert.success('Event published', `"${newEvent.title}" is live on the customer calendar.`);
+      }
+    } catch (e) {
+      alert.error(editing ? 'Could not save' : 'Could not publish', e?.message || 'Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
       <ScreenHeader
-        title="New Event"
-        subtitle="Step 1 of 1"
+        title={editing ? 'Edit Event' : 'New Event'}
+        subtitle={editing ? event.title : 'Step 1 of 1'}
         onBack={onBack}
-        rightLabel="Save draft"
-        onRightPress={() => {
-          if (!title.trim()) {
-            alert.error('Add a title first', 'Drafts need at least a title to save.');
-            return;
-          }
-          alert.success('Draft saved', 'You can finish this event later from My Events → Drafts.');
-        }}
+        rightLabel={editing ? undefined : 'Save draft'}
+        onRightPress={
+          editing
+            ? undefined
+            : () => {
+                if (!form.title.trim()) {
+                  alert.error('Add a title first', 'Drafts need at least a title to save.');
+                  return;
+                }
+                alert.success('Draft saved', 'You can finish this event later from My Events → Drafts.');
+              }
+        }
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
@@ -224,14 +305,14 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           />
           <View style={styles.bannerOverlay}>
             <Text style={styles.bannerTitle} numberOfLines={2}>
-              {title || 'Your event title'}
+              {form.title || 'Your event title'}
             </Text>
             <Text style={styles.bannerSub}>
-              {city} · {date} · {start}
+              {form.city} · {dateLabel} · {fmtHour(form.startH)}
             </Text>
           </View>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.coverStrip}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.coverStrip}>
           <TouchableOpacity activeOpacity={0.85} style={styles.uploadTile}>
             <Ionicons name="cloud-upload-outline" size={20} color={COLORS.accent} />
             <Text style={styles.uploadText}>Upload</Text>
@@ -254,57 +335,87 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
         {/* Basic */}
         <Text style={styles.sectionLabel}>Event details</Text>
         <View style={styles.card}>
-          <Field label="Title" value={title} onChange={setTitle} placeholder="e.g. Vyanjan Album Launch" />
+          <Field label="Title" value={form.title} onChange={(v) => set('title', v)} placeholder="Add your event title" />
           <Field
             label="Description"
-            value={description}
-            onChange={setDescription}
+            value={form.description}
+            onChange={(v) => set('description', v)}
             placeholder="What's happening, who's playing, what to expect…"
             multiline
           />
         </View>
 
-        {/* Category */}
+        {/* Category — preset selection */}
         <Text style={styles.sectionLabel}>Category</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.chipsRowScroll}>
           {CATEGORIES.map((c) => (
             <Chip
               key={c}
               label={c}
-              active={category === c}
-              onPress={() => setCategory(c)}
+              active={form.category === c}
+              onPress={() => set('category', c)}
               style={{ marginRight: SPACING.sm }}
             />
           ))}
         </ScrollView>
 
-        {/* Date / time */}
+        {/* Date & time — selection, no typing */}
         <Text style={styles.sectionLabel}>Date & time</Text>
         <View style={styles.card}>
-          <Field icon="calendar-outline" label="Date" value={date} onChange={setDate} />
-          <View style={styles.fieldRow}>
-            <View style={{ flex: 1 }}>
-              <Field icon="time-outline" label="Start" value={start} onChange={setStart} />
-            </View>
-            <View style={{ width: SPACING.sm }} />
-            <View style={{ flex: 1 }}>
-              <Field icon="time-outline" label="End" value={end} onChange={setEnd} />
-            </View>
-          </View>
+          <Text style={styles.pickedLabel}>
+            <Ionicons name="calendar-outline" size={13} color={COLORS.accent} />
+            {'  '}{dateLabel} · {fmtHour(form.startH)}{form.startM ? `:${String(form.startM).padStart(2, '0')}` : ''} – {fmtHour(form.endH)}{form.endM ? `:${String(form.endM).padStart(2, '0')}` : ''}
+          </Text>
+
+          <PickRow
+            label="Year"
+            options={[...new Set([new Date().getFullYear(), new Date().getFullYear() + 1, form.year])].sort()}
+            value={form.year}
+            format={String}
+            onPick={(v) => set('year', v)}
+          />
+          <PickRow
+            label="Month"
+            options={MONTHS.map((_, i) => i)}
+            value={form.monthIdx}
+            format={(i) => MONTHS[i]}
+            onPick={(v) => set('monthIdx', v)}
+          />
+          <PickRow
+            label="Day"
+            options={Array.from({ length: maxDay }, (_, i) => i + 1)}
+            value={dayClamped}
+            format={String}
+            onPick={(v) => set('day', v)}
+          />
+          <PickRow
+            label="Starts"
+            options={HOURS}
+            value={form.startH}
+            format={fmtHour}
+            onPick={(v) => set('startH', v)}
+          />
+          <PickRow
+            label="Ends"
+            options={HOURS}
+            value={form.endH}
+            format={fmtHour}
+            onPick={(v) => set('endH', v)}
+          />
+          <PickRow
+            label="Minutes"
+            options={MINUTES}
+            value={form.startM}
+            format={(m) => `:${String(m).padStart(2, '0')}`}
+            onPick={(v) => setForm((f) => ({ ...f, startM: v, endM: v }))}
+          />
         </View>
 
         {/* Venue */}
         <Text style={styles.sectionLabel}>Venue</Text>
         <View style={styles.card}>
-          <Field icon="location-outline" label="Venue name" value={venue} onChange={setVenue} placeholder="Stardust Arena" />
-          <Field icon="map-outline" label="City" value={city} onChange={setCity} placeholder="Colombo" />
-          <View style={styles.mapHint}>
-            <Ionicons name="map" size={28} color={COLORS.textMuted} />
-            <Text style={styles.mapHintText}>Pick a location on the map</Text>
-            <TouchableOpacity activeOpacity={0.8} style={styles.mapBtn}>
-              <Text style={styles.mapBtnText}>Set on map</Text>
-            </TouchableOpacity>
-          </View>
+          <Field icon="location-outline" label="Venue name" value={form.venue} onChange={(v) => set('venue', v)} placeholder="Stardust Arena" />
+          <Field icon="map-outline" label="City" value={form.city} onChange={(v) => set('city', v)} placeholder="Colombo" />
         </View>
 
         {/* Age */}
@@ -314,50 +425,62 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
             <Chip
               key={a}
               label={a}
-              active={age === a}
-              onPress={() => setAge(a)}
+              active={form.age === a}
+              onPress={() => set('age', a)}
               style={{ marginRight: SPACING.sm }}
             />
           ))}
         </View>
 
-        {/* Tickets */}
-        <Text style={styles.sectionLabel}>Tickets</Text>
+        {/* Ticketing link — powers the guest "Buy Now" jump */}
+        <Text style={styles.sectionLabel}>Ticketing</Text>
+        <View style={styles.card}>
+          <Field
+            icon="link-outline"
+            label="Third-party ticketing link"
+            value={form.ticketUrl}
+            onChange={(v) => set('ticketUrl', v)}
+            placeholder="https://… (Buy Now opens this page)"
+          />
+          <View style={styles.hintRow}>
+            <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
+            <Text style={styles.hintText}>
+              Guests tap Buy Now and go straight to this page. Ticket types below are shown for information only.
+            </Text>
+          </View>
+        </View>
+
+        {/* Ticket types — name + price only (no quantity) */}
+        <Text style={styles.sectionLabel}>Ticket types</Text>
         <View style={{ paddingHorizontal: SPACING.base }}>
-          {tickets.map((t, idx) => (
+          {form.tickets.map((t, idx) => (
             <View key={idx} style={styles.ticketCard}>
               <View style={styles.ticketHead}>
                 <View style={styles.ticketBadge}>
                   <Text style={styles.ticketBadgeText}>#{idx + 1}</Text>
                 </View>
-                {tickets.length > 1 ? (
+                {form.tickets.length > 1 ? (
                   <TouchableOpacity onPress={() => removeTicket(idx)} activeOpacity={0.7}>
                     <Ionicons name="trash-outline" size={16} color={COLORS.error} />
                   </TouchableOpacity>
                 ) : null}
               </View>
-              <Field
-                label="Type name"
-                value={t.name}
-                onChange={(v) => updateTicket(idx, 'name', v)}
-                placeholder="e.g. VIP Lounge"
-              />
               <View style={styles.fieldRow}>
+                <View style={{ flex: 1.4 }}>
+                  <Field
+                    label="Type name"
+                    value={t.name}
+                    onChange={(v) => updateTicket(idx, 'name', v)}
+                    placeholder="e.g. VIP Lounge"
+                  />
+                </View>
+                <View style={{ width: SPACING.sm }} />
                 <View style={{ flex: 1 }}>
                   <Field
                     label="Price (LKR)"
                     value={t.price}
                     onChange={(v) => updateTicket(idx, 'price', v)}
                     placeholder="4500"
-                  />
-                </View>
-                <View style={{ width: SPACING.sm }} />
-                <View style={{ flex: 1 }}>
-                  <Field
-                    label="Quantity"
-                    value={t.remaining}
-                    onChange={(v) => updateTicket(idx, 'remaining', v)}
-                    placeholder="500"
                   />
                 </View>
               </View>
@@ -369,20 +492,34 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           </TouchableOpacity>
         </View>
 
-        {/* Line up — multiple artists, each with their own socials */}
+        {/* Line up — reorderable; slot #1 stays the headliner */}
         <Text style={styles.sectionLabel}>Line up</Text>
         <View style={{ paddingHorizontal: SPACING.base }}>
-          {lineup.map((a, idx) => (
+          {form.lineup.map((a, idx) => (
             <View key={idx} style={styles.ticketCard}>
               <View style={styles.ticketHead}>
                 <View style={styles.ticketBadge}>
-                  <Text style={styles.ticketBadgeText}>ARTIST #{idx + 1}</Text>
+                  <Text style={styles.ticketBadgeText}>
+                    {idx === 0 ? 'HEADLINER' : `ARTIST #${idx + 1}`}
+                  </Text>
                 </View>
-                {lineup.length > 1 ? (
-                  <TouchableOpacity onPress={() => removeArtist(idx)} activeOpacity={0.7}>
-                    <Ionicons name="trash-outline" size={16} color={COLORS.error} />
-                  </TouchableOpacity>
-                ) : null}
+                <View style={styles.rowActions}>
+                  {idx > 1 ? (
+                    <TouchableOpacity onPress={() => moveArtist(idx, -1)} activeOpacity={0.7} style={styles.moveBtn}>
+                      <Ionicons name="chevron-up" size={15} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                  ) : null}
+                  {idx >= 1 && idx < form.lineup.length - 1 ? (
+                    <TouchableOpacity onPress={() => moveArtist(idx, 1)} activeOpacity={0.7} style={styles.moveBtn}>
+                      <Ionicons name="chevron-down" size={15} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                  ) : null}
+                  {form.lineup.length > 1 ? (
+                    <TouchableOpacity onPress={() => removeArtist(idx)} activeOpacity={0.7} style={styles.moveBtn}>
+                      <Ionicons name="trash-outline" size={15} color={COLORS.error} />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               </View>
               <Field
                 label="Artist name"
@@ -390,33 +527,50 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
                 onChange={(v) => updateArtist(idx, 'name', v)}
                 placeholder="e.g. Bathiya & Santhush"
               />
-              <Field
-                icon="logo-instagram"
-                label="Instagram"
-                value={a.instagram}
-                onChange={(v) => updateArtist(idx, 'instagram', v)}
-                placeholder="https://instagram.com/…"
-              />
-              <Field
-                icon="logo-facebook"
-                label="Facebook"
-                value={a.facebook}
-                onChange={(v) => updateArtist(idx, 'facebook', v)}
-                placeholder="https://facebook.com/…"
-              />
-              <Field
-                icon="logo-tiktok"
-                label="TikTok"
-                value={a.tiktok}
-                onChange={(v) => updateArtist(idx, 'tiktok', v)}
-                placeholder="https://tiktok.com/@…"
-              />
+              {a.name.trim() === REVEALED_SOON ? (
+                <View style={styles.hintRow}>
+                  <Ionicons name="sparkles-outline" size={14} color={COLORS.accent} />
+                  <Text style={styles.hintText}>
+                    Shown as a surprise slot — edit this event after publishing to reveal the artist.
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Field
+                    icon="logo-instagram"
+                    label="Instagram"
+                    value={a.instagram}
+                    onChange={(v) => updateArtist(idx, 'instagram', v)}
+                    placeholder="https://instagram.com/…"
+                  />
+                  <Field
+                    icon="logo-facebook"
+                    label="Facebook"
+                    value={a.facebook}
+                    onChange={(v) => updateArtist(idx, 'facebook', v)}
+                    placeholder="https://facebook.com/…"
+                  />
+                  <Field
+                    icon="logo-tiktok"
+                    label="TikTok"
+                    value={a.tiktok}
+                    onChange={(v) => updateArtist(idx, 'tiktok', v)}
+                    placeholder="https://tiktok.com/@…"
+                  />
+                </>
+              )}
             </View>
           ))}
-          <TouchableOpacity activeOpacity={0.8} onPress={addArtist} style={styles.addTicket}>
-            <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
-            <Text style={styles.addTicketText}>Add another artist</Text>
-          </TouchableOpacity>
+          <View style={styles.lineupBtns}>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => addArtist()} style={[styles.addTicket, { flex: 1 }]}>
+              <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
+              <Text style={styles.addTicketText}>Add artist</Text>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => addArtist(REVEALED_SOON)} style={[styles.addTicket, { flex: 1 }]}>
+              <Ionicons name="sparkles-outline" size={16} color={COLORS.accent} />
+              <Text style={styles.addTicketText}>Revealed Soon</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Promotion & socials */}
@@ -425,62 +579,104 @@ export default function EventCreatorScreen({ onBack, onSubmit }) {
           <Field
             icon="image-outline"
             label="Flyer / banner image URL"
-            value={bannerUrl}
-            onChange={setBannerUrl}
+            value={form.bannerUrl}
+            onChange={(v) => set('bannerUrl', v)}
             placeholder="https://… (the booking CTA image)"
           />
-          <Field icon="logo-instagram" label="Instagram" value={instagram} onChange={setInstagram} placeholder="https://instagram.com/…" />
-          <Field icon="logo-facebook" label="Facebook" value={facebook} onChange={setFacebook} placeholder="https://facebook.com/…" />
-          <Field icon="logo-tiktok" label="TikTok" value={tiktok} onChange={setTiktok} placeholder="https://tiktok.com/@…" />
+          <Field icon="logo-facebook" label="Facebook page" value={form.facebook} onChange={(v) => set('facebook', v)} placeholder="https://facebook.com/…" />
+          <Field icon="logo-instagram" label="Instagram" value={form.instagram} onChange={(v) => set('instagram', v)} placeholder="https://instagram.com/…" />
+          <Field icon="logo-tiktok" label="TikTok" value={form.tiktok} onChange={(v) => set('tiktok', v)} placeholder="https://tiktok.com/@…" />
         </View>
 
-        {/* Policies */}
-        <Text style={styles.sectionLabel}>Policies</Text>
-        <View style={styles.card}>
-          <View style={styles.policyRow}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.highlight} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.policyLabel}>Refundable</Text>
-              <Text style={styles.policySub}>Customers can request refunds up to 24h before the event.</Text>
+        {/* Policies + approval — create only (kept as-is per client) */}
+        {!editing ? (
+          <>
+            <Text style={styles.sectionLabel}>Policies</Text>
+            <View style={styles.card}>
+              <View style={styles.policyRow}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.highlight} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.policyLabel}>Refundable</Text>
+                  <Text style={styles.policySub}>Customers can request refunds up to 24h before the event.</Text>
+                </View>
+                <TouchableOpacity activeOpacity={0.7} onPress={() => setRefundable((r) => !r)} style={[styles.toggle, refundable && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, refundable && styles.toggleKnobOn]} />
+                </TouchableOpacity>
+              </View>
             </View>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => setRefundable((r) => !r)} style={[styles.toggle, refundable && styles.toggleOn]}>
-              <View style={[styles.toggleKnob, refundable && styles.toggleKnobOn]} />
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        <Text style={styles.sectionLabel}>Approval mode</Text>
-        <View style={styles.chipsRow}>
-          {APPROVAL_MODES.map((m) => (
-            <Chip
-              key={m}
-              label={m}
-              active={approval === m}
-              onPress={() => setApproval(m)}
-              style={{ marginRight: SPACING.sm }}
-            />
-          ))}
-        </View>
+            <Text style={styles.sectionLabel}>Approval mode</Text>
+            <View style={styles.chipsRow}>
+              {APPROVAL_MODES.map((m) => (
+                <Chip
+                  key={m}
+                  label={m}
+                  active={approval === m}
+                  onPress={() => setApproval(m)}
+                  style={{ marginRight: SPACING.sm }}
+                />
+              ))}
+            </View>
+          </>
+        ) : null}
 
         <View style={styles.helperCard}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.textMuted} />
           <Text style={styles.helperText}>
-            Once published, fans can save and book this event. Major changes will be logged in the change history.
+            {editing
+              ? 'Changes go live immediately — surprise artists and price updates show on the guest page right away.'
+              : 'Once published, fans can follow your company and jump to your ticketing page. You can edit the event (reveal artists, adjust prices) any time.'}
           </Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <Button
-          title="Publish event"
+          title={saving ? 'Saving…' : editing ? 'Save changes' : 'Publish event'}
           variant="primary"
-          onPress={handlePublish}
+          disabled={saving}
+          loading={saving}
+          onPress={handleSubmit}
           style={styles.publishBtn}
         />
       </View>
     </View>
   );
 }
+
+/** Horizontal chip row picker — the "selection instead of typing" control. */
+function PickRow({ label, options, value, format, onPick }) {
+  return (
+    <View style={styles.pickRow}>
+      <Text style={styles.pickLabel}>{label}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.pickStrip}>
+        {options.map((opt) => {
+          const active = opt === value;
+          return (
+            <TouchableOpacity
+              key={String(opt)}
+              onPress={() => onPick(opt)}
+              activeOpacity={0.8}
+              style={[styles.pickChip, active && styles.pickChipActive]}
+            >
+              <Text style={[styles.pickChipText, active && styles.pickChipTextActive]}>
+                {format(opt)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
+PickRow.propTypes = {
+  label: PropTypes.string,
+  options: PropTypes.array,
+  value: PropTypes.any,
+  format: PropTypes.func,
+  onPick: PropTypes.func,
+};
 
 function Field({ icon, label, value, onChange, placeholder, multiline }) {
   return (
@@ -513,6 +709,7 @@ Field.propTypes = {
 EventCreatorScreen.propTypes = {
   onBack: PropTypes.func,
   onSubmit: PropTypes.func,
+  event: PropTypes.object,
 };
 
 const styles = StyleSheet.create({
@@ -527,6 +724,7 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.lg,
     paddingBottom: SPACING.sm,
   },
+  stripBar: { flexGrow: 0 },
   bannerWrap: {
     height: 160,
     marginHorizontal: SPACING.base,
@@ -564,8 +762,8 @@ const styles = StyleSheet.create({
     borderRadius: RADII.sm,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(255,84,130,0.45)',
-    backgroundColor: 'rgba(255,84,130,0.06)',
+    borderColor: 'rgba(124,92,255,0.5)',
+    backgroundColor: 'rgba(124,92,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
@@ -630,30 +828,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.base,
     gap: SPACING.sm,
   },
-  mapHint: {
-    marginTop: SPACING.sm,
-    height: 120,
-    borderRadius: RADII.sm,
+  chipsRowScroll: {
+    paddingHorizontal: SPACING.base,
+    alignItems: 'center',
+  },
+
+  /* date & time selection */
+  pickedLabel: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+  },
+  pickRow: { marginBottom: SPACING.sm },
+  pickLabel: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  pickStrip: { gap: 6, paddingRight: SPACING.base },
+  pickChip: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 7,
+    borderRadius: RADII.pill,
     backgroundColor: COLORS.surface2,
     borderWidth: 1,
     borderColor: COLORS.lineSubtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
   },
-  mapHintText: {
+  pickChipActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  pickChipText: { fontSize: 12, fontFamily: FONT_FAMILY.bodyMedium, color: COLORS.textSecondary },
+  pickChipTextActive: { color: '#000', fontFamily: FONT_FAMILY.bodyBold },
+
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginTop: 2,
+  },
+  hintText: {
+    flex: 1,
     ...TYPE_SCALE.caption,
     fontFamily: FONT_FAMILY.body,
     color: COLORS.textMuted,
+    lineHeight: 16,
   },
-  mapBtn: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    borderRadius: RADII.pill,
-    backgroundColor: COLORS.accent,
-    marginTop: 4,
-  },
-  mapBtnText: { fontSize: 11, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
 
   ticketCard: {
     backgroundColor: COLORS.surface1,
@@ -672,12 +893,23 @@ const styles = StyleSheet.create({
   ticketBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(124,92,255,0.14)',
     borderColor: COLORS.accent,
     borderWidth: 1,
     borderRadius: RADII.pill,
   },
   ticketBadgeText: { fontSize: 10, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.accent, letterSpacing: 0.5 },
+  rowActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  moveBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface2,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+  },
   addTicket: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -686,11 +918,12 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderRadius: RADII.md,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,84,130,0.4)',
+    borderColor: 'rgba(124,92,255,0.45)',
     borderStyle: 'dashed',
-    backgroundColor: 'rgba(255,84,130,0.04)',
+    backgroundColor: 'rgba(124,92,255,0.05)',
   },
   addTicketText: { fontSize: 13, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  lineupBtns: { flexDirection: 'row', gap: SPACING.sm },
 
   policyRow: {
     flexDirection: 'row',

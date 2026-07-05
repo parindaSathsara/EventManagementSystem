@@ -5,24 +5,23 @@ import { COLORS } from '../theme';
 import { BottomTabBar } from '../shared/components';
 import {
   ArtistHomeScreen,
-  InsightsScreen,
   VerificationScreen,
   ArtistMyProfileScreen,
-  CreateHubScreen,
   EventCreatorScreen,
   MyEventsScreen,
   EditArtistProfileScreen,
 } from '../features/artistApp';
-// Reels disabled for now — editor kept on disk, unwired.
+// Reels + Insights disabled for now — kept on disk, unwired.
 // import { ReelEditorScreen } from '../features/reelEditor';
 import { EventDetailScreen } from '../features/events';
 import { useAlert, useUser } from '../shared/hooks';
+import { eventsRepo } from '../services';
 
+// Trimmed per client feedback: Insights tab and the centre "+" (it duplicated
+// the + button on My Events) are gone. Home · Events · Profile.
 const TABS = [
   { key: 'home', label: 'Home', icon: 'home-outline', iconActive: 'home' },
   { key: 'events', label: 'Events', icon: 'calendar-outline', iconActive: 'calendar' },
-  { key: 'create', icon: 'add', center: true },
-  { key: 'insights', label: 'Insights', icon: 'bar-chart-outline', iconActive: 'bar-chart' },
   { key: 'profile', label: 'Profile', icon: 'person-outline', iconActive: 'person' },
 ];
 
@@ -57,7 +56,9 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
   //   return <ReelEditorScreen onBack={pop} onPublish={() => pop()} />;
   // }
   if (stack.name === 'eventCreator') {
-    return <EventCreatorScreen onBack={pop} onSubmit={() => pop()} />;
+    // `eventId` present → edit mode (surprise artists, price changes, etc.).
+    const editing = stack.params.eventId ? eventsRepo.getById(stack.params.eventId) : null;
+    return <EventCreatorScreen event={editing} onBack={pop} onSubmit={() => pop()} />;
   }
   if (stack.name === 'verification') {
     return <VerificationScreen onBack={pop} />;
@@ -69,14 +70,6 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
     return <EventDetailScreen eventId={stack.params.eventId} onBack={pop} />;
   }
 
-  function handleTabChange(key) {
-    if (key === 'create') {
-      setTab('create');
-      return;
-    }
-    setTab(key);
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.body}>
@@ -84,8 +77,9 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
           <ArtistHomeScreen
             onCreateEvent={() => pushPublishing('eventCreator')}
             onOpenEvent={(id) => push('event', { eventId: id })}
+            onEditEvent={(id) => push('eventCreator', { eventId: id })}
             onOpenVerification={() => push('verification')}
-            onOpenInsights={() => setTab('insights')}
+            onOpenMyEvents={() => setTab('events')}
             onOpenProfile={() => setTab('profile')}
             onSwitchToCustomer={onSwitchToCustomer}
           />
@@ -95,6 +89,7 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
           <MyEventsScreen
             onCreateEvent={() => pushPublishing('eventCreator')}
             onOpenEvent={(id) => push('event', { eventId: id })}
+            onEditEvent={(id) => push('eventCreator', { eventId: id })}
             onOpenSearch={() =>
               alert.info('Search', 'Type in the search bar below the header to filter your events.')
             }
@@ -108,21 +103,6 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
           />
         ) : null}
 
-        {tab === 'create' ? (
-          <CreateHubScreen
-            onCreateEvent={() => pushPublishing('eventCreator')}
-            onOpenDrafts={() =>
-              alert.info(
-                'Drafts',
-                'Saved drafts are stored locally. Full drafts manager ships in the next sprint.',
-              )
-            }
-            onBack={() => setTab('home')}
-          />
-        ) : null}
-
-        {tab === 'insights' ? <InsightsScreen /> : null}
-
         {tab === 'profile' ? (
           <ArtistMyProfileScreen
             onSwitchToCustomer={onSwitchToCustomer}
@@ -134,7 +114,7 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
         ) : null}
       </View>
 
-      <BottomTabBar tabs={TABS} activeKey={tab} onChange={handleTabChange} />
+      <BottomTabBar tabs={TABS} activeKey={tab} onChange={setTab} />
     </View>
   );
 }

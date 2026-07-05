@@ -1,40 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 
-export default function TicketTypeRow({ ticket, selected, onPress }) {
+/**
+ * Display-only ticket category row. Ticketing happens on the organizer's
+ * third-party platform, so there is no selection / quantity here — just the
+ * type name and its price, like a notice board.
+ */
+export default function TicketTypeRow({ ticket }) {
   const soldOut = ticket.remaining === 0;
   return (
-    <TouchableOpacity
-      onPress={soldOut ? undefined : onPress}
-      activeOpacity={0.85}
-      style={[
-        styles.row,
-        selected && styles.rowSelected,
-        soldOut && styles.rowSoldOut,
-      ]}
-    >
-      <View style={[styles.radio, selected && styles.radioActive]}>
-        {selected ? <Ionicons name="checkmark" size={14} color="#000" /> : null}
+    <View style={[styles.row, soldOut && styles.rowSoldOut]}>
+      <View style={styles.iconWrap}>
+        <Ionicons name="ticket-outline" size={16} color={COLORS.accent} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.name, soldOut && styles.dim]}>{ticket.name}</Text>
-        <Text style={[styles.meta, soldOut && styles.dim]}>
-          {soldOut ? 'Sold out' : `${ticket.remaining} remaining`}
-        </Text>
+        {soldOut ? <Text style={[styles.meta, styles.dim]}>Sold out</Text> : null}
       </View>
       <Text style={[styles.price, soldOut && styles.dim]}>{ticket.priceLabel}</Text>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 TicketTypeRow.propTypes = {
   ticket: PropTypes.object.isRequired,
-  selected: PropTypes.bool,
-  onPress: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -50,25 +43,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     gap: SPACING.md,
   },
-  rowSelected: {
-    borderColor: COLORS.accent,
-    backgroundColor: 'rgba(255,84,130,0.08)',
-  },
   rowSoldOut: {
     opacity: 0.6,
   },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: COLORS.lineStrong,
+  iconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(124,92,255,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  radioActive: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
   },
   name: {
     ...TYPE_SCALE.bodyMd,

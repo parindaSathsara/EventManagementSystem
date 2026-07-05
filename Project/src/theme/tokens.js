@@ -28,9 +28,9 @@ export const COLORS = {
   inkMuted: '#515866',
 
   // Accents (per design system: monochrome + dual accent)
-  accent: '#FF5482',          // pink — primary action / focus / active
-  accentSoft: '#FF7DA1',
-  accentDeep: '#E63E6E',
+  accent: '#7C5CFF',          // electric violet — primary action / focus / active
+  accentSoft: '#9B82FF',
+  accentDeep: '#5E3EE6',
   highlight: '#00FFA1',       // green — verified / live / success
   highlightSoft: '#5BFFC2',
   neonPink: '#FF5482',

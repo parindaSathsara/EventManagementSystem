@@ -21,6 +21,42 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
   const { day, month, time } = formatDay(event.startsAt);
   const imgUrl = event.coverImageUrl || event.bannerImageUrl || (event.flyers && event.flyers[0]) || null;
 
+  if (variant === 'grid') {
+    // Half-width tile for 2-per-row calendar layouts. Company name on top —
+    // the event company is the focus per client feedback.
+    const org = event.organizer || {};
+    const companyName = org.user?.name || org.handle || null;
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.gridWrap}>
+        <View style={styles.gridCover}>
+          {imgUrl ? (
+            <Image source={{ uri: imgUrl }} style={styles.cover} />
+          ) : (
+            <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.cover} />
+          )}
+          <View style={styles.gridDate}>
+            <Text style={styles.dateBadgeMonth}>{month}</Text>
+            <Text style={styles.dateBadgeDay}>{day}</Text>
+          </View>
+          {event.status === 'live' ? (
+            <View style={styles.gridLive}>
+              <Chip label="LIVE" variant="live" icon="radio" />
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.gridBody}>
+          {companyName ? (
+            <Text style={styles.gridCompany} numberOfLines={1}>{companyName}</Text>
+          ) : null}
+          <Text style={styles.gridTitle} numberOfLines={2}>{event.title}</Text>
+          <Text style={styles.gridMeta} numberOfLines={1}>
+            {time} · {event.venueName}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
   if (variant === 'compact') {
     return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.compactWrap}>
@@ -106,7 +142,7 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
 EventCard.propTypes = {
   event: PropTypes.object.isRequired,
   onPress: PropTypes.func,
-  variant: PropTypes.oneOf(['default', 'compact']),
+  variant: PropTypes.oneOf(['default', 'compact', 'grid']),
 };
 
 const styles = StyleSheet.create({
@@ -198,6 +234,48 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
     backgroundColor: COLORS.textMuted,
     marginHorizontal: 4,
+  },
+
+  /* grid variant (2-per-row) */
+  gridWrap: {
+    flex: 1,
+    borderRadius: RADII.md,
+    overflow: 'hidden',
+    backgroundColor: COLORS.surface1,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+  },
+  gridCover: { height: 108, position: 'relative' },
+  gridDate: {
+    position: 'absolute',
+    top: SPACING.xs,
+    left: SPACING.xs,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: RADII.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    alignItems: 'center',
+    minWidth: 38,
+  },
+  gridLive: { position: 'absolute', top: SPACING.xs, right: SPACING.xs },
+  gridBody: { padding: SPACING.sm, gap: 2 },
+  gridCompany: {
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
+    textTransform: 'uppercase',
+  },
+  gridTitle: {
+    ...TYPE_SCALE.bodySm,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+    minHeight: 34,
+  },
+  gridMeta: {
+    fontSize: 10,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
   },
 
   /* compact variant */

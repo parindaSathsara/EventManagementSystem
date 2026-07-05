@@ -63,7 +63,6 @@ export default function ArtistMyProfileScreen({
   const bio = artist?.bio || 'Tell people who you are — add a bio in Edit profile.';
   const cityName = artist?.user?.city || user?.city || '';
   const followers = artist?.followerCount ?? artist?._count?.followers ?? 0;
-  const totalReelViews = reels.reduce((s, r) => s + (r.views || 0), 0);
 
   // Socials: backend stores as JSON blob; parse defensively.
   let socials = {};
@@ -114,11 +113,10 @@ export default function ArtistMyProfileScreen({
           ) : null}
           <Text style={styles.bio}>{bio}</Text>
 
+          {/* Reels & Views removed per client feedback — followers + events only. */}
           <View style={styles.statsRow}>
             <Stat value={fmt(followers)} label="Followers" />
-            <Stat value={String(reels.length)} label="Reels" />
             <Stat value={String(events.length)} label="Events" />
-            <Stat value={fmt(totalReelViews)} label="Views" />
           </View>
 
           <View style={styles.actionsRow}>

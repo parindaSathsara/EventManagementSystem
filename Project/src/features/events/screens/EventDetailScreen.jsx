@@ -6,15 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Share,
 } from 'react-native';
 import { Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { Button, EmptyState, SectionHeader, Chip, Avatar } from '../../../shared/components';
+import { EmptyState, Chip, Avatar } from '../../../shared/components';
 import { useEventsData, useAlert, useFollows } from '../../../shared/hooks';
-import { eventsRepo, ticketsRepo } from '../../../services';
 import EventHero from '../components/EventHero';
 import LineupRow from '../components/LineupRow';
 import SocialRow from '../components/SocialRow';
@@ -33,18 +33,21 @@ function fmtDate(iso) {
 }
 
 const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
+const DESC_PREVIEW_LINES = 4;
 
-export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook, onBookConfirmed }) {
+/**
+ * Guest event page.
+ *
+ * Ticketing is third-party: ticket types are display-only (no selection /
+ * quantity) and the "Buy Now" CTA opens the organizer's external ticketing
+ * link (`event.ticketUrl`). Booking falls back to the in-app guest reserve
+ * flow only when no link was provided.
+ */
+export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook }) {
   const allEvents = useEventsData();
   const event = useMemo(() => allEvents.find((e) => e.id === eventId) || null, [allEvents, eventId]);
-  const [selectedTicket, setSelectedTicket] = useState(
-    event && event.ticketTypes && event.ticketTypes.length ? event.ticketTypes[0].id : null,
-  );
-  // Booking is in-flight when this is true — the Book button is disabled
-  // and a second tap is a no-op. Prevents the double-purchase race we saw
-  // in the load test (5 simultaneous taps = 5 tickets created).
-  const [booking, setBooking] = useState(false);
   const [sheet, setSheet] = useState(EMPTY_SHEET);
+  const [descExpanded, setDescExpanded] = useState(false);
   const alert = useAlert();
   const { isFollowing, toggle } = useFollows();
 
@@ -69,43 +72,32 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
     });
   }
 
-  async function handleBook() {
-    // Guest flow: hand off to the dedicated BookingScreen (captures contact
-    // details and reserves without an account). Manager/authed flow keeps the
-    // inline purchase below.
-    if (onBook) {
-      onBook(event.id, selectedTicket);
+  function handleBuy() {
+    if (!event) return;
+    // Third-party ticketing: the CTA goes straight to the external platform.
+    if (event.ticketUrl) {
+      Linking.openURL(event.ticketUrl).catch(() =>
+        alert.error('Could not open link', 'The ticketing page could not be opened on this device.'),
+      );
       return;
     }
-    if (booking) return; // guard against re-entry from a fast double-tap
-    if (!event || !selectedTicket) return;
-    const tt = event.ticketTypes.find((t) => t.id === selectedTicket);
-    if (!tt || tt.remaining === 0) return;
-    setBooking(true);
-    try {
-      const ticket = await ticketsRepo.create({
-        eventId: event.id,
-        typeName: tt.name,
-      });
-      // Backend has already decremented stock; this mirrors it locally so
-      // the UI reflects the new count before the next /events fetch.
-      await eventsRepo.decrementTicket(event.id, tt.id, 1);
-      const isFree = (tt.priceLabel || '').toLowerCase() === 'free';
-      alert.success(
-        isFree ? 'Reserved' : 'Ticket booked',
-        `${tt.name} for ${event.title} is now in your wallet.`,
-        () => onBookConfirmed && onBookConfirmed(ticket.id),
-      );
-    } catch (err) {
-      alert.error('Booking failed', err?.message || 'Could not book this ticket. Please try again.');
-    } finally {
-      setBooking(false);
-    }
+    // No external link yet — fall back to the in-app guest reservation flow.
+    if (onBook) onBook(event.id);
   }
 
-  function handleSaveToggle() {
+  async function handleShare() {
     if (!event) return;
-    eventsRepo.toggleSave(event.id);
+    const when = new Date(event.startsAt).toLocaleDateString('en', {
+      weekday: 'short', day: 'numeric', month: 'short',
+    });
+    try {
+      await Share.share({
+        message: `${event.title} · ${when} at ${event.venueName}, ${event.cityName}${event.ticketUrl ? `\nTickets: ${event.ticketUrl}` : ''}`,
+        title: event.title,
+      });
+    } catch {
+      /* user dismissed the share sheet — nothing to do */
+    }
   }
 
   function handleOpenMaps() {
@@ -137,14 +129,19 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
     );
   }
 
-  const selected = event.ticketTypes.find((t) => t.id === selectedTicket);
-  const canBook = !!selected && selected.remaining > 0;
-
   const org = event.organizer || {};
   const orgName = org.user?.name || org.handle || 'Event Company';
   const orgId = org.id;
   const socials = event.socials || org.socials || null;
   const { weekday, day, month, time } = fmtDate(event.startsAt);
+  // Cheapest ticket = the price shown next to the Buy Now CTA.
+  const cheapest = (event.ticketTypes || []).reduce(
+    (min, t) => (min == null || (t.priceCents ?? 0) < (min.priceCents ?? 0) ? t : min),
+    null,
+  );
+  // ~4 lines of bodyMd fits ±160 chars — a simple, reliable overflow check
+  // (onTextLayout on a clamped <Text> mis-reports on Android).
+  const descNeedsToggle = (event.description || '').length > 160;
 
   return (
     <View style={styles.container}>
@@ -154,154 +151,150 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <EventHero event={event} onBack={onBack} onSave={handleSaveToggle} />
+        <EventHero event={event} onBack={onBack} onShare={handleShare} />
 
-        {/* Date square · title · time — no container */}
-        <View style={styles.headerRow}>
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateMonth}>{month}</Text>
-            <Text style={styles.dateDay}>{day}</Text>
-            <Text style={styles.dateWeekday}>{weekday}</Text>
+        {/* Bordered page card — thin grey line around the event's content. */}
+        <View style={styles.pageCard}>
+          {/* Company first — the event company is the focus, event below it. */}
+          <View style={styles.orgRow}>
+            <TouchableOpacity style={styles.orgMain} activeOpacity={0.8} onPress={() => openManager(org)}>
+              <Avatar uri={org.user?.avatarUrl} name={orgName} size={44} verified={org.isVerified} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.orgName} numberOfLines={1}>{orgName}</Text>
+                {org.category ? <Text style={styles.orgCat} numberOfLines={1}>{org.category}</Text> : null}
+              </View>
+            </TouchableOpacity>
+            {orgId ? (
+              <TouchableOpacity
+                style={[styles.followBtn, isFollowing(orgId) && styles.followBtnActive]}
+                activeOpacity={0.85}
+                onPress={() => toggle(orgId)}
+              >
+                <Text style={[styles.followText, isFollowing(orgId) && styles.followTextActive]}>
+                  {isFollowing(orgId) ? 'Following' : 'Follow'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eventTitle} numberOfLines={3}>{event.title}</Text>
-            <View style={styles.metaLine}>
-              <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
-              <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
-            </View>
-            <View style={styles.metaLine}>
-              <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
-              <Text style={styles.metaText} numberOfLines={1}>{event.venueName} · {event.cityName}</Text>
-            </View>
-          </View>
-        </View>
 
-        <View style={styles.tagsRow}>
-          {event.status === 'live' ? (
-            <Chip label="LIVE NOW" variant="live" icon="radio" />
-          ) : (
-            <Chip label={event.category || 'Event'} variant="filter" active />
-          )}
-          {event.ageRestriction ? <Chip label={event.ageRestriction} variant="tag" /> : null}
-        </View>
-
-        {/* Organizer */}
-        <View style={styles.orgRow}>
-          <TouchableOpacity style={styles.orgMain} activeOpacity={0.8} onPress={() => openManager(org)}>
-            <Avatar uri={org.user?.avatarUrl} name={orgName} size={40} verified={org.isVerified} />
+          {/* Date square · title · time */}
+          <View style={styles.headerRow}>
+            <View style={styles.dateBadge}>
+              <Text style={styles.dateMonth}>{month}</Text>
+              <Text style={styles.dateDay}>{day}</Text>
+              <Text style={styles.dateWeekday}>{weekday}</Text>
+            </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.orgName} numberOfLines={1}>{orgName}</Text>
-              {org.category ? <Text style={styles.orgCat} numberOfLines={1}>{org.category}</Text> : null}
+              <Text style={styles.eventTitle} numberOfLines={3}>{event.title}</Text>
+              <View style={styles.metaLine}>
+                <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
+              </View>
+              <View style={styles.metaLine}>
+                <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.metaText} numberOfLines={1}>{event.venueName} · {event.cityName}</Text>
+              </View>
             </View>
-          </TouchableOpacity>
-          {orgId ? (
-            <TouchableOpacity
-              style={[styles.followBtn, isFollowing(orgId) && styles.followBtnActive]}
-              activeOpacity={0.85}
-              onPress={() => toggle(orgId)}
-            >
-              <Text style={[styles.followText, isFollowing(orgId) && styles.followTextActive]}>
-                {isFollowing(orgId) ? 'Following' : 'Follow'}
+          </View>
+
+          <View style={styles.tagsRow}>
+            {event.status === 'live' ? (
+              <Chip label="LIVE NOW" variant="live" icon="radio" />
+            ) : (
+              <Chip label={event.category || 'Event'} variant="filter" active />
+            )}
+            {event.ageRestriction ? <Chip label={event.ageRestriction} variant="tag" /> : null}
+          </View>
+
+          {/* About — expandable "See more" */}
+          {event.description ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>About this event</Text>
+              <Text
+                style={styles.body}
+                numberOfLines={descExpanded ? undefined : DESC_PREVIEW_LINES}
+              >
+                {event.description}
               </Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
-        {/* About */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>About this event</Text>
-          <Text style={styles.body}>{event.description}</Text>
-        </View>
-
-        {/* Lineup */}
-        <View>
-          <SectionHeader title="Lineup" />
-          <LineupRow
-            lineup={event.lineup}
-            onArtistPress={openArtist}
-          />
-          {socials ? (
-            <View style={styles.socialInLineup}>
-              <Text style={styles.socialLabel}>Follow on social</Text>
-              <SocialRow socials={socials} />
+              {descNeedsToggle ? (
+                <TouchableOpacity activeOpacity={0.7} onPress={() => setDescExpanded((v) => !v)}>
+                  <Text style={styles.seeMore}>{descExpanded ? 'See less' : 'See more'}</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           ) : null}
-        </View>
 
-        {/* Venue */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Venue</Text>
-          <View style={styles.venueCard}>
-            <View style={styles.venueIcon}>
-              <Ionicons name="location" size={20} color={COLORS.accent} />
+          {/* Lineup */}
+          {event.lineup && event.lineup.length ? (
+            <View style={styles.section}>
+              <Text style={styles.lineupLabel}>Line Up</Text>
+              <View style={styles.lineupInset}>
+                <LineupRow lineup={event.lineup} onArtistPress={openArtist} />
+              </View>
+              {socials ? (
+                <View style={styles.socialInLineup}>
+                  <Text style={styles.socialLabel}>Follow on social</Text>
+                  <SocialRow socials={socials} />
+                </View>
+              ) : null}
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.venueName}>{event.venueName}</Text>
-              <Text style={styles.venueAddress} numberOfLines={2}>{event.addressLine}</Text>
+          ) : null}
+
+          {/* Venue */}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Venue</Text>
+            <View style={styles.venueCard}>
+              <View style={styles.venueIcon}>
+                <Ionicons name="location" size={20} color={COLORS.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.venueName}>{event.venueName}</Text>
+                <Text style={styles.venueAddress} numberOfLines={2}>{event.addressLine}</Text>
+              </View>
+              <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7} onPress={handleOpenMaps}>
+                <Ionicons name="navigate" size={16} color="#000" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7} onPress={handleOpenMaps}>
-              <Ionicons name="navigate" size={16} color="#000" />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleOpenMaps}
+              style={styles.mapPreview}
+            >
+              <Ionicons name="map" size={32} color={COLORS.textMuted} />
+              <Text style={styles.mapHint}>Tap to open in Maps</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleOpenMaps}
-            style={styles.mapPreview}
-          >
-            <Ionicons name="map" size={32} color={COLORS.textMuted} />
-            <Text style={styles.mapHint}>Tap to open in Maps</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Tickets */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Tickets</Text>
-          {event.ticketTypes.map((t) => (
-            <TicketTypeRow
-              key={t.id}
-              ticket={t}
-              selected={t.id === selectedTicket}
-              onPress={() => setSelectedTicket(t.id)}
-            />
-          ))}
-        </View>
-
-        {/* Policy */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Cancellation & refunds</Text>
-          <View style={styles.policyCard}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.highlight} />
-            <Text style={styles.policyText}>
-              {event.cancellationPolicy || 'Cancellation policy will be displayed at booking.'}
-            </Text>
-          </View>
+          {/* Tickets — display-only (sales happen on the third-party platform) */}
+          {event.ticketTypes && event.ticketTypes.length ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Tickets</Text>
+              {event.ticketTypes.map((t) => (
+                <TicketTypeRow key={t.id} ticket={t} />
+              ))}
+              {event.ticketUrl ? (
+                <View style={styles.ticketNote}>
+                  <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
+                  <Text style={styles.ticketNoteText}>Tickets are sold on the organizer's ticketing platform.</Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         <View style={{ height: 140 }} />
       </ScrollView>
 
-      {/* Floating Book bar */}
+      {/* Floating Buy bar */}
       <View style={styles.bookBar}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.bookLabel}>{selected ? selected.name : 'Select a ticket'}</Text>
-          <Text style={styles.bookPrice}>{selected ? selected.priceLabel : '—'}</Text>
+          <Text style={styles.bookLabel}>{cheapest ? cheapest.name : 'Tickets'}</Text>
+          <Text style={styles.bookPrice}>{cheapest ? cheapest.priceLabel : '—'}</Text>
         </View>
-        <Button
-          title={
-            booking
-              ? 'Booking…'
-              : canBook
-              ? (selected.priceLabel.toLowerCase() === 'free' ? 'Reserve' : 'Book now')
-              : 'Sold out'
-          }
-          variant="primary"
-          // disable while a purchase is in flight so a double-tap can't
-          // create two tickets — the backend has no per-request idempotency.
-          disabled={!canBook || booking}
-          loading={booking}
-          onPress={handleBook}
-          style={styles.bookBtn}
-        />
+        <TouchableOpacity style={styles.buyBtn} activeOpacity={0.9} onPress={handleBuy}>
+          <Ionicons name="ticket" size={15} color="#000" />
+          <Text style={styles.buyText}>Buy Now</Text>
+        </TouchableOpacity>
       </View>
 
       <ProfileSheet
@@ -321,17 +314,26 @@ EventDetailScreen.propTypes = {
   onBack: PropTypes.func,
   onOpenEvent: PropTypes.func,
   onBook: PropTypes.func,
-  onBookConfirmed: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgStrong },
   scroll: { paddingBottom: SPACING.xxl },
+  // Thin grey border around the whole event page content.
+  pageCard: {
+    marginHorizontal: SPACING.sm,
+    marginTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.lineStrong,
+    borderRadius: RADII.lg,
+    backgroundColor: COLORS.bgStrong,
+  },
   headerRow: {
     flexDirection: 'row',
     gap: SPACING.md,
     paddingHorizontal: SPACING.base,
-    paddingTop: SPACING.lg,
+    paddingTop: SPACING.md,
   },
   tagsRow: {
     flexDirection: 'row',
@@ -353,6 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     alignItems: 'center',
     minWidth: 64,
+    alignSelf: 'flex-start',
   },
   dateMonth: { fontSize: 10, letterSpacing: 1, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.accent },
   dateDay: { fontSize: 22, fontFamily: FONT_FAMILY.headingBold, color: COLORS.ink, marginVertical: -2 },
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
     paddingHorizontal: SPACING.base,
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.base,
   },
   orgMain: {
     flex: 1,
@@ -377,9 +380,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
   },
+  // Company name is the headline of the page — bigger than before.
   orgName: {
-    ...TYPE_SCALE.bodyMd,
-    fontFamily: FONT_FAMILY.headingSemiBold,
+    ...TYPE_SCALE.h4,
+    fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.textPrimary,
   },
   orgCat: {
@@ -390,18 +394,18 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: 1,
   },
+  // Follow pill — deliberately compact.
   followBtn: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 7,
+    paddingHorizontal: SPACING.sm + 2,
+    paddingVertical: 5,
     borderRadius: RADII.pill,
     borderWidth: 1,
     borderColor: COLORS.accent,
   },
   followBtnActive: { backgroundColor: COLORS.accent },
-  followText: { fontSize: 12, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  followText: { fontSize: 11, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
   followTextActive: { color: '#000' },
   socialInLineup: {
-    paddingHorizontal: SPACING.base,
     paddingTop: SPACING.md,
     gap: SPACING.sm,
   },
@@ -424,11 +428,27 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
   },
+  // Line Up heading — larger + bolder so it never reads clipped.
+  lineupLabel: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingBold,
+    color: COLORS.textPrimary,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.md,
+  },
+  lineupInset: { marginHorizontal: -SPACING.base },
   body: {
     ...TYPE_SCALE.bodyMd,
-    fontFamily: FONT_FAMILY.body,
+    fontFamily: FONT_FAMILY.bodyMedium,
     color: COLORS.textSecondary,
     lineHeight: 22,
+  },
+  seeMore: {
+    ...TYPE_SCALE.bodySm,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
+    marginTop: SPACING.xs,
   },
   venueCard: {
     flexDirection: 'row',
@@ -445,7 +465,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(124,92,255,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -483,21 +503,17 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.bodyMedium,
     color: COLORS.textMuted,
   },
-  policyCard: {
+  ticketNote: {
     flexDirection: 'row',
-    gap: SPACING.sm,
-    padding: SPACING.md,
-    backgroundColor: 'rgba(0,255,161,0.06)',
-    borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: 'rgba(0,255,161,0.2)',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: SPACING.xs,
   },
-  policyText: {
-    flex: 1,
-    ...TYPE_SCALE.bodySm,
+  ticketNoteText: {
+    ...TYPE_SCALE.caption,
     fontFamily: FONT_FAMILY.body,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
+    color: COLORS.textMuted,
+    flex: 1,
   },
   bookBar: {
     position: 'absolute',
@@ -527,8 +543,15 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginTop: 2,
   },
-  bookBtn: {
-    paddingHorizontal: SPACING.xl,
-    height: 48,
+  // Compact Buy Now — smaller than the old full-width Book button.
+  buyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.accent,
+    paddingHorizontal: SPACING.lg,
+    height: 40,
+    borderRadius: RADII.pill,
   },
+  buyText: { fontSize: 13, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
 });

@@ -72,13 +72,15 @@ function shape(row, { isSaved = false } = {}) {
  * relational lineup (registered artist accounts, socials from their profile).
  */
 function buildLineup(row) {
+  // Per client feedback: only the first slot carries a role label
+  // ("Headliner") — the "Support" tag was removed from the rest.
   const free = safeParse(row.lineupJson, null);
   if (Array.isArray(free) && free.length) {
     return free.map((a, idx) => ({
       id: `g${idx}`,
       name: a?.name || 'Artist',
       avatarUrl: a?.avatarUrl || null,
-      role: idx === 0 ? 'Headliner' : 'Support',
+      role: idx === 0 ? 'Headliner' : '',
       socials: a?.socials || null,
     }));
   }
@@ -86,7 +88,7 @@ function buildLineup(row) {
     id: entry.artist?.id || entry.artistId,
     name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
     avatarUrl: entry.artist?.user?.avatarUrl || null,
-    role: idx === 0 ? 'Headliner' : 'Support',
+    role: idx === 0 ? 'Headliner' : '',
     socials: safeParse(entry.artist?.socialsJson, null),
   }));
 }
@@ -114,6 +116,10 @@ async function list({ status, organizerId, cityName, category, search, take, ski
             { title: { contains: search } },
             { venueName: { contains: search } },
             { cityName: { contains: search } },
+            // Match the event company too, so searching a company name (or a
+            // town like "Ella") surfaces that organizer's events.
+            { organizer: { handle: { contains: search } } },
+            { organizer: { user: { name: { contains: search } } } },
           ],
         }
       : {}),
@@ -207,6 +213,51 @@ async function update(id, input, requesterArtistId, requesterRole) {
   if (!canEdit) throw new Forbidden('You can only edit your own events.');
 
   const { ticketTypes, lineupArtistIds, lineup, flyers, socials, ...rest } = input;
+
+  // Editing a published event may change ticket types (organizers adjust
+  // prices / add categories post-publish). Match rows in order: update the
+  // ones that exist, create extras, delete surplus.
+  if (ticketTypes !== undefined) {
+    const existingTts = await prisma.ticketType.findMany({
+      where: { eventId: id },
+      orderBy: { createdAt: 'asc' },
+    });
+    const ops = [];
+    ticketTypes.forEach((t, i) => {
+      if (existingTts[i]) {
+        ops.push(
+          prisma.ticketType.update({
+            where: { id: existingTts[i].id },
+            data: {
+              name: t.name,
+              priceLabel: t.priceLabel,
+              priceCents: t.priceCents,
+              currency: t.currency,
+            },
+          }),
+        );
+      } else {
+        ops.push(
+          prisma.ticketType.create({
+            data: {
+              eventId: id,
+              name: t.name,
+              priceLabel: t.priceLabel,
+              priceCents: t.priceCents,
+              currency: t.currency,
+              total: t.total,
+              remaining: t.total,
+            },
+          }),
+        );
+      }
+    });
+    existingTts
+      .slice(ticketTypes.length)
+      .forEach((tt) => ops.push(prisma.ticketType.delete({ where: { id: tt.id } })));
+    if (ops.length) await prisma.$transaction(ops);
+  }
+
   const updated = await prisma.event.update({
     where: { id },
     data: {

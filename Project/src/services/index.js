@@ -9,8 +9,9 @@ import * as eventsRepo from './eventsRepo';
 import * as ticketsRepo from './ticketsRepo';
 import * as notificationsRepo from './notificationsRepo';
 import * as followRepo from './followRepo';
+import * as alertsSeenRepo from './alertsSeenRepo';
 
-export { reelsRepo, eventsRepo, ticketsRepo, notificationsRepo, followRepo };
+export { reelsRepo, eventsRepo, ticketsRepo, notificationsRepo, followRepo, alertsSeenRepo };
 export { subscribe, emit, CHANNELS } from './store';
 export * as notificationScheduler from './notifications';
 export * as api from './api';
@@ -28,6 +29,7 @@ export async function hydrateAll() {
     ticketsRepo.hydrate(),
     notificationsRepo.hydrate(),
     followRepo.hydrate(),
+    alertsSeenRepo.hydrate(),
   ]);
 }
 

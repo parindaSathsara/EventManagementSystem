@@ -47,7 +47,10 @@ function reminderDate(startsAt, daysBefore) {
  * Reschedule local reminders for the given followed events. Clears any
  * previously scheduled reminders first so we never stack duplicates.
  *
- * @param {Array<{id,title,startsAt,venueName}>} events
+ * Lead times: 5 days out (per client feedback — 2 days was too short) plus
+ * a day-before nudge. Each notification names the event company.
+ *
+ * @param {Array<{id,title,startsAt,venueName,companyName}>} events
  */
 export async function syncReminders(events = []) {
   if (!available()) return;
@@ -63,15 +66,16 @@ export async function syncReminders(events = []) {
   const now = Date.now();
   for (const e of events) {
     if (!e?.startsAt) continue;
-    for (const daysBefore of [2, 1]) {
+    for (const daysBefore of [5, 1]) {
       const when = reminderDate(e.startsAt, daysBefore);
       if (when.getTime() <= now) continue;
+      const company = e.companyName ? `${e.companyName} · ` : '';
       try {
         // eslint-disable-next-line no-await-in-loop
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: daysBefore === 1 ? 'Tomorrow 🎉' : 'In 2 days',
-            body: `${e.title}${e.venueName ? ` · ${e.venueName}` : ''}`,
+            title: daysBefore === 1 ? 'Tomorrow 🎉' : `In ${daysBefore} days`,
+            body: `${company}${e.title}${e.venueName ? ` · ${e.venueName}` : ''}`,
             data: { eventId: e.id },
           },
           trigger: when,

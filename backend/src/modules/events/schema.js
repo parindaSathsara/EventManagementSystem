@@ -7,7 +7,9 @@ const ticketTypeInput = z.object({
   priceLabel: z.string().trim().min(1).max(40),
   priceCents: z.number().int().nonnegative().default(0),
   currency: z.string().trim().min(1).max(8).default('LKR'),
-  total: z.number().int().positive(),
+  // Quantity is no longer collected on the create form (ticket sales moved to
+  // third-party platforms), so capacity defaults high and is display-only.
+  total: z.number().int().positive().default(10000),
 });
 
 const socialsInput = z
@@ -36,6 +38,9 @@ const createEventBody = z.object({
   bannerImageUrl: z.string().url().optional().nullable(),
   flyers: z.array(z.string().url()).max(20).optional().default([]),
   socials: socialsInput,
+  // Third-party ticketing platform link — "Buy Now" on the guest side opens
+  // this URL directly. One link per event.
+  ticketUrl: z.string().trim().url().max(500).optional().nullable(),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
   timezone: z.string().trim().max(40).default('Asia/Colombo'),

@@ -26,10 +26,14 @@ function dayKey(d) {
 
 /**
  * "Upcoming Events" — modelled on edmcalendar.lk. A Year / Month / Day toggle
- * plus a ‹ › stepper that pages the period, listing event cards (past events are
- * dimmed with an "Expired" badge). No month-grid calendar.
+ * plus a ‹ › stepper that pages the period.
+ *
+ * Events render as a 2-per-row grid (scales when a month gets busy). Past
+ * events are disabled-looking (greyed with an "Ended" tag) but remain
+ * tappable so what was on that day can still be seen — per client decision.
+ * The discreet event-manager entry lives at the bottom of this screen.
  */
-export default function UpcomingEventsScreen({ onOpenEvent, onOpenSearch }) {
+export default function UpcomingEventsScreen({ onOpenEvent, onOpenSearch, onManagerLogin }) {
   const events = useEventsData();
   const [view, setView] = useState('Month');
   const [cursor, setCursor] = useState(() => new Date());
@@ -122,20 +126,36 @@ export default function UpcomingEventsScreen({ onOpenEvent, onOpenSearch }) {
             message={`Nothing scheduled for this ${view.toLowerCase()}. Try the ‹ › arrows.`}
           />
         ) : (
-          list.map((e) => {
-            const past = new Date(e.startsAt).getTime() < now;
-            return (
-              <View key={e.id} style={past ? styles.pastWrap : null}>
-                <EventCard event={e} onPress={() => onOpenEvent && onOpenEvent(e.id)} />
-                {past ? (
-                  <View style={styles.expiredBadge}>
-                    <Text style={styles.expiredText}>Expired</Text>
-                  </View>
-                ) : null}
-              </View>
-            );
-          })
+          <View style={styles.grid}>
+            {list.map((e) => {
+              const past = new Date(e.startsAt).getTime() < now;
+              return (
+                <View key={e.id} style={[styles.gridItem, past && styles.pastWrap]}>
+                  {/* Past events stay tappable — the day is "disabled" visually
+                      but tapping still shows what was there. */}
+                  <EventCard event={e} variant="grid" onPress={() => onOpenEvent && onOpenEvent(e.id)} />
+                  {past ? (
+                    <View style={styles.expiredBadge} pointerEvents="none">
+                      <Text style={styles.expiredText}>Ended</Text>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+            {/* Keep the last row aligned when the count is odd. */}
+            {list.length % 2 === 1 ? <View style={styles.gridItem} /> : null}
+          </View>
         )}
+
+        {/* Discreet event-manager entry (moved here from the Alerts tab). */}
+        {onManagerLogin ? (
+          <TouchableOpacity style={styles.managerCta} activeOpacity={0.8} onPress={onManagerLogin}>
+            <Ionicons name="mic-outline" size={16} color={COLORS.textMuted} />
+            <Text style={styles.managerCtaText}>Organising events? Register as an event manager</Text>
+            <Ionicons name="arrow-forward" size={14} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        ) : null}
+
         <View style={{ height: 120 }} />
       </ScrollView>
     </View>
@@ -145,6 +165,7 @@ export default function UpcomingEventsScreen({ onOpenEvent, onOpenSearch }) {
 UpcomingEventsScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenSearch: PropTypes.func,
+  onManagerLogin: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -157,7 +178,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  title: { ...TYPE_SCALE.h3, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary },
+  // Toned down to match the feed's tab-heading size per client feedback.
+  title: { fontSize: 15, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary },
   iconBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   toggle: {
     flexDirection: 'row',
@@ -198,15 +220,43 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   scroll: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm },
-  pastWrap: { opacity: 0.55, position: 'relative' },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  gridItem: {
+    // Two tiles per row — (100% - gap) / 2.
+    flexBasis: '48.5%',
+    flexGrow: 1,
+    position: 'relative',
+  },
+  pastWrap: { opacity: 0.45 },
   expiredBadge: {
     position: 'absolute',
-    top: SPACING.md + 2,
-    right: SPACING.md,
+    top: SPACING.xs + 2,
+    right: SPACING.xs + 2,
     backgroundColor: 'rgba(0,0,0,0.8)',
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: RADII.pill,
   },
-  expiredText: { fontSize: 11, fontFamily: FONT_FAMILY.bodyBold, color: '#fff', letterSpacing: 0.5 },
+  expiredText: { fontSize: 10, fontFamily: FONT_FAMILY.bodyBold, color: '#fff', letterSpacing: 0.5 },
+  managerCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: RADII.md,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+    borderStyle: 'dashed',
+  },
+  managerCtaText: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
+  },
 });

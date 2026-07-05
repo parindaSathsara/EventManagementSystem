@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,9 +24,10 @@ function fmt(iso) {
 }
 
 /**
- * One full-screen event "page" in the vertical stepper feed. The event name is
- * the focus; the event owner (manager) is shown and tappable. Each event carries
- * its own poster, lineup and CTA.
+ * One full-screen event "page" in the vertical stepper feed, framed by a thin
+ * grey border so each event reads as its own card. The event company is the
+ * headline (no "EVENT BY" prefix). "Buy Tickets" jumps straight to the
+ * organizer's third-party ticketing link when one is set.
  */
 export default function EventStepCard({
   event,
@@ -41,64 +43,88 @@ export default function EventStepCard({
   const ownerName = org.user?.name || org.handle || 'Event Company';
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
   const { date, time } = fmt(event.startsAt);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const descNeedsToggle = (event.description || '').length > 90;
+
+  function handleBuy() {
+    // Third-party ticketing first; in-app reserve is only the fallback.
+    if (event.ticketUrl) {
+      Linking.openURL(event.ticketUrl).catch(() => {});
+      return;
+    }
+    if (onOpenBooking) onOpenBooking(event.id);
+  }
 
   return (
     <View style={[styles.page, { height }]}>
-      {/* Owner (event manager) — top of the event */}
-      <View style={styles.ownerRow}>
-        <TouchableOpacity style={styles.ownerMain} activeOpacity={0.8} onPress={() => onOpenManager && onOpenManager(org)}>
-          <Avatar uri={org.user?.avatarUrl} name={ownerName} size={34} verified={org.isVerified} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.ownerLabel}>EVENT BY</Text>
-            <Text style={styles.ownerName} numberOfLines={1}>{ownerName}</Text>
-          </View>
-        </TouchableOpacity>
+      <View style={styles.card}>
+        {/* Company — the headline of the card (no "EVENT BY" label) */}
+        <View style={styles.ownerRow}>
+          <TouchableOpacity style={styles.ownerMain} activeOpacity={0.8} onPress={() => onOpenManager && onOpenManager(org)}>
+            <Avatar uri={org.user?.avatarUrl} name={ownerName} size={38} verified={org.isVerified} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.ownerName} numberOfLines={1}>{ownerName}</Text>
+              {org.category ? (
+                <Text style={styles.ownerCat} numberOfLines={1}>{org.category}</Text>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+            activeOpacity={0.85}
+            onPress={onToggleFollow}
+          >
+            <Text style={[styles.followText, isFollowing && styles.followTextActive]}>
+              {isFollowing ? 'Following' : 'Follow'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Poster — fills the remaining space so the page is full (tap to open) */}
         <TouchableOpacity
-          style={[styles.followBtn, isFollowing && styles.followBtnActive]}
-          activeOpacity={0.85}
-          onPress={onToggleFollow}
+          style={styles.poster}
+          activeOpacity={0.95}
+          onPress={() => onOpenEvent && onOpenEvent(event.id)}
         >
-          <Text style={[styles.followText, isFollowing && styles.followTextActive]}>
-            {isFollowing ? 'Following' : 'Follow'}
-          </Text>
+          {poster ? (
+            <ImageBackground source={{ uri: poster }} style={styles.posterBg} imageStyle={styles.posterImg} resizeMode="cover">
+              <PosterOverlay event={event} date={date} time={time} />
+            </ImageBackground>
+          ) : (
+            <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
+              <PosterOverlay event={event} date={date} time={time} />
+            </LinearGradient>
+          )}
+        </TouchableOpacity>
+
+        {/* Description — expandable "See more" under the poster */}
+        {event.description ? (
+          <View>
+            <Text style={styles.desc} numberOfLines={descExpanded ? 6 : 2}>
+              {event.description}
+            </Text>
+            {descNeedsToggle ? (
+              <TouchableOpacity activeOpacity={0.7} onPress={() => setDescExpanded((v) => !v)}>
+                <Text style={styles.seeMore}>{descExpanded ? 'See less' : 'See more'}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* This event's line up */}
+        {event.lineup && event.lineup.length ? (
+          <View style={styles.lineupWrap}>
+            <Text style={styles.sectionLabel}>Line Up</Text>
+            <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
+          </View>
+        ) : null}
+
+        {/* Buy Tickets — compact pill, opens third-party ticketing */}
+        <TouchableOpacity style={styles.bookBtn} activeOpacity={0.9} onPress={handleBuy}>
+          <Ionicons name="ticket" size={14} color="#000" />
+          <Text style={styles.bookText}>Buy Tickets</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Poster — fills the remaining space so the page is full (tap to open) */}
-      <TouchableOpacity
-        style={styles.poster}
-        activeOpacity={0.95}
-        onPress={() => onOpenEvent && onOpenEvent(event.id)}
-      >
-        {poster ? (
-          <ImageBackground source={{ uri: poster }} style={styles.posterBg} imageStyle={styles.posterImg} resizeMode="cover">
-            <PosterOverlay event={event} date={date} time={time} />
-          </ImageBackground>
-        ) : (
-          <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
-            <PosterOverlay event={event} date={date} time={time} />
-          </LinearGradient>
-        )}
-      </TouchableOpacity>
-
-      {/* Description — directly under the poster */}
-      {event.description ? (
-        <Text style={styles.desc} numberOfLines={2}>{event.description}</Text>
-      ) : null}
-
-      {/* This event's line up */}
-      {event.lineup && event.lineup.length ? (
-        <View style={styles.lineupWrap}>
-          <Text style={styles.sectionLabel}>Line Up</Text>
-          <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
-        </View>
-      ) : null}
-
-      {/* Book */}
-      <TouchableOpacity style={styles.bookBtn} activeOpacity={0.9} onPress={() => onOpenBooking && onOpenBooking(event.id)}>
-        <Ionicons name="ticket" size={16} color="#000" />
-        <Text style={styles.bookText}>Book tickets</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -146,11 +172,19 @@ EventStepCard.propTypes = {
 
 const styles = StyleSheet.create({
   page: {
-    paddingHorizontal: SPACING.base,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.md,
-    gap: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.sm,
     overflow: 'hidden',
+  },
+  // Thin grey line box around the whole event page.
+  card: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.lineStrong,
+    borderRadius: RADII.lg,
+    padding: SPACING.md,
+    gap: SPACING.sm,
   },
   poster: {
     flex: 1,
@@ -193,30 +227,41 @@ const styles = StyleSheet.create({
   metaDot: { color: 'rgba(255,255,255,0.6)', marginHorizontal: 2 },
   ownerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   ownerMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  ownerLabel: {
-    fontSize: 9, letterSpacing: 1.2, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.textMuted, textTransform: 'uppercase',
+  // Company name is the headline — bigger, no "EVENT BY" prefix.
+  ownerName: { ...TYPE_SCALE.h4, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary },
+  ownerCat: {
+    fontSize: 10, letterSpacing: 0.8, fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted, textTransform: 'uppercase', marginTop: 1,
   },
-  ownerName: { ...TYPE_SCALE.bodyMd, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },
   desc: {
     ...TYPE_SCALE.bodySm,
     fontFamily: FONT_FAMILY.body,
     color: COLORS.textSecondary,
     lineHeight: 20,
   },
+  seeMore: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
+    marginTop: 2,
+  },
+  // Compact follow pill.
   followBtn: {
-    paddingHorizontal: SPACING.md, paddingVertical: 7, borderRadius: RADII.pill, borderWidth: 1, borderColor: COLORS.accent,
+    paddingHorizontal: SPACING.sm + 2, paddingVertical: 5, borderRadius: RADII.pill, borderWidth: 1, borderColor: COLORS.accent,
   },
   followBtnActive: { backgroundColor: COLORS.accent },
-  followText: { fontSize: 12, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  followText: { fontSize: 11, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
   followTextActive: { color: '#000' },
-  lineupWrap: { gap: SPACING.xs, marginHorizontal: -SPACING.base },
+  lineupWrap: { gap: SPACING.xs, marginHorizontal: -SPACING.md },
   sectionLabel: {
-    ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.textMuted,
-    letterSpacing: 1.1, textTransform: 'uppercase', paddingHorizontal: SPACING.base,
+    ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary,
+    letterSpacing: 1.1, textTransform: 'uppercase', paddingHorizontal: SPACING.md,
   },
+  // Compact Buy Tickets pill — smaller width & height, centred.
   bookBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: COLORS.accent, paddingVertical: 14, borderRadius: RADII.pill,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    alignSelf: 'center', backgroundColor: COLORS.accent,
+    paddingVertical: 10, paddingHorizontal: SPACING.xl, borderRadius: RADII.pill,
   },
-  bookText: { fontSize: 15, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
+  bookText: { fontSize: 13, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
 });

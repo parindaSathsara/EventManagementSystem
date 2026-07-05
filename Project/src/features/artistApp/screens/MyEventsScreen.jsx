@@ -76,6 +76,7 @@ function fmtDate(iso) {
 export default function MyEventsScreen({
   onCreateEvent,
   onOpenEvent,
+  onEditEvent,
   onOpenSearch,
   onOpenCalendar,
   onOpenNotifications,
@@ -97,7 +98,10 @@ export default function MyEventsScreen({
   );
 
   function handleEdit(event) {
-    alert.info('Edit event', `Editing "${event.title}" — full editor coming next sprint.`);
+    // Real editor — organizers reveal surprise artists / adjust ticket
+    // prices after publishing.
+    if (onEditEvent) onEditEvent(event.id);
+    else alert.info('Edit event', 'Editor unavailable in this build.');
   }
   function handleReschedule(event) {
     alert.info(
@@ -306,13 +310,14 @@ export default function MyEventsScreen({
 
 function EventManageRow({ event, onPress, onEdit, onReschedule, onDuplicate, onCancel }) {
   const d = fmtDate(event.startsAt);
-  const totalRemaining = (event.ticketTypes || []).reduce(
-    (s, t) => s + (t.remaining || 0),
-    0,
-  );
+  // Ticket counter + reels removed per client feedback; day countdown added.
   const lineupCount = event.lineup?.length ?? 0;
-  const reelCount = event.storylineReelIds?.length ?? 0;
+  const daysToGo = Math.max(
+    0,
+    Math.ceil((new Date(event.startsAt).getTime() - Date.now()) / (24 * 3600 * 1000)),
+  );
   const isLive = event.status === 'live';
+  const isPast = new Date(event.startsAt).getTime() < Date.now();
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.row}>
@@ -337,11 +342,13 @@ function EventManageRow({ event, onPress, onEdit, onReschedule, onDuplicate, onC
         </Text>
 
         <View style={styles.metaStrip}>
-          <Stat icon="ticket-outline" label="Remaining" value={`${totalRemaining}`} />
-          <View style={styles.metaSep} />
           <Stat icon="people-outline" label="Lineup" value={`${lineupCount}`} />
           <View style={styles.metaSep} />
-          <Stat icon="film-outline" label="Reels" value={`${reelCount}`} />
+          <Stat
+            icon="hourglass-outline"
+            label={isPast ? 'Status' : 'Days to go'}
+            value={isPast ? 'Ended' : `${daysToGo}`}
+          />
         </View>
 
         <View style={styles.actionsRow}>
@@ -406,6 +413,7 @@ ActionBtn.propTypes = {
 MyEventsScreen.propTypes = {
   onCreateEvent: PropTypes.func,
   onOpenEvent: PropTypes.func,
+  onEditEvent: PropTypes.func,
   onOpenSearch: PropTypes.func,
   onOpenCalendar: PropTypes.func,
   onOpenNotifications: PropTypes.func,

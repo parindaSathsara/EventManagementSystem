@@ -17,7 +17,9 @@ function normalize(entry, idx) {
       id: entry.artist.id,
       name: entry.artist.user?.name || entry.artist.handle,
       avatarUrl: entry.artist.user?.avatarUrl,
-      role: idx === 0 ? 'Headliner' : 'Support',
+      // Only the first slot gets a role tag — "Support" was removed per
+      // client feedback.
+      role: idx === 0 ? 'Headliner' : '',
       socials: entry.artist.socials || null,
     };
   }
@@ -25,7 +27,7 @@ function normalize(entry, idx) {
     id: entry?.id,
     name: entry?.name,
     avatarUrl: entry?.avatarUrl,
-    role: entry?.role || 'Support',
+    role: entry?.role === 'Support' ? '' : entry?.role || '',
     socials: entry?.socials || null,
   };
 }
@@ -48,7 +50,7 @@ export default function LineupRow({ lineup, onArtistPress }) {
         >
           <Avatar uri={a.avatarUrl} name={a.name} size={56} verified={a.role === 'Headliner'} />
           <Text style={styles.name} numberOfLines={1}>{a.name}</Text>
-          <Text style={styles.role}>{a.role}</Text>
+          {a.role ? <Text style={styles.role}>{a.role}</Text> : null}
           {a.socials ? <SocialRow socials={a.socials} size={15} bare style={styles.social} /> : null}
         </TouchableOpacity>
       ))}

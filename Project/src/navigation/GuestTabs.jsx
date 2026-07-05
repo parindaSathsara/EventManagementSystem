@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { COLORS } from '../theme';
 import { BottomTabBar } from '../shared/components';
+import { useUnseenAlerts } from '../shared/hooks';
 // Reels are disabled for now — kept on disk, just unwired from the guest app.
 // import { ReelsScreen } from '../features/reels';
 import { ArtistProfileScreen } from '../features/artists';
@@ -21,17 +22,30 @@ import { NotificationsScreen } from '../features/notifications';
  */
 const TABS = [
   // { key: 'reels', label: 'Reels', icon: 'play-outline', iconActive: 'play' },
-  { key: 'events', label: 'Events', icon: 'flame-outline', iconActive: 'flame' },
+  // "Events" was renamed to "Timeline" (with a new icon) per client feedback.
+  { key: 'events', label: 'Timeline', icon: 'albums-outline', iconActive: 'albums' },
   { key: 'calendar', label: 'Calendar', icon: 'calendar-outline', iconActive: 'calendar' },
   { key: 'notifications', label: 'Alerts', icon: 'notifications-outline', iconActive: 'notifications' },
 ];
 
 export default function GuestTabs({ onManagerLogin }) {
-  const [tab, setTab] = useState('events'); // land on Events
+  const [tab, setTab] = useState('events'); // land on Timeline
   const [stack, setStack] = useState({ name: null, params: {} });
+  const { count: unseenAlerts, markSeen } = useUnseenAlerts();
 
   const push = useCallback((name, params = {}) => setStack({ name, params }), []);
   const pop = useCallback(() => setStack({ name: null, params: {} }), []);
+
+  // Opening the Alerts tab clears the unseen badge — no leftover dot.
+  useEffect(() => {
+    if (tab === 'notifications') markSeen();
+  }, [tab, markSeen]);
+
+  const tabs = TABS.map((t) =>
+    t.key === 'notifications' && unseenAlerts > 0 && tab !== 'notifications'
+      ? { ...t, badge: unseenAlerts }
+      : t,
+  );
 
   if (stack.name === 'event') {
     return (
@@ -101,18 +115,18 @@ export default function GuestTabs({ onManagerLogin }) {
           <UpcomingEventsScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenSearch={() => push('search')}
+            onManagerLogin={onManagerLogin}
           />
         ) : null}
 
         {tab === 'notifications' ? (
           <NotificationsScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
-            onManagerLogin={onManagerLogin}
           />
         ) : null}
       </View>
 
-      <BottomTabBar tabs={TABS} activeKey={tab} onChange={setTab} />
+      <BottomTabBar tabs={tabs} activeKey={tab} onChange={setTab} />
     </View>
   );
 }

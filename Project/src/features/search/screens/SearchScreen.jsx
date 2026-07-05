@@ -13,37 +13,41 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import { Chip, EventCard, ScreenHeader, EmptyState, Avatar } from '../../../shared/components';
-import { useEventsData, useReelsData, useAlert } from '../../../shared/hooks';
-import { reelsRepo } from '../../../services';
+import { useEventsData, useReelsData, useFollows } from '../../../shared/hooks';
 
 const TABS = [
   { key: 'all', label: 'All' },
   { key: 'events', label: 'Events' },
   { key: 'artists', label: 'Artists' },
-  { key: 'venues', label: 'Venues' },
 ];
 
-const RECENT = ['Mihiran', 'Stardust Arena', 'Hip Hop', 'Festival', 'Open Decks'];
+const RECENT = ['Mihiran', 'Hip Hop', 'Festival', 'Colombo', 'Ella'];
 
-function deriveArtists(reels) {
+/**
+ * Search results are Artists (event companies + reel artists) and Events —
+ * venues/news removed per client feedback. Results filter live as you type
+ * ("L" already narrows the list), and events match on title, venue, city,
+ * category, company name and lineup artist names.
+ */
+function deriveArtists(reels, events) {
   const map = new Map();
-  reels.forEach((r) => {
-    if (!map.has(r.artist.id)) map.set(r.artist.id, r.artist);
-  });
-  return Array.from(map.values());
-}
-
-function deriveVenues(events) {
-  const map = new Map();
+  // Event companies (organizers) are artist records — searchable + openable.
   events.forEach((e) => {
-    if (!map.has(e.venueName)) {
-      map.set(e.venueName, {
-        name: e.venueName,
-        city: e.cityName,
-        eventCount: 1,
+    const org = e.organizer;
+    if (org?.id && !map.has(org.id)) {
+      map.set(org.id, {
+        id: org.id,
+        name: org.user?.name || org.handle || 'Event Company',
+        handle: org.handle ? `@${org.handle}` : 'Event company',
+        avatarUrl: org.user?.avatarUrl,
+        isCompany: true,
+        verified: !!org.isVerified,
       });
-    } else {
-      map.get(e.venueName).eventCount += 1;
+    }
+  });
+  reels.forEach((r) => {
+    if (r?.artist?.id && !map.has(r.artist.id)) {
+      map.set(r.artist.id, { ...r.artist, verified: true });
     }
   });
   return Array.from(map.values());
@@ -55,51 +59,43 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
 
   const allEvents = useEventsData();
   const allReels = useReelsData();
-  const alert = useAlert();
+  const { isFollowing, toggle } = useFollows();
 
-  const artists = useMemo(() => deriveArtists(allReels), [allReels]);
-  const venues = useMemo(() => deriveVenues(allEvents), [allEvents]);
+  const artists = useMemo(() => deriveArtists(allReels, allEvents), [allReels, allEvents]);
 
   const q = query.trim().toLowerCase();
 
   const filteredEvents = useMemo(
     () =>
       q
-        ? allEvents.filter(
-            (e) =>
+        ? allEvents.filter((e) => {
+            const inLineup = (e.lineup || []).some((a) =>
+              (a?.name || '').toLowerCase().includes(q),
+            );
+            const orgName = (
+              e.organizer?.user?.name || e.organizer?.handle || ''
+            ).toLowerCase();
+            return (
               e.title.toLowerCase().includes(q) ||
               e.venueName.toLowerCase().includes(q) ||
               e.cityName.toLowerCase().includes(q) ||
-              (e.category || '').toLowerCase().includes(q),
-          )
+              (e.category || '').toLowerCase().includes(q) ||
+              orgName.includes(q) ||
+              inLineup
+            );
+          })
         : allEvents.slice(0, 5),
     [q, allEvents],
   );
   const filteredArtists = useMemo(
-    () => (q ? artists.filter((a) => a.name.toLowerCase().includes(q)) : artists),
+    () => (q ? artists.filter((a) => (a.name || '').toLowerCase().includes(q)) : artists),
     [q, artists],
-  );
-  const filteredVenues = useMemo(
-    () =>
-      q
-        ? venues.filter(
-            (v) =>
-              v.name.toLowerCase().includes(q) ||
-              v.city.toLowerCase().includes(q),
-          )
-        : venues,
-    [q, venues],
   );
 
   const showEvents = tab === 'all' || tab === 'events';
   const showArtists = tab === 'all' || tab === 'artists';
-  const showVenues = tab === 'all' || tab === 'venues';
 
-  const noResults =
-    q &&
-    filteredEvents.length === 0 &&
-    filteredArtists.length === 0 &&
-    filteredVenues.length === 0;
+  const noResults = q && filteredEvents.length === 0 && filteredArtists.length === 0;
 
   return (
     <View style={styles.container}>
@@ -113,7 +109,7 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
           value={query}
           onChangeText={setQuery}
           style={styles.input}
-          placeholder="Artists, events, venues, cities…"
+          placeholder="Search on stage"
           placeholderTextColor={COLORS.textMuted}
           autoCorrect={false}
           autoCapitalize="none"
@@ -125,9 +121,12 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
         ) : null}
       </View>
 
+      {/* flexGrow:0 keeps this row its natural height — it was previously
+          getting squeezed and the category chips rendered clipped. */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.tabsBar}
         contentContainerStyle={styles.tabs}
       >
         {TABS.map((t) => (
@@ -144,6 +143,7 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
       <ScrollView
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {!q ? (
           <View style={styles.recentWrap}>
@@ -166,7 +166,7 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
 
         {showArtists && filteredArtists.length > 0 ? (
           <View style={{ marginBottom: SPACING.lg }}>
-            <Text style={styles.sectionLabel}>Artists</Text>
+            <Text style={styles.sectionLabel}>Artists & companies</Text>
             {filteredArtists.map((a) => (
               <TouchableOpacity
                 key={a.id}
@@ -174,21 +174,21 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
                 activeOpacity={0.8}
                 onPress={() => onOpenArtist && onOpenArtist(a.id)}
               >
-                <Avatar uri={a.avatarUrl} name={a.name} size={44} verified />
+                <Avatar uri={a.avatarUrl} name={a.name} size={44} verified={a.verified} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowTitle} numberOfLines={1}>{a.name}</Text>
-                  <Text style={styles.rowSub}>{a.handle}</Text>
+                  <Text style={styles.rowSub}>{a.isCompany ? 'Event company' : a.handle}</Text>
                 </View>
                 <TouchableOpacity
-                  style={[styles.followPill, a.isFollowing && styles.followPillActive]}
+                  style={[styles.followPill, isFollowing(a.id) && styles.followPillActive]}
                   activeOpacity={0.7}
                   onPress={(e) => {
                     e.stopPropagation && e.stopPropagation();
-                    reelsRepo.toggleFollow(a.id);
+                    toggle(a.id);
                   }}
                 >
-                  <Text style={[styles.followPillText, a.isFollowing && styles.followPillTextActive]}>
-                    {a.isFollowing ? 'Following' : 'Follow'}
+                  <Text style={[styles.followPillText, isFollowing(a.id) && styles.followPillTextActive]}>
+                    {isFollowing(a.id) ? 'Following' : 'Follow'}
                   </Text>
                 </TouchableOpacity>
               </TouchableOpacity>
@@ -209,34 +209,6 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
                 />
               ))}
             </View>
-          </View>
-        ) : null}
-
-        {showVenues && filteredVenues.length > 0 ? (
-          <View style={{ marginBottom: SPACING.lg }}>
-            <Text style={styles.sectionLabel}>Venues</Text>
-            {filteredVenues.map((v) => (
-              <TouchableOpacity
-                key={v.name}
-                style={styles.row}
-                activeOpacity={0.8}
-                onPress={() => {
-                  setQuery(v.name);
-                  setTab('events');
-                }}
-              >
-                <View style={styles.venueIcon}>
-                  <Ionicons name="business" size={18} color={COLORS.accent} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.rowTitle} numberOfLines={1}>{v.name}</Text>
-                  <Text style={styles.rowSub}>
-                    {v.city} · {v.eventCount} upcoming
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            ))}
           </View>
         ) : null}
 
@@ -273,10 +245,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingVertical: 0,
   },
+  tabsBar: { flexGrow: 0 },
   tabs: {
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.sm,
+    alignItems: 'center',
   },
   body: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl },
   recentWrap: {
@@ -338,13 +312,5 @@ const styles = StyleSheet.create({
   },
   followPillTextActive: {
     color: COLORS.textSecondary,
-  },
-  venueIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,84,130,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
