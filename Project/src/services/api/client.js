@@ -1,5 +1,5 @@
 /**
- * Tiny fetch wrapper for the EventSocial backend.
+ * Tiny fetch wrapper for the Stage backend.
  *
  * Responsibilities:
  *   - Holds the API base URL (overridable via env / Expo config).

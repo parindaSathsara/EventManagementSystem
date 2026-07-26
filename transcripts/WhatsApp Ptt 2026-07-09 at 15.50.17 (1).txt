@@ -1,0 +1,35 @@
+--- ENGLISH (gpt-4o, reconciled) ---
+Based on the two transcripts provided, here's a reconstruction of what was likely said in the voice note:
+
+---
+
+**TRANSLATION:**
+
+Brother, can you let me know a little about this? Now, after we publish an event, we edit the event, right? After editing, does it refresh and come back to the top? Is there an algorithm for this, or is there no algorithm? If possible, could you give me a call when you have time, or if not, you can send a voice note, no problem. Also, brother, when we give an artist review, we add more artists and ticket prices, right? After editing, does it pop up again and refresh to the top? That means after editing, does it show again to everyone who followed it? Could you please let me know how this works?
+
+---
+
+**ACTION ITEMS:**
+
+1. Confirm whether the app refreshes and brings an event back to the top after it is edited.
+2. Clarify if there is an algorithm that handles the refreshing of events after edits.
+3. Provide a way for the client to understand how the app handles artist reviews, adding artists, and ticket prices after edits.
+4. Offer a call or a detailed voice note to explain the process if needed.
+
+---
+
+**NOTES:**
+
+- There is some uncertainty about the exact phrasing regarding the algorithm and its function, as both transcripts have slightly different interpretations.
+- The request for a call or voice note suggests the client is open to further clarification through direct communication.
+- The mention of "artist reviews" and "ticket prices" indicates these are specific areas of concern or interest for the client.
+
+--- ENGLISH (whisper direct) ---
+Brother Anitheka, can you tell me, after we publish the event, we have to edit the event, right? After editing, the AI will refresh and come back to you, right? Isn't that right? Is there an algorithm for this? If there is an algorithm, can you tell me? If you have time, can you give me a call? Can you tell me? Otherwise, there is no problem if you give me a voice. That means, brother, now we have to add more artists, after adding the ticket price, we have to edit the event, right? After editing, the AI will pop up again and refresh and come back to you, right? That means, after editing, the AI will come back and follow the event, right? Brother, can you tell me, after we publish the event, we have to edit the event, right? Can you tell me, after we publish the event, we have to edit the event, right?
+
+--- SINHALA (gpt-4o-transcribe) ---
+බ්‍රදර් අනික තික මට පොඩ්ඩක් දැනගන්න පුළුවන්ද මේකේ දැන් අපි ඉවෙන්ට් එකක් පබ්ලිශ් කරාට පස්සේ අපි ඉවෙන්ට් එකක් එඩිට් කරනවනේ. එඩිට් කරාට පස්සේ ආයෙක රීපෙශ්වෙලා උඩට එනව නේද? එහමනේද මේකේ ඇල්ගොරිතමෙක් තියෙන්නේ නැත්තම් මේකේ මේ ඇල්ගොරිතමෙක් තියෙන විදියට මට පොඩ්ඩක් පුළුවන්නම් වාට ටයිම් තියනේගොලොග මට පොඩ්ඩක් කෝල් එකක් අරගන් හැරි, කියනවනම් නැත්තම් මේ වොයිස් එකක් හැරි දම්මත් ප්‍රශ්නෙයන් නැහැ. ඒකියන්න බ්‍රදර් දැම් මේහමෙ අපි ආර්ටිස්ට් රිවියස් එකක් දෙනවනේ? ඒ කියන්නේ තව ආර්ටිස්ට්ලා ඇඩ්කරනව තව ටිකට් ප්‍රයිස් ඇඩ්කරාට පස්සේ අපි එඩිට්කරනේකනේ කරන්නේ. එඩිට්කරාට පස්සේ නැවත ආයෙ පෝප්පප් වෙලා ඒක රීපෙශ්වෙලා උඩට එනව නේද? ඒ කියන්නේ එඩිට්කරාට පස්සේ ආයෙ නැවතත් ඒක පෙන්නනව ඒ ෆලෝකරපු අරයි එක්තරාහරි ඔක්කෝටම හරි ඒක මේ පෙන්නනව නේද මේ රීපෙශ්වෙලා? අන්නේක පොඩ්ඩක් මට පොඩ්ඩක් කියනවද කොහොමද වෙනි කියලා?
+
+--- SINHALA (google) ---
+brother අනිත් එක මට පොඩ්ඩක් ජන යන්න පුළුවන් ද මේකෙ දැන් අපි ඉවෙන්ට් එකක් පබ්ලිෂ් කරාට පස්සේ අපි ඉවෙන්ට් එකක් එඩිට් කරනවනෙ එඩිටි කරාට පස්සෙ ආයෙ carrey best වෙලා උඩට එනවා නේද එහෙම නැද්ද මේක algorithm එක තියෙන්නේ නැත්නම් මේක මෙහෙ අර පොරොන්දු මේ තියෙන්නෙ මට පොඩ්ඩක් මේ පුළුවන් නම් මට තුමිය වැඩ time තියෙන වෙලාවක මට කෝල් එකක් අරන් හරිම කෙනා නැත්නම් මෙහෙය වොයිස් අක්කා රිදම් මතුවූයේ ප්‍රශ්නයක් නැද්ද price කරාට පස්සේ අපි එඩිට් කරන එක කරන්න එරික් කරාට පස්සේ නැවත ආයෙ pop up වෙලා ඒක හරි පෙෂල උඩට එනවා නේද ඒ ගැන ඇගෙන් කරාට පස්සේ අය නැවතත් වෙන ආයේ පළමු පරම්පරාවේ යට හරියේ ඔක්කොටම හරි එක මේ pana neda me shariraya පොඩ්ඩක් කියනවද වෙන්න කියලා
+

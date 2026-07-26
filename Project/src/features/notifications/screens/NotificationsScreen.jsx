@@ -114,12 +114,16 @@ export default function NotificationsScreen({ onOpenEvent }) {
   );
 }
 
-/** "Company published a new event" card. */
+/** "Company published / updated an event" card. */
 function PublishCard({ event, onPress }) {
   const org = event.organizer || {};
   const company = org.user?.name || org.handle || 'Event Company';
   const d = new Date(event.startsAt);
   const when = d.toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
+  // Edited after publish (surprise artists revealed, prices changed, …) —
+  // the event re-surfaces here with an "Updated" message.
+  const wasUpdated =
+    new Date(event.updatedAt || 0).getTime() - new Date(event.createdAt || 0).getTime() > 60 * 1000;
 
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
@@ -128,11 +132,11 @@ function PublishCard({ event, onPress }) {
         <Text style={styles.cardCompany} numberOfLines={1}>{company}</Text>
         <Text style={styles.cardTitle} numberOfLines={1}>{event.title}</Text>
         <Text style={styles.cardMeta} numberOfLines={1}>
-          Published a new event · {when}
+          {wasUpdated ? 'Updated their event' : 'Published a new event'} · {when}
         </Text>
       </View>
       <View style={styles.newPill}>
-        <Text style={styles.newPillText}>NEW</Text>
+        <Text style={styles.newPillText}>{wasUpdated ? 'UPDATED' : 'NEW'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -182,8 +186,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  // Matches the Timeline "For You / Following" tab style per client feedback.
   title: {
-    ...TYPE_SCALE.h3,
+    fontSize: 15,
     fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.textPrimary,
   },
@@ -218,7 +223,7 @@ const styles = StyleSheet.create({
     minWidth: 72,
   },
   badgeUrgent: { backgroundColor: COLORS.highlight },
-  badgeSoon: { backgroundColor: 'rgba(124,92,255,0.14)' },
+  badgeSoon: { backgroundColor: 'rgba(255,59,59,0.14)' },
   badgeText: {
     fontSize: 11,
     fontFamily: FONT_FAMILY.bodyBold,

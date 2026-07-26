@@ -34,7 +34,7 @@ export default function EditArtistProfileScreen({ onBack }) {
 
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
-  const [category, setCategory] = useState('DJ');
+  const [category, setCategory] = useState('Event Company');
   const [instagram, setInstagram] = useState('');
   const [spotify, setSpotify] = useState('');
   const [youtube, setYoutube] = useState('');
@@ -47,7 +47,7 @@ export default function EditArtistProfileScreen({ onBack }) {
     if (!artist) return;
     setHandle(artist.handle || '');
     setBio(artist.bio || '');
-    setCategory(artist.category || 'DJ');
+    setCategory(artist.category || 'Event Company');
     try {
       const socials = artist.socialsJson ? JSON.parse(artist.socialsJson) : {};
       setInstagram(socials.instagram || '');
@@ -138,7 +138,7 @@ export default function EditArtistProfileScreen({ onBack }) {
 
             <Text style={styles.label}>Category</Text>
             <View style={styles.categoryRow}>
-              {['DJ', 'Singer', 'Band', 'Producer', 'Rapper', 'Other'].map((c) => (
+              {['Event Company', 'Artist', 'Musician', 'Band', 'Other'].map((c) => (
                 <TouchableOpacity
                   key={c}
                   onPress={() => setCategory(c)}

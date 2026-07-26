@@ -26,6 +26,7 @@ export default function ProfileSheet({
   subtitle,
   avatarUrl,
   socials,
+  note,
   relatedEvents = [],
   onClose,
   onOpenEvent,
@@ -54,9 +55,21 @@ export default function ProfileSheet({
             <Text style={styles.sectionLabel}>Social media</Text>
             <SocialRow socials={socials} size={20} />
           </View>
+        ) : note ? (
+          // Surprise ("Revealed Soon") slots show a coming-soon note instead
+          // of the misleading "No social links added." message.
+          <Text style={styles.noSocial}>{note}</Text>
         ) : (
           <Text style={styles.noSocial}>No social links added.</Text>
         )}
+
+        {note && relatedEvents.length ? (
+          <Text style={styles.upcomingCount}>
+            {relatedEvents.length === 1
+              ? '1 upcoming event'
+              : `${relatedEvents.length} upcoming events`}
+          </Text>
+        ) : null}
 
         {relatedEvents.length ? (
           <View style={styles.section}>
@@ -108,6 +121,7 @@ ProfileSheet.propTypes = {
   subtitle: PropTypes.string,
   avatarUrl: PropTypes.string,
   socials: PropTypes.object,
+  note: PropTypes.string,
   relatedEvents: PropTypes.array,
   onClose: PropTypes.func,
   onOpenEvent: PropTypes.func,
@@ -171,6 +185,12 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.body,
     color: COLORS.textMuted,
     marginTop: SPACING.lg,
+  },
+  upcomingCount: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
+    marginTop: SPACING.xs,
   },
   eventRow: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 /**
- * EventSocial Typography System
+ * Stage Typography System
  * Headings: Sora | Body/UI: Manrope
  * Fonts loaded via @expo-google-fonts in App.js
  */

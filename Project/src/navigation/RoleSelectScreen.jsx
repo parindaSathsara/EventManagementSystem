@@ -43,7 +43,7 @@ export default function RoleSelectScreen({ onPickCustomer, onPickArtist }) {
           resizeMode="contain"
         />
         <Text style={styles.kicker}>CHOOSE YOUR EXPERIENCE</Text>
-        <Text style={styles.title}>How will you{'\n'}use EventSocial?</Text>
+        <Text style={styles.title}>How will you{'\n'}use Stage?</Text>
         <Text style={styles.subtitle}>
           You can switch anytime. Both apps share the same account.
         </Text>
@@ -52,7 +52,7 @@ export default function RoleSelectScreen({ onPickCustomer, onPickArtist }) {
       <Animated.View style={[styles.cards, { opacity: fade, transform: [{ translateY: slide }] }]}>
         <TouchableOpacity activeOpacity={0.92} style={styles.card} onPress={onPickCustomer}>
           <LinearGradient
-            colors={['rgba(255,84,130,0.15)', 'rgba(255,84,130,0.02)']}
+            colors={['rgba(255,59,59,0.15)', 'rgba(255,59,59,0.02)']}
             style={StyleSheet.absoluteFill}
           />
           <View style={[styles.cardIcon, { backgroundColor: COLORS.accent }]}>
@@ -75,7 +75,7 @@ export default function RoleSelectScreen({ onPickCustomer, onPickArtist }) {
 
         <TouchableOpacity activeOpacity={0.92} style={styles.card} onPress={onPickArtist}>
           <LinearGradient
-            colors={['rgba(0,255,161,0.15)', 'rgba(0,255,161,0.02)']}
+            colors={['rgba(255,82,82,0.15)', 'rgba(255,82,82,0.02)']}
             style={StyleSheet.absoluteFill}
           />
           <View style={[styles.cardIcon, { backgroundColor: COLORS.highlight }]}>

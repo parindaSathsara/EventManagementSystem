@@ -1,6 +1,9 @@
 /**
- * EventSocial Design Tokens
+ * Stage Design Tokens
  * Source of truth for all colors, spacing, radii, shadows, and motion values.
+ *
+ * Brand: RED & BLACK (matches the Stage logo). Black surfaces, white text,
+ * red for every accent — primary actions AND highlights (verified/live/done).
  */
 
 export const COLORS = {
@@ -27,15 +30,12 @@ export const COLORS = {
   ink: '#000000',
   inkMuted: '#515866',
 
-  // Accents (per design system: monochrome + dual accent)
-  accent: '#7C5CFF',          // electric violet — primary action / focus / active
-  accentSoft: '#9B82FF',
-  accentDeep: '#5E3EE6',
-  highlight: '#00FFA1',       // green — verified / live / success
-  highlightSoft: '#5BFFC2',
-  neonPink: '#FF5482',
-  neonPinkSoft: '#FF7DA1',
-  neonGreen: '#00FFA1',
+  // Accents — brand red on black (client feedback 2026-07-09).
+  accent: '#FF3B3B',          // primary action / focus / active
+  accentSoft: '#FF6B6B',
+  accentDeep: '#D91E1E',
+  highlight: '#FF5252',       // second accent — verified / live / done states
+  highlightSoft: '#FF8A8A',
 
   // UI Whites
   softWhite: '#F3F4F6',

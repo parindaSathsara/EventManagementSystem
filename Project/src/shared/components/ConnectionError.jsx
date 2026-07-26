@@ -24,7 +24,7 @@ export default function ConnectionError({
   const isNetwork = !!error && (error.status === 0 || error.code === 'NETWORK');
   const fallbackTitle = isNetwork ? 'Can\'t reach the server' : 'Something went wrong';
   const fallbackMessage = isNetwork
-    ? 'We couldn\'t connect to the EventSocial backend. Check your connection and try again.'
+    ? 'We couldn\'t connect to Stage. Check your connection and try again.'
     : error?.message || 'Unexpected error. Please try again in a moment.';
 
   return (
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.sm,

@@ -36,4 +36,11 @@ const updateArtistBody = z.object({
 
 const idParams = z.object({ id });
 
-module.exports = { listArtistsQuery, becomeArtistBody, updateArtistBody, idParams };
+// Guest (no-account) follow sync — the app's per-install device id plus the
+// desired follow state.
+const guestFollowBody = z.object({
+  deviceId: z.string().trim().min(8).max(64),
+  follow: z.boolean(),
+});
+
+module.exports = { listArtistsQuery, becomeArtistBody, updateArtistBody, idParams, guestFollowBody };

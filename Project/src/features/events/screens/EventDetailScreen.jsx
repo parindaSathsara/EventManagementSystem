@@ -52,6 +52,23 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
   const { isFollowing, toggle } = useFollows();
 
   function openArtist(artist) {
+    // Surprise slot — show the coming-soon note + this company's upcoming
+    // events instead of "No social links added."
+    if ((artist?.name || '').trim().toLowerCase() === 'revealed soon') {
+      const upcoming = eventsByOrganizer(allEvents, event?.organizer?.id).filter(
+        (e) => new Date(e.startsAt).getTime() > Date.now(),
+      );
+      setSheet({
+        visible: true,
+        name: 'Revealed Soon',
+        subtitle: 'Surprise act',
+        avatarUrl: null,
+        socials: null,
+        note: 'More artists are coming soon from the event companies below.',
+        relatedEvents: upcoming,
+      });
+      return;
+    }
     setSheet({
       visible: true,
       name: artist.name,
@@ -74,6 +91,8 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
 
   function handleBuy() {
     if (!event) return;
+    // Buying is disabled once the event date/time has passed.
+    if (new Date(event.endsAt || event.startsAt).getTime() < Date.now()) return;
     // Third-party ticketing: the CTA goes straight to the external platform.
     if (event.ticketUrl) {
       Linking.openURL(event.ticketUrl).catch(() =>
@@ -142,6 +161,7 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
   // ~4 lines of bodyMd fits ±160 chars — a simple, reliable overflow check
   // (onTextLayout on a clamped <Text> mis-reports on Android).
   const descNeedsToggle = (event.description || '').length > 160;
+  const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
 
   return (
     <View style={styles.container}>
@@ -285,15 +305,24 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
         <View style={{ height: 140 }} />
       </ScrollView>
 
-      {/* Floating Buy bar */}
+      {/* Floating Buy bar — price only next to Buy Now (the lone ticket-type
+          name there was confusing; the full type list is in the Tickets
+          section above). Disabled once the event has passed. */}
       <View style={styles.bookBar}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.bookLabel}>{cheapest ? cheapest.name : 'Tickets'}</Text>
+          <Text style={styles.bookLabel}>{ended ? 'This event has ended' : 'Tickets from'}</Text>
           <Text style={styles.bookPrice}>{cheapest ? cheapest.priceLabel : '—'}</Text>
         </View>
-        <TouchableOpacity style={styles.buyBtn} activeOpacity={0.9} onPress={handleBuy}>
-          <Ionicons name="ticket" size={15} color="#000" />
-          <Text style={styles.buyText}>Buy Now</Text>
+        <TouchableOpacity
+          style={[styles.buyBtn, ended && styles.buyBtnEnded]}
+          activeOpacity={ended ? 1 : 0.9}
+          disabled={ended}
+          onPress={handleBuy}
+        >
+          <Ionicons name="ticket" size={15} color={ended ? COLORS.textMuted : '#000'} />
+          <Text style={[styles.buyText, ended && styles.buyTextEnded]}>
+            {ended ? 'Ended' : 'Buy Now'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -465,7 +494,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(124,92,255,0.14)',
+    backgroundColor: 'rgba(255,59,59,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -554,4 +583,10 @@ const styles = StyleSheet.create({
     borderRadius: RADII.pill,
   },
   buyText: { fontSize: 13, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
+  buyBtnEnded: {
+    backgroundColor: COLORS.surface2,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+  },
+  buyTextEnded: { color: COLORS.textMuted },
 });

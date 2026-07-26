@@ -24,5 +24,10 @@ async function follow(req, res) {
   const result = await service.toggleFollow(req.params.id, req.user.id);
   res.json(result);
 }
+async function guestFollow(req, res) {
+  const { deviceId, follow: wantFollow } = req.body;
+  const result = await service.setGuestFollow(req.params.id, deviceId, wantFollow);
+  res.json(result);
+}
 
-module.exports = { list, getOne, getMine, become, updateMine, follow };
+module.exports = { list, getOne, getMine, become, updateMine, follow, guestFollow };

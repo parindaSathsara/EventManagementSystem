@@ -7,9 +7,11 @@ import {
   StatusBar,
   TextInput,
   TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
@@ -20,6 +22,7 @@ import {
 } from '../../../shared/components';
 import { useAlert } from '../../../shared/hooks';
 import { eventsRepo } from '../../../services';
+import { uploads } from '../../../services/api';
 
 const COVER_COLORS = ['#260b3d', '#0a2a1a', '#3d1a0b', '#0d1b2a', '#5BFFC2'];
 
@@ -36,11 +39,11 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 15, 30, 45];
 
 const COVER_GRADIENTS = [
-  ['#7C5CFF', '#260b3d'],
+  ['#FF3B3B', '#3d0b0b'],
   ['#00FFA1', '#0a2a1a'],
   ['#FFB020', '#3d1a0b'],
   ['#6BA8FF', '#0d1b2a'],
-  ['#9B82FF', '#5BFFC2'],
+  ['#FF6B6B', '#1a0505'],
 ];
 
 function daysInMonth(year, monthIdx) {
@@ -113,9 +116,53 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   const [approval, setApproval] = useState('Auto-publish');
   const [refundable, setRefundable] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Flyer upload state — local preview shows instantly, the uploaded URL
+  // lands in form.bannerUrl once the backend accepts it.
+  const [flyerPreview, setFlyerPreview] = useState(null);
+  const [flyerUploading, setFlyerUploading] = useState(false);
+  const [flyerProgress, setFlyerProgress] = useState(0);
   const alert = useAlert();
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+
+  /** Pick a flyer photo (gallery or camera) and upload it to the backend. */
+  async function pickFlyer(fromCamera) {
+    if (flyerUploading) return;
+    try {
+      if (fromCamera) {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          alert.error('Camera not allowed', 'Allow camera access in your phone settings to capture a flyer.');
+          return;
+        }
+      }
+      const result = fromCamera
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      setFlyerPreview(asset.uri);
+      setFlyerUploading(true);
+      setFlyerProgress(0);
+      const uploaded = await uploads.uploadImage(
+        { uri: asset.uri, mimeType: asset.mimeType, filename: asset.fileName },
+        { onProgress: setFlyerProgress },
+      );
+      set('bannerUrl', uploaded.url);
+      alert.success('Flyer added', 'Your flyer photo is attached to this event.');
+    } catch (e) {
+      setFlyerPreview(null);
+      alert.error('Upload failed', e?.message || 'Could not upload the flyer. Check your connection and try again.');
+    } finally {
+      setFlyerUploading(false);
+    }
+  }
+
+  function removeFlyer() {
+    setFlyerPreview(null);
+    set('bannerUrl', '');
+  }
 
   const maxDay = daysInMonth(form.year, form.monthIdx);
   const dayClamped = Math.min(form.day, maxDay);
@@ -294,29 +341,80 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-        {/* Banner picker */}
-        <Text style={styles.sectionLabel}>Banner</Text>
+        {/* Event flyer — upload a photo from the gallery or capture one.
+            This is the image guests see on the Timeline and event page. */}
+        <Text style={styles.sectionLabel}>Event flyer</Text>
         <View style={styles.bannerWrap}>
-          <LinearGradient
-            colors={COVER_GRADIENTS[coverIdx]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.bannerBg}
-          />
+          {flyerPreview || form.bannerUrl ? (
+            <ImageBackground
+              source={{ uri: flyerPreview || form.bannerUrl }}
+              style={styles.bannerBg}
+              resizeMode="cover"
+            />
+          ) : (
+            <LinearGradient
+              colors={COVER_GRADIENTS[coverIdx]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.bannerBg}
+            />
+          )}
           <View style={styles.bannerOverlay}>
-            <Text style={styles.bannerTitle} numberOfLines={2}>
-              {form.title || 'Your event title'}
-            </Text>
-            <Text style={styles.bannerSub}>
-              {form.city} · {dateLabel} · {fmtHour(form.startH)}
-            </Text>
+            {flyerUploading ? (
+              <View style={styles.progressWrap}>
+                <View style={[styles.progressBar, { width: `${Math.round(flyerProgress * 100)}%` }]} />
+                <Text style={styles.progressText}>Uploading… {Math.round(flyerProgress * 100)}%</Text>
+              </View>
+            ) : null}
+            {/* The title/date preview only shows on the gradient placeholder —
+                an uploaded flyer already carries its own artwork. */}
+            {!(flyerPreview || form.bannerUrl) ? (
+              <>
+                <Text style={styles.bannerTitle} numberOfLines={2}>
+                  {form.title || 'Your event title'}
+                </Text>
+                <Text style={styles.bannerSub}>
+                  {form.city} · {dateLabel} · {fmtHour(form.startH)}
+                </Text>
+              </>
+            ) : null}
           </View>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.coverStrip}>
-          <TouchableOpacity activeOpacity={0.85} style={styles.uploadTile}>
-            <Ionicons name="cloud-upload-outline" size={20} color={COLORS.accent} />
-            <Text style={styles.uploadText}>Upload</Text>
+
+        {/* Flyer actions — big, obvious buttons (clients could not find the
+            upload before when it was a bare URL field). */}
+        <View style={styles.flyerBtns}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.flyerBtn}
+            disabled={flyerUploading}
+            onPress={() => pickFlyer(false)}
+          >
+            <Ionicons name="images-outline" size={18} color={COLORS.accent} />
+            <Text style={styles.flyerBtnText}>Upload flyer</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.flyerBtn}
+            disabled={flyerUploading}
+            onPress={() => pickFlyer(true)}
+          >
+            <Ionicons name="camera-outline" size={18} color={COLORS.accent} />
+            <Text style={styles.flyerBtnText}>Take photo</Text>
+          </TouchableOpacity>
+          {flyerPreview || form.bannerUrl ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.flyerBtnRemove}
+              disabled={flyerUploading}
+              onPress={removeFlyer}
+            >
+              <Ionicons name="trash-outline" size={16} color={COLORS.error} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.coverStrip}>
           {COVER_GRADIENTS.map((g, idx) => {
             const active = idx === coverIdx;
             return (
@@ -388,12 +486,21 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
             format={String}
             onPick={(v) => set('day', v)}
           />
+          {/* Start & end minutes are picked separately (they used to share
+              one selector, which forced the same minutes on both). */}
           <PickRow
             label="Starts"
             options={HOURS}
             value={form.startH}
             format={fmtHour}
             onPick={(v) => set('startH', v)}
+          />
+          <PickRow
+            label="Start minutes"
+            options={MINUTES}
+            value={form.startM}
+            format={(m) => `:${String(m).padStart(2, '0')}`}
+            onPick={(v) => set('startM', v)}
           />
           <PickRow
             label="Ends"
@@ -403,11 +510,11 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
             onPick={(v) => set('endH', v)}
           />
           <PickRow
-            label="Minutes"
+            label="End minutes"
             options={MINUTES}
-            value={form.startM}
+            value={form.endM}
             format={(m) => `:${String(m).padStart(2, '0')}`}
-            onPick={(v) => setForm((f) => ({ ...f, startM: v, endM: v }))}
+            onPick={(v) => set('endM', v)}
           />
         </View>
 
@@ -578,10 +685,10 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
         <View style={styles.card}>
           <Field
             icon="image-outline"
-            label="Flyer / banner image URL"
+            label="Flyer image URL (or use Upload flyer above)"
             value={form.bannerUrl}
             onChange={(v) => set('bannerUrl', v)}
-            placeholder="https://… (the booking CTA image)"
+            placeholder="https://… (auto-filled when you upload a flyer)"
           />
           <Field icon="logo-facebook" label="Facebook page" value={form.facebook} onChange={(v) => set('facebook', v)} placeholder="https://facebook.com/…" />
           <Field icon="logo-instagram" label="Instagram" value={form.instagram} onChange={(v) => set('instagram', v)} placeholder="https://instagram.com/…" />
@@ -756,19 +863,51 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
     gap: SPACING.sm,
   },
-  uploadTile: {
-    width: 76,
-    height: 56,
-    borderRadius: RADII.sm,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(124,92,255,0.5)',
-    backgroundColor: 'rgba(124,92,255,0.08)',
+  flyerBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.sm,
+  },
+  flyerBtn: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 6,
+    paddingVertical: SPACING.md,
+    borderRadius: RADII.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255,59,59,0.5)',
+    backgroundColor: 'rgba(255,59,59,0.08)',
   },
-  uploadText: { fontSize: 10, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  flyerBtnText: { fontSize: 13, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
+  flyerBtnRemove: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+    backgroundColor: COLORS.surface1,
+  },
+  progressWrap: {
+    marginBottom: SPACING.sm,
+    gap: 4,
+  },
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.accent,
+  },
+  progressText: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: '#fff',
+  },
   coverTile: {
     width: 76,
     height: 56,
@@ -893,7 +1032,7 @@ const styles = StyleSheet.create({
   ticketBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: 'rgba(124,92,255,0.14)',
+    backgroundColor: 'rgba(255,59,59,0.14)',
     borderColor: COLORS.accent,
     borderWidth: 1,
     borderRadius: RADII.pill,
@@ -918,9 +1057,9 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderRadius: RADII.md,
     borderWidth: 1.5,
-    borderColor: 'rgba(124,92,255,0.45)',
+    borderColor: 'rgba(255,59,59,0.45)',
     borderStyle: 'dashed',
-    backgroundColor: 'rgba(124,92,255,0.05)',
+    backgroundColor: 'rgba(255,59,59,0.05)',
   },
   addTicketText: { fontSize: 13, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
   lineupBtns: { flexDirection: 'row', gap: SPACING.sm },

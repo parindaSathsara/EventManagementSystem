@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: RADII.pill,
-    backgroundColor: 'rgba(0,255,161,0.1)',
+    backgroundColor: 'rgba(255,82,82,0.1)',
     marginBottom: 4,
   },
   trendDown: { backgroundColor: 'rgba(255,92,122,0.12)' },

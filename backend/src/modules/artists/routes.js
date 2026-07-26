@@ -39,5 +39,12 @@ router.post(
   validate({ params: schema.idParams }),
   asyncHandler(ctrl.follow),
 );
+// Public — guests follow companies without an account; the device id keeps
+// the follower count honest (one bump per install).
+router.post(
+  '/:id/guest-follow',
+  validate({ params: schema.idParams, body: schema.guestFollowBody }),
+  asyncHandler(ctrl.guestFollow),
+);
 
 module.exports = router;

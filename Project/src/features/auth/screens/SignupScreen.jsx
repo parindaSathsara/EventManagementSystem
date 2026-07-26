@@ -93,7 +93,7 @@ export default function SignupScreen({ onBack, onSignup, onGoToLogin }) {
             {/* Heading */}
             <Text style={styles.heading}>Create Account</Text>
             <Text style={styles.subtitle}>
-              Join EventSocial and discover live experiences
+              Join Stage and discover live experiences
             </Text>
 
             {/* Form card */}

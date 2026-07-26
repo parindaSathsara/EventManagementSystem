@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   eventName: { ...TYPE_SCALE.bodyMd, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },
   eventMetrics: { ...TYPE_SCALE.caption, fontFamily: FONT_FAMILY.body, color: COLORS.textMuted, marginTop: 2 },
   eventBadge: {
-    backgroundColor: 'rgba(0,255,161,0.12)',
+    backgroundColor: 'rgba(255,82,82,0.12)',
     borderColor: COLORS.highlight,
     borderWidth: 1,
     borderRadius: RADII.pill,

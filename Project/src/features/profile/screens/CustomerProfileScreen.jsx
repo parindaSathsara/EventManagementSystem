@@ -358,9 +358,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.base,
     paddingVertical: SPACING.sm,
     borderRadius: RADII.pill,
-    backgroundColor: 'rgba(0,255,161,0.08)',
+    backgroundColor: 'rgba(255,82,82,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(0,255,161,0.3)',
+    borderColor: 'rgba(255,82,82,0.3)',
   },
   switchBtnText: {
     ...TYPE_SCALE.bodySm,

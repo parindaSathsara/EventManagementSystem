@@ -106,6 +106,46 @@ async function updateArtist(userId, patch) {
   });
 }
 
+/**
+ * Anonymous (guest) follow sync. Guests have no account, so the app sends a
+ * per-install device id together with the desired state. Idempotent: the
+ * count only moves when a GuestFollow row is actually created or deleted, so
+ * retries can never double-count.
+ */
+async function setGuestFollow(artistId, deviceId, follow) {
+  const artist = await prisma.artist.findUnique({ where: { id: artistId }, select: { id: true } });
+  if (!artist) throw new NotFound('Artist not found');
+
+  const key = { deviceId_artistId: { deviceId, artistId } };
+  const existing = await prisma.guestFollow.findUnique({ where: key });
+
+  return prisma.$transaction(async (tx) => {
+    if (follow && !existing) {
+      await tx.guestFollow.create({ data: { deviceId, artistId } });
+      const updated = await tx.artist.update({
+        where: { id: artistId },
+        data: { followerCount: { increment: 1 } },
+        select: { followerCount: true },
+      });
+      return { following: true, followerCount: updated.followerCount };
+    }
+    if (!follow && existing) {
+      await tx.guestFollow.delete({ where: key });
+      const updated = await tx.artist.update({
+        where: { id: artistId },
+        data: { followerCount: { decrement: 1 } },
+        select: { followerCount: true },
+      });
+      return { following: false, followerCount: Math.max(0, updated.followerCount) };
+    }
+    const current = await tx.artist.findUnique({
+      where: { id: artistId },
+      select: { followerCount: true },
+    });
+    return { following: !!follow, followerCount: current.followerCount };
+  });
+}
+
 async function toggleFollow(artistId, viewerUserId) {
   const key = { followerId_artistId: { followerId: viewerUserId, artistId } };
   const existing = await prisma.follow.findUnique({ where: key });
@@ -128,4 +168,4 @@ async function toggleFollow(artistId, viewerUserId) {
   });
 }
 
-module.exports = { list, getById, getMine, becomeArtist, updateArtist, toggleFollow };
+module.exports = { list, getById, getMine, becomeArtist, updateArtist, toggleFollow, setGuestFollow };

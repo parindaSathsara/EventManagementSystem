@@ -70,11 +70,12 @@ model Artist {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  events      Event[]
-  reels       Reel[]
-  lineups     LineupEntry[]
-  followers   Follow[]
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events         Event[]
+  reels          Reel[]
+  lineups        LineupEntry[]
+  followers      Follow[]
+  guestFollowers GuestFollow[]
 }
 
 // -----------------------------------------------------------------------------
@@ -269,6 +270,22 @@ model Follow {
   artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, artistId])
+  @@index([artistId])
+}
+
+// Guest-first app: guests have no account, so their follows are keyed by an
+// anonymous per-install device id. Kept in a separate table (not Follow) so
+// the composite unique still guarantees one count bump per device — this is
+// what keeps the organizer's followerCount honest.
+model GuestFollow {
+  id        String   @id @default(cuid())
+  deviceId  String
+  artistId  String
+  createdAt DateTime @default(now())
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, artistId])
   @@index([artistId])
 }
 

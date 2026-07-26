@@ -31,7 +31,7 @@ const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, s
  * next event. The event name is the focus and the event owner (manager) is shown.
  * Tapping a lineup artist or the owner opens a bottom sheet (socials + events).
  */
-export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSearch }) {
+export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSearch, onManagerCreate }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
   const [feed, setFeed] = useState('forYou');
@@ -50,7 +50,25 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
     [all, feed, isFollowing],
   );
 
-  function openArtist(artist) {
+  function openArtist(artist, fromEvent) {
+    // "Revealed Soon" is a surprise slot, not a real artist — no social links
+    // exist yet, so show the coming-soon note + the company's upcoming events.
+    if ((artist?.name || '').trim().toLowerCase() === 'revealed soon') {
+      const orgId = fromEvent?.organizer?.id;
+      const upcoming = eventsByOrganizer(events, orgId).filter(
+        (e) => new Date(e.startsAt).getTime() > Date.now(),
+      );
+      setSheet({
+        visible: true,
+        name: 'Revealed Soon',
+        subtitle: 'Surprise act',
+        avatarUrl: null,
+        socials: null,
+        note: 'More artists are coming soon from the event companies below.',
+        relatedEvents: upcoming,
+      });
+      return;
+    }
     setSheet({
       visible: true,
       name: artist.name,
@@ -83,6 +101,9 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
         </View>
         <View style={styles.actions}>
           <IconBtn icon="search-outline" onPress={onOpenSearch} />
+          {/* "+" between search & refresh — event companies / managers create
+              an event from here (routes through the manager login). */}
+          <IconBtn icon="add-circle-outline" onPress={onManagerCreate} />
           <IconBtn icon="refresh-outline" onPress={events.refresh} />
         </View>
       </View>
@@ -156,6 +177,7 @@ EventsHomeScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenBooking: PropTypes.func,
   onOpenSearch: PropTypes.func,
+  onManagerCreate: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

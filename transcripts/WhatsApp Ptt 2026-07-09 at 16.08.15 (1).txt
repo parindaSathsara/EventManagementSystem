@@ -1,0 +1,35 @@
+--- ENGLISH (gpt-4o, reconciled) ---
+Based on the two transcripts, here's a reconstruction of what was likely said in the voice note:
+
+---
+
+**TRANSLATION:**
+
+"From our side, initially, we don't show a flyer uploaded on the wall, right? That means if it happens like that, we should show the top part of the flyer exactly as it is. The top part, from the flyer I uploaded, is only shown halfway. Now, after we click, it goes inside the event, right? Once inside the event, the whole flyer is shown. After the flyer, only then does the event company detail box appear below the flyer. Can we do it like that? Let's take a look at that, brother. Can we do it like that, or should we discuss it a bit more? Could you let me know if we can do it like that?"
+
+---
+
+**ACTION ITEMS:**
+
+1. Ensure that the top part of the flyer is fully visible on the initial wall view.
+2. Confirm that after clicking, the entire flyer is displayed when entering the event.
+3. Ensure that the event company detail box appears below the flyer after the flyer is fully displayed.
+4. Discuss with the client if the above changes are feasible and confirm the implementation.
+
+---
+
+**NOTES:**
+
+- The term "gradee dell box" and "indirect box" from Transcript 2 seems to be a misinterpretation of "detail box" related to event company details.
+- The phrase "brother" is used informally to address the developer, indicating a friendly or familiar relationship.
+- There is some uncertainty about the exact sequence of displaying the flyer and the detail box, but the main request is clear.
+
+--- ENGLISH (whisper direct) ---
+If we upload the flyer to our main wall, it will not show up, right? If that is the case, I have to show the top of the flyer as it is. The top of the flyer I have uploaded shows half. After we click on it, we have to go inside the event. If we go inside the event, the entire flyer will show up. After the flyer, we get the detail box of the event company. If we go to the bottom of the flyer, can we do that? Can we take a look at it? Can we do that? Let's talk a little bit. Can we do that?
+
+--- SINHALA (gpt-4o-transcribe) ---
+අපේ එකෙන් බ්රද අපේ මුලින්ම වෝල්ලෙකේ මේහෙම ෆ්ලයර් එකක් අප්ලෝඩ්කර පෙන්න්නි නෑ නේද? ඒකියන්නේ ඒහෙම උනොත් තිහෙම ෆ්ලයර් එකේ උඩටික මේ තියන විදියෙටම පෙන්න්න තියමු. උඩටික, මම දාල තියන ෆ්ලයර් එකේ මම දාල තියන ෆ්ලයර් එකේ මේ උඩටික, එකනේ හාෆ් පෙන්න්නේ. දැන් අපි එක් ක්ලික් කරාට පස්සෙ ඇතුල්ට යනවන්, ඉවෙන්ට් එක ඇතුල්ට යනවනේ, ඉවෙන්ට් එක ඇතුලට ගියාම මේ මුලු ෆ්ලයර් එකම පෙන්නනවා, ෆ්ලයර් එකෙන් පස්සෙ තමයි මේ අර ග්‍රී ඩීටේල් බොක්ස් එකෙන්ඩි අපෙන්, අර ඊවෙන්ට් කම්පැනි ඊ ඩීටේල් බොක්ස් එකෙන්ඩි මේ ෆ්ලයර් එකෙන් යටට ගිහාම. ඒහෙම මේ ඒහෙම කරන්න පුළුවන්ද අපි පොඩ්ඩක් ඒකේ ගැන පොඩ්ඩක් මේ බලන්න බ්රද ඒක ඒහෙම පුළුවන්ද නැත්තන් අපි මේ බලමු පොඩ්ඩක් කතාකරලා ඔවා මේ මට පොඩ්ඩක් කියනවාද ඒහෙම පුළුවන්ද කරගන්න කියලා.
+
+--- SINHALA (google) ---
+අපේ ආ ඒ ගැන ප්‍රධ අපේ මුලින්ම බෝල් එකේ මෙහෙම පහ එකක් upload කර පෙන්නන්නෙ නෑ නේද ඒ කියන්නේ එහෙම වුනොත් එහෙම ඒකනෙ ප්‍රායේගික ටික මේ තියන විදියටම පෙන්නන්න තියෙන්නේ උඩ ටික ඒ ගැන ද අපි දැමීම මං දාලා තියෙන fire එකේ මං දාලා තියෙනවා යැයි කීමේ උඩ ටික ඒ ගැන හා පෙන්නන්නෙ දැන් අපි ඒක ක්ලික් කරාට පස්සේ ඇතුලට යනවා නිවෙන්නට ඇතුන්ට යනවනේ ඉවෙන්ට් එක ඇතුලට ගියහම මේ මුළු fire එකම පෙන්නනව රෝගීන් පස්සේ තමයි මේ අර gradee dell box එකෙන් කම්පැනියෙ indirect box එකෙන් ඒත් මේ fly එකෙන් යටට ගියාම එහෙම මේ එහෙම කරන්න පුළුවන්ද අපි පොඩ්ඩක් ඒ ගැන පොඩ්ඩක් මේක බලන්න brother ඒක එහෙම පුළුවන්ද නැත්තං අපි මෙහෙ බලමු පොඩ්ඩක් කතා කරලා ඔයා මෙහෙ මට පොඩ්ඩක් කියනවද එහෙම පුළුවන්ද කරගන්න කියලා
+

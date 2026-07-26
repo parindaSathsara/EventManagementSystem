@@ -27,8 +27,8 @@ export function getById(id) {
   return api.get(`/artists/${encodeURIComponent(id)}`);
 }
 
-export function become({ handle, bio }) {
-  return api.post('/artists/become', { handle, bio });
+export function become({ handle, bio, category }) {
+  return api.post('/artists/become', { handle, bio, category });
 }
 
 export function updateMine(patch) {
@@ -37,4 +37,12 @@ export function updateMine(patch) {
 
 export function toggleFollow(id) {
   return api.post(`/artists/${encodeURIComponent(id)}/follow`);
+}
+
+/**
+ * Anonymous follow sync for guests (no account). Sends the desired state
+ * with the per-install device id so the backend's follower count stays real.
+ */
+export function guestFollow(id, deviceId, follow) {
+  return api.post(`/artists/${encodeURIComponent(id)}/guest-follow`, { deviceId, follow });
 }

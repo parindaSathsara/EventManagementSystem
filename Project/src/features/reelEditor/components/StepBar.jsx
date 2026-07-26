@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dotActive: { borderColor: COLORS.accent, backgroundColor: 'rgba(255,84,130,0.12)' },
+  dotActive: { borderColor: COLORS.accent, backgroundColor: 'rgba(255,59,59,0.12)' },
   dotDone: { backgroundColor: COLORS.highlight, borderColor: COLORS.highlight },
   dotIdx: { fontSize: 11, fontFamily: FONT_FAMILY.bodyBold, color: COLORS.textMuted },
   dotIdxActive: { color: COLORS.accent },

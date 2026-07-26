@@ -47,7 +47,7 @@ export default function ReelsScreen({ onNavigateToEvent, onNavigateToArtist, ini
   async function handleShare(reel) {
     try {
       await Share.share({
-        message: `Check out ${reel.artist.name} on EventSocial: "${reel.caption}"`,
+        message: `Check out ${reel.artist.name} on Stage: "${reel.caption}"`,
       });
     } catch (_e) {
       // user cancelled — silent

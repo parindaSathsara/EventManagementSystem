@@ -1,34 +1,62 @@
-import React from 'react';
-import { View, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Platform, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Image, ImageBackground, TouchableOpacity, StatusBar, Platform, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { SPACING } from '../../../theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-// One full-width landscape (16:9) banner that covers the top of the page.
-const HERO_HEIGHT = Math.round(SCREEN_W * 9 / 16);
+// Fallback height (16:9) used while the flyer's natural size loads or when
+// the event has no image at all.
+const FALLBACK_HEIGHT = Math.round(SCREEN_W * 9 / 16);
+// Very tall flyers are capped so the page never opens on a wall of image;
+// within the cap the WHOLE flyer is shown (contain), never cropped.
+const MAX_HEIGHT = Math.round(SCREEN_W * 1.5);
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
 
+/**
+ * Event page hero — shows the uploaded flyer IN FULL (natural aspect ratio,
+ * no crop) with the company/detail card rendering directly below it.
+ */
 export default function EventHero({ event, onBack, onShare }) {
   const banner =
     event.bannerImageUrl || event.coverImageUrl || (event.flyers && event.flyers[0]) || null;
+  const [ratio, setRatio] = useState(null); // natural height / width
+
+  useEffect(() => {
+    if (!banner) return undefined;
+    let alive = true;
+    Image.getSize(
+      banner,
+      (w, h) => { if (alive && w > 0) setRatio(h / w); },
+      () => { if (alive) setRatio(null); },
+    );
+    return () => { alive = false; };
+  }, [banner]);
+
+  const height = banner && ratio ? Math.min(Math.round(SCREEN_W * ratio), MAX_HEIGHT) : FALLBACK_HEIGHT;
+  // When the cap kicks in, letterbox (contain) so the full flyer stays visible.
+  const capped = banner && ratio && SCREEN_W * ratio > MAX_HEIGHT;
 
   return (
-    <View style={styles.heroWrap}>
+    <View style={[styles.heroWrap, { height }]}>
       {banner ? (
-        <ImageBackground source={{ uri: banner }} style={styles.bg} resizeMode="cover" />
+        <ImageBackground
+          source={{ uri: banner }}
+          style={styles.bg}
+          resizeMode={capped ? 'contain' : 'cover'}
+        />
       ) : event.coverImage ? (
         <ImageBackground source={event.coverImage} style={styles.bg} resizeMode="cover" />
       ) : (
         <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.bg} />
       )}
 
-      {/* Subtle top + bottom scrims so the controls stay legible. */}
+      {/* Subtle top scrim so the controls stay legible over the flyer. */}
       <LinearGradient
-        colors={['rgba(0,0,0,0.55)', 'transparent', 'rgba(5,5,5,0.9)']}
-        locations={[0, 0.4, 1]}
+        colors={['rgba(0,0,0,0.55)', 'transparent']}
+        locations={[0, 0.35]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -56,7 +84,6 @@ EventHero.propTypes = {
 
 const styles = StyleSheet.create({
   heroWrap: {
-    height: HERO_HEIGHT,
     width: '100%',
     backgroundColor: '#000',
     overflow: 'hidden',

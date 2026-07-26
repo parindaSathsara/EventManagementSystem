@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "EventSocial",
+    "name": "Stage",
     "slug": "event-social",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,9 +31,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "EventSocial needs access to your photo library so you can pick videos for your reels.",
-          "cameraPermission": "EventSocial needs access to your camera to record videos for your reels.",
-          "microphonePermission": "EventSocial needs access to your microphone to capture audio with your reels."
+          "photosPermission": "Stage needs access to your photo library so you can upload event flyers and reel videos.",
+          "cameraPermission": "Stage needs access to your camera to capture event flyers and record videos.",
+          "microphonePermission": "Stage needs access to your microphone to capture audio with your reels."
         }
       ]
     ],

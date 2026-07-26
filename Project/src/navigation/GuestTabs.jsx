@@ -47,8 +47,12 @@ export default function GuestTabs({ onManagerLogin }) {
       : t,
   );
 
+  // Stacked screens render as an overlay ON TOP of the tab view (instead of
+  // replacing it) so the tab underneath stays mounted — backing out of an
+  // event returns to that event's exact scroll position on the Timeline.
+  let overlay = null;
   if (stack.name === 'event') {
-    return (
+    overlay = (
       <EventDetailScreen
         eventId={stack.params.eventId}
         onBack={pop}
@@ -56,10 +60,8 @@ export default function GuestTabs({ onManagerLogin }) {
         onBook={(eventId) => push('booking', { eventId })}
       />
     );
-  }
-
-  if (stack.name === 'booking') {
-    return (
+  } else if (stack.name === 'booking') {
+    overlay = (
       <BookingScreen
         eventId={stack.params.eventId}
         ticketTypeId={stack.params.ticketTypeId}
@@ -67,10 +69,8 @@ export default function GuestTabs({ onManagerLogin }) {
         onDone={() => pop()}
       />
     );
-  }
-
-  if (stack.name === 'artist') {
-    return (
+  } else if (stack.name === 'artist') {
+    overlay = (
       <ArtistProfileScreen
         artistId={stack.params.artistId}
         onBack={pop}
@@ -78,10 +78,8 @@ export default function GuestTabs({ onManagerLogin }) {
         onReelPress={pop}
       />
     );
-  }
-
-  if (stack.name === 'search') {
-    return (
+  } else if (stack.name === 'search') {
+    overlay = (
       <SearchScreen
         onOpenEvent={(id) => push('event', { eventId: id })}
         onOpenArtist={(id) => push('artist', { artistId: id })}
@@ -108,6 +106,7 @@ export default function GuestTabs({ onManagerLogin }) {
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenBooking={(eventId) => push('booking', { eventId })}
             onOpenSearch={() => push('search')}
+            onManagerCreate={onManagerLogin}
           />
         ) : null}
 
@@ -127,6 +126,8 @@ export default function GuestTabs({ onManagerLogin }) {
       </View>
 
       <BottomTabBar tabs={tabs} activeKey={tab} onChange={setTab} />
+
+      {overlay ? <View style={[StyleSheet.absoluteFill, styles.overlay]}>{overlay}</View> : null}
     </View>
   );
 }
@@ -138,4 +139,5 @@ GuestTabs.propTypes = {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgStrong },
   body: { flex: 1 },
+  overlay: { backgroundColor: COLORS.bgStrong },
 });

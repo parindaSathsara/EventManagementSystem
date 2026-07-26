@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   clipActive: {
     borderColor: COLORS.accent,
-    backgroundColor: 'rgba(255,84,130,0.06)',
+    backgroundColor: 'rgba(255,59,59,0.06)',
   },
   thumb: {
     width: 60,
@@ -168,8 +168,8 @@ const styles = StyleSheet.create({
     borderRadius: RADII.md,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(255,84,130,0.45)',
-    backgroundColor: 'rgba(255,84,130,0.04)',
+    borderColor: 'rgba(255,59,59,0.45)',
+    backgroundColor: 'rgba(255,59,59,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,

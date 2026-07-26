@@ -11,15 +11,14 @@ import SocialRow from './SocialRow';
  *   - Flat shape: { id, name, avatarUrl, role, socials }     (backend / free-form)
  *   - Nested shape: { id, order, artist: { id, handle, user: {...} } }  (legacy)
  */
-function normalize(entry, idx) {
+// Role tags ("Headliner" / "Support") are no longer shown per client
+// feedback 2026-07-09 — the lineup is just names, order carries the billing.
+function normalize(entry) {
   if (entry?.artist) {
     return {
       id: entry.artist.id,
       name: entry.artist.user?.name || entry.artist.handle,
       avatarUrl: entry.artist.user?.avatarUrl,
-      // Only the first slot gets a role tag — "Support" was removed per
-      // client feedback.
-      role: idx === 0 ? 'Headliner' : '',
       socials: entry.artist.socials || null,
     };
   }
@@ -27,7 +26,6 @@ function normalize(entry, idx) {
     id: entry?.id,
     name: entry?.name,
     avatarUrl: entry?.avatarUrl,
-    role: entry?.role === 'Support' ? '' : entry?.role || '',
     socials: entry?.socials || null,
   };
 }
@@ -48,9 +46,8 @@ export default function LineupRow({ lineup, onArtistPress }) {
           activeOpacity={0.8}
           onPress={() => onArtistPress && onArtistPress(a)}
         >
-          <Avatar uri={a.avatarUrl} name={a.name} size={56} verified={a.role === 'Headliner'} />
+          <Avatar uri={a.avatarUrl} name={a.name} size={56} />
           <Text style={styles.name} numberOfLines={1}>{a.name}</Text>
-          {a.role ? <Text style={styles.role}>{a.role}</Text> : null}
           {a.socials ? <SocialRow socials={a.socials} size={15} bare style={styles.social} /> : null}
         </TouchableOpacity>
       ))}
@@ -84,14 +81,6 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginTop: SPACING.xs,
     maxWidth: '100%',
-  },
-  role: {
-    fontSize: 10,
-    letterSpacing: 0.6,
-    fontFamily: FONT_FAMILY.bodyMedium,
-    color: COLORS.accent,
-    marginTop: 2,
-    textTransform: 'uppercase',
   },
   social: {
     marginTop: SPACING.xs,

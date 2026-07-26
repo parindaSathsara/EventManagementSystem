@@ -58,7 +58,7 @@ export default function CreateHubScreen({ onCreateReel, onCreateEvent, onOpenDra
 
           <TouchableOpacity activeOpacity={0.92} style={styles.bigCard} onPress={onCreateEvent}>
             <LinearGradient
-              colors={['#00FFA1', '#0a2a1a']}
+              colors={['#FF5252', '#3d0b0b']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,255,161,0.12)',
+    backgroundColor: 'rgba(255,82,82,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   tipIcon: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   tipTitle: { ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },

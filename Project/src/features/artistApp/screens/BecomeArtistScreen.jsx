@@ -17,7 +17,8 @@ import { Button, Input, ScreenHeader } from '../../../shared/components';
 import { useUser, useAlert } from '../../../shared/hooks';
 import { artists as artistsApi, ApiError } from '../../../services/api';
 
-const CATEGORIES = ['DJ', 'Singer', 'Band', 'Producer', 'Rapper', 'Other'];
+// Profile categories per client feedback 2026-07-09 (was DJ/Singer/Band/…).
+const CATEGORIES = ['Event Company', 'Artist', 'Musician', 'Band', 'Other'];
 
 /**
  * Customer → Artist upgrade flow.
@@ -34,7 +35,7 @@ const CATEGORIES = ['DJ', 'Singer', 'Band', 'Producer', 'Rapper', 'Other'];
 export default function BecomeArtistScreen({ onSuccess, onBack }) {
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
-  const [category, setCategory] = useState('DJ');
+  const [category, setCategory] = useState('Event Company');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const { user, refresh } = useUser();
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -16,7 +16,7 @@ export default function Chip({
   const palette = (() => {
     if (variant === 'verified') {
       return {
-        bg: 'rgba(0,255,161,0.12)',
+        bg: 'rgba(255,82,82,0.12)',
         border: COLORS.highlight,
         text: COLORS.highlight,
       };

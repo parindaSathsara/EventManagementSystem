@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
   musicRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   musicIcon: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   musicTitle: { ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   },
   eventLinkActive: {
     borderColor: COLORS.accent,
-    backgroundColor: 'rgba(255,84,130,0.06)',
+    backgroundColor: 'rgba(255,59,59,0.06)',
   },
   eventLinkText: {
     ...TYPE_SCALE.bodySm,
@@ -1088,11 +1088,11 @@ const styles = StyleSheet.create({
   },
   visRowActive: {
     borderColor: COLORS.accent,
-    backgroundColor: 'rgba(255,84,130,0.06)',
+    backgroundColor: 'rgba(255,59,59,0.06)',
   },
   visIcon: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,84,130,0.12)',
+    backgroundColor: 'rgba(255,59,59,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   visIconActive: { backgroundColor: COLORS.accent },
@@ -1127,9 +1127,9 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     padding: SPACING.md,
     borderRadius: RADII.md,
-    backgroundColor: 'rgba(0,255,161,0.08)',
+    backgroundColor: 'rgba(255,82,82,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(0,255,161,0.25)',
+    borderColor: 'rgba(255,82,82,0.25)',
   },
   publishHintWarn: {
     backgroundColor: 'rgba(255,176,32,0.08)',

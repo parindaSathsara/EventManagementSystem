@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
+  Image,
   Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -43,10 +43,12 @@ export default function EventStepCard({
   const ownerName = org.user?.name || org.handle || 'Event Company';
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
   const { date, time } = fmt(event.startsAt);
-  const [descExpanded, setDescExpanded] = useState(false);
   const descNeedsToggle = (event.description || '').length > 90;
+  // Once the event date/time has passed, buying is disabled.
+  const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
 
   function handleBuy() {
+    if (ended) return;
     // Third-party ticketing first; in-app reserve is only the fallback.
     if (event.ticketUrl) {
       Linking.openURL(event.ticketUrl).catch(() => {});
@@ -80,16 +82,18 @@ export default function EventStepCard({
           </TouchableOpacity>
         </View>
 
-        {/* Poster — fills the remaining space so the page is full (tap to open) */}
+        {/* Poster — fills the remaining space so the page is full (tap to open).
+            Portrait flyers are cropped from the BOTTOM, never the top, so the
+            top of the flyer always shows exactly as uploaded. */}
         <TouchableOpacity
           style={styles.poster}
           activeOpacity={0.95}
           onPress={() => onOpenEvent && onOpenEvent(event.id)}
         >
           {poster ? (
-            <ImageBackground source={{ uri: poster }} style={styles.posterBg} imageStyle={styles.posterImg} resizeMode="cover">
+            <TopAlignedPoster uri={poster}>
               <PosterOverlay event={event} date={date} time={time} />
-            </ImageBackground>
+            </TopAlignedPoster>
           ) : (
             <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
               <PosterOverlay event={event} date={date} time={time} />
@@ -97,15 +101,16 @@ export default function EventStepCard({
           )}
         </TouchableOpacity>
 
-        {/* Description — expandable "See more" under the poster */}
+        {/* Description — "See more" jumps straight into the event page where
+            the full text lives (expanding in place kept clipping long text). */}
         {event.description ? (
           <View>
-            <Text style={styles.desc} numberOfLines={descExpanded ? 6 : 2}>
+            <Text style={styles.desc} numberOfLines={2}>
               {event.description}
             </Text>
             {descNeedsToggle ? (
-              <TouchableOpacity activeOpacity={0.7} onPress={() => setDescExpanded((v) => !v)}>
-                <Text style={styles.seeMore}>{descExpanded ? 'See less' : 'See more'}</Text>
+              <TouchableOpacity activeOpacity={0.7} onPress={() => onOpenEvent && onOpenEvent(event.id)}>
+                <Text style={styles.seeMore}>See more</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -115,19 +120,72 @@ export default function EventStepCard({
         {event.lineup && event.lineup.length ? (
           <View style={styles.lineupWrap}>
             <Text style={styles.sectionLabel}>Line Up</Text>
-            <LineupRow lineup={event.lineup} onArtistPress={onOpenArtist} />
+            <LineupRow
+              lineup={event.lineup}
+              onArtistPress={(a) => onOpenArtist && onOpenArtist(a, event)}
+            />
           </View>
         ) : null}
 
-        {/* Buy Tickets — compact pill, opens third-party ticketing */}
-        <TouchableOpacity style={styles.bookBtn} activeOpacity={0.9} onPress={handleBuy}>
-          <Ionicons name="ticket" size={14} color="#000" />
-          <Text style={styles.bookText}>Buy Tickets</Text>
+        {/* Buy Tickets — compact pill on the right, opens third-party
+            ticketing. Disabled (greyed) once the event has passed. */}
+        <TouchableOpacity
+          style={[styles.bookBtn, ended && styles.bookBtnEnded]}
+          activeOpacity={ended ? 1 : 0.9}
+          disabled={ended}
+          onPress={handleBuy}
+        >
+          <Ionicons name="ticket" size={14} color={ended ? COLORS.textMuted : '#000'} />
+          <Text style={[styles.bookText, ended && styles.bookTextEnded]}>
+            {ended ? 'Event ended' : 'Buy Tickets'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+/**
+ * Fills its parent and top-aligns the image: full width, natural aspect
+ * ratio, overflow cropped at the bottom. Landscape images (shorter than the
+ * box) fall back to a centered cover crop.
+ */
+function TopAlignedPoster({ uri, children }) {
+  const [box, setBox] = useState(null);
+  const [ratio, setRatio] = useState(null); // natural height / width
+
+  useEffect(() => {
+    let alive = true;
+    Image.getSize(
+      uri,
+      (w, h) => { if (alive && w > 0) setRatio(h / w); },
+      () => { if (alive) setRatio(null); },
+    );
+    return () => { alive = false; };
+  }, [uri]);
+
+  const topAligned = box && ratio && box.w * ratio >= box.h;
+
+  return (
+    <View
+      style={styles.posterBg}
+      onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
+    >
+      {topAligned ? (
+        <Image
+          source={{ uri }}
+          resizeMode="cover"
+          style={{ position: 'absolute', top: 0, left: 0, width: box.w, height: box.w * ratio }}
+        />
+      ) : (
+        <Image source={{ uri }} resizeMode="cover" style={StyleSheet.absoluteFill} />
+      )}
+      {children}
+    </View>
+  );
+}
+
+TopAlignedPoster.propTypes = { uri: PropTypes.string.isRequired, children: PropTypes.node };
 
 function PosterOverlay({ event, date, time }) {
   return (
@@ -192,8 +250,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: COLORS.surface2,
   },
-  posterBg: { flex: 1, justifyContent: 'flex-end' },
-  posterImg: { borderRadius: RADII.lg },
+  posterBg: { flex: 1, justifyContent: 'flex-end', overflow: 'hidden' },
   posterTop: {
     position: 'absolute',
     top: SPACING.md,
@@ -257,11 +314,13 @@ const styles = StyleSheet.create({
     ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary,
     letterSpacing: 1.1, textTransform: 'uppercase', paddingHorizontal: SPACING.md,
   },
-  // Compact Buy Tickets pill — smaller width & height, centred.
+  // Compact Buy Tickets pill — sits on the right of the card.
   bookBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    alignSelf: 'center', backgroundColor: COLORS.accent,
+    alignSelf: 'flex-end', backgroundColor: COLORS.accent,
     paddingVertical: 10, paddingHorizontal: SPACING.xl, borderRadius: RADII.pill,
   },
+  bookBtnEnded: { backgroundColor: COLORS.surface2, borderWidth: 1, borderColor: COLORS.lineSubtle },
   bookText: { fontSize: 13, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
+  bookTextEnded: { color: COLORS.textMuted },
 });
