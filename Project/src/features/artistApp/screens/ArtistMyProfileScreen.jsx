@@ -45,6 +45,7 @@ export default function ArtistMyProfileScreen({
   onCreateEvent,
   onCreateReel,
   onEditProfile,
+  onOpenEvent,
   onLogout,
 }) {
   const [tab, setTab] = useState('events');
@@ -159,13 +160,26 @@ export default function ArtistMyProfileScreen({
                 <Text style={styles.emptyMiniText}>No upcoming shows</Text>
               </View>
             ) : (
-              upcoming.map((e) => <EventListRow key={e.id} event={e} />)
+              upcoming.map((e) => (
+                <EventListRow
+                  key={e.id}
+                  event={e}
+                  onPress={() => onOpenEvent && onOpenEvent(e.id)}
+                />
+              ))
             )}
 
             {past.length > 0 ? (
               <>
                 <SectionHeader title="Past events" />
-                {past.map((e) => <EventListRow key={e.id} event={e} muted />)}
+                {past.map((e) => (
+                  <EventListRow
+                    key={e.id}
+                    event={e}
+                    muted
+                    onPress={() => onOpenEvent && onOpenEvent(e.id)}
+                  />
+                ))}
               </>
             ) : null}
           </View>
@@ -183,7 +197,8 @@ export default function ArtistMyProfileScreen({
             <SectionHeader title="Socials" />
             <View style={styles.aboutCard}>
               <SocialRow icon="logo-instagram" label="Instagram" value={socials.instagram || '—'} />
-              <SocialRow icon="musical-notes" label="Spotify" value={socials.spotify || '—'} />
+              {/* TikTok replaced Spotify; `spotify` is the pre-swap fallback. */}
+              <SocialRow icon="logo-tiktok" label="TikTok" value={socials.tiktok || socials.spotify || '—'} />
               <SocialRow icon="logo-youtube" label="YouTube" value={socials.youtube || '—'} />
             </View>
 
@@ -221,10 +236,19 @@ function Stat({ value, label }) {
   );
 }
 
-function EventListRow({ event, muted }) {
+/**
+ * The chevron always promised a tap target but the row was a plain <View> —
+ * tapping an upcoming event did nothing (client feedback 2026-07-26).
+ */
+function EventListRow({ event, muted, onPress }) {
   const { day, month } = dateBadge(event.startsAt);
   return (
-    <View style={[styles.eventRow, muted && { opacity: 0.55 }]}>
+    <TouchableOpacity
+      style={[styles.eventRow, muted && { opacity: 0.55 }]}
+      activeOpacity={0.8}
+      onPress={onPress}
+      disabled={!onPress}
+    >
       <View style={styles.dateBadge}>
         <Text style={styles.dateMonth}>{month}</Text>
         <Text style={styles.dateDay}>{day}</Text>
@@ -236,7 +260,7 @@ function EventListRow({ event, muted }) {
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -251,7 +275,7 @@ function SocialRow({ icon, label, value }) {
 }
 
 Stat.propTypes = { value: PropTypes.string, label: PropTypes.string };
-EventListRow.propTypes = { event: PropTypes.object, muted: PropTypes.bool };
+EventListRow.propTypes = { event: PropTypes.object, muted: PropTypes.bool, onPress: PropTypes.func };
 SocialRow.propTypes = { icon: PropTypes.string, label: PropTypes.string, value: PropTypes.string };
 
 ArtistMyProfileScreen.propTypes = {
@@ -260,6 +284,7 @@ ArtistMyProfileScreen.propTypes = {
   onCreateEvent: PropTypes.func,
   onCreateReel: PropTypes.func,
   onEditProfile: PropTypes.func,
+  onOpenEvent: PropTypes.func,
   onLogout: PropTypes.func,
 };
 

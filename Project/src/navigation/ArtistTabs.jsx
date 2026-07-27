@@ -43,7 +43,7 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
     (name) => {
       if (!artist) {
         if (onNeedArtistProfile) onNeedArtistProfile();
-        else alert.info('Set up your artist profile', 'Create an artist profile to publish.');
+        else alert.info('Set up your stage profile', 'Create a stage profile to publish.');
         return;
       }
       push(name);
@@ -109,6 +109,7 @@ export default function ArtistTabs({ onSwitchToCustomer, onLogout, onNeedArtistP
             onOpenVerification={() => push('verification')}
             onCreateEvent={() => pushPublishing('eventCreator')}
             onEditProfile={() => push('editProfile')}
+            onOpenEvent={(id) => push('event', { eventId: id })}
             onLogout={onLogout}
           />
         ) : null}

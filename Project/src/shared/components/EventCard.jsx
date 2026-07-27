@@ -62,7 +62,9 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.compactWrap}>
         <View style={styles.dateBadgeSm}>
           <Text style={styles.dateBadgeMonth}>{month}</Text>
-          <Text style={styles.dateBadgeDay}>{day}</Text>
+          {/* Dark badge → white day number. The shared `dateBadgeDay` is black
+              because the other two variants sit on a white chip. */}
+          <Text style={[styles.dateBadgeDay, styles.dateBadgeDayOnDark]}>{day}</Text>
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.compactTitle} numberOfLines={1}>{event.title}</Text>
@@ -192,6 +194,7 @@ const styles = StyleSheet.create({
     color: COLORS.ink,
     marginTop: -2,
   },
+  dateBadgeDayOnDark: { color: COLORS.textPrimary },
   liveTag: {
     position: 'absolute',
     top: SPACING.md,

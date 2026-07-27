@@ -9,6 +9,7 @@ export { default as ScreenHeader } from './ScreenHeader';
 export { default as Chip } from './Chip';
 export { default as EventCard } from './EventCard';
 export { default as Avatar } from './Avatar';
+export { default as AvatarPicker } from './AvatarPicker';
 export { default as StatPill } from './StatPill';
 export { default as SectionHeader } from './SectionHeader';
 export { default as EmptyState } from './EmptyState';

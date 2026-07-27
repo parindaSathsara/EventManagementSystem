@@ -8,6 +8,15 @@ const phone = z
   .trim()
   .regex(/^\+?[0-9\s\-()]{7,20}$/, 'Enter a valid phone number');
 const city = z.string().trim().max(80).optional().nullable();
+// Profile photo — an absolute URL returned by POST /uploads/image. Nullable so
+// the client can clear the photo by sending null.
+const avatarUrl = z
+  .string()
+  .trim()
+  .url('Enter a valid image URL')
+  .max(500)
+  .optional()
+  .nullable();
 
 const signupBody = z.object({
   email,
@@ -25,6 +34,7 @@ const completeProfileBody = z.object({
   phone: phone.optional(),
   city,
   name: name.optional(),
+  avatarUrl,
 });
 
 module.exports = { signupBody, loginBody, completeProfileBody };

@@ -13,11 +13,16 @@ import PropTypes from 'prop-types';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { Button, Input } from '../../../shared/components';
+import { Button, Input, AvatarPicker } from '../../../shared/components';
 
 /**
  * Shown once, after a user's first successful login, when their profile is
- * missing required contact info. Currently captures phone (+ optional city).
+ * missing required contact info. Captures a profile photo, phone, and an
+ * optional city.
+ *
+ * The photo is uploaded as soon as it's picked (POST /uploads/image) and the
+ * resulting URL is saved with the rest of the profile on Continue — so a user
+ * who backs out never leaves a half-attached avatar on their account.
  *
  * Skipping is allowed but the user will be prompted again next launch.
  */
@@ -28,6 +33,8 @@ export default function CompleteProfileScreen({
 }) {
   const [phone, setPhone] = useState(user?.phone || '');
   const [city, setCity] = useState(user?.city || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || null);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -48,7 +55,13 @@ export default function CompleteProfileScreen({
     setSubmitting(true);
     try {
       await Promise.resolve(
-        onSubmit && onSubmit({ phone: phone.trim(), city: city.trim() }),
+        onSubmit &&
+          onSubmit({
+            phone: phone.trim(),
+            city: city.trim(),
+            // null clears the photo; undefined leaves whatever's on record.
+            avatarUrl: avatarUrl || null,
+          }),
       );
     } finally {
       setSubmitting(false);
@@ -70,18 +83,30 @@ export default function CompleteProfileScreen({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.iconWrap}>
-            <Ionicons name="call-outline" size={28} color={COLORS.accent} />
+            <Ionicons name="person-circle-outline" size={28} color={COLORS.accent} />
           </View>
 
           <Text style={styles.heading}>
             One last thing{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
           </Text>
           <Text style={styles.subtitle}>
-            Add your phone number so artists and ticket support can reach you about
-            your bookings.
+            Add a profile photo and your phone number so people know who you are
+            and ticket support can reach you.
           </Text>
 
           <View style={styles.formCard}>
+            <View style={styles.photoBlock}>
+              <AvatarPicker
+                value={avatarUrl}
+                name={user?.name}
+                size={96}
+                onChange={setAvatarUrl}
+                onUploadingChange={setPhotoUploading}
+                label="Profile photo"
+                hint="A photo makes your profile far easier to recognise."
+              />
+            </View>
+
             <Input
               label="Phone number"
               value={phone}
@@ -101,10 +126,11 @@ export default function CompleteProfileScreen({
             />
 
             <Button
-              title="Continue"
+              title={photoUploading ? 'Uploading photo…' : 'Continue'}
               onPress={handleSubmit}
               variant="primary"
               loading={submitting}
+              disabled={photoUploading}
               style={styles.cta}
             />
 
@@ -178,6 +204,12 @@ const styles = StyleSheet.create({
     borderRadius: RADII.xl,
     backgroundColor: COLORS.surface1,
     padding: SPACING.xl,
+  },
+  photoBlock: {
+    paddingBottom: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lineSubtle,
   },
   cta: { marginTop: SPACING.sm },
   skip: {

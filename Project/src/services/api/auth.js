@@ -42,8 +42,13 @@ export async function me() {
   return user;
 }
 
-export async function updateProfile({ phone, city, name }) {
-  const updated = await api.patch('/auth/complete-profile', { phone, city, name });
+export async function updateProfile({ phone, city, name, avatarUrl }) {
+  const updated = await api.patch('/auth/complete-profile', {
+    phone,
+    city,
+    name,
+    avatarUrl,
+  });
   await setStoredUser(updated);
   return updated;
 }

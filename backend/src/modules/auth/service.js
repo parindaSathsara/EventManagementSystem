@@ -49,13 +49,15 @@ async function login({ email, password }) {
   return { user: publicUser, token: tokenFor(publicUser) };
 }
 
-async function updateProfile(userId, { phone, city, name }) {
+async function updateProfile(userId, { phone, city, name, avatarUrl }) {
   return prisma.user.update({
     where: { id: userId },
     data: {
       ...(phone !== undefined ? { phone } : {}),
       ...(city !== undefined ? { city } : {}),
       ...(name !== undefined ? { name } : {}),
+      // `null` clears the photo; `undefined` leaves it untouched.
+      ...(avatarUrl !== undefined ? { avatarUrl } : {}),
     },
     select: PUBLIC_USER_SELECT,
   });

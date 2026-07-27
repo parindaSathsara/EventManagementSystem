@@ -184,7 +184,7 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   function removeArtist(idx) {
     setForm((f) => ({ ...f, lineup: f.lineup.filter((_, i) => i !== idx) }));
   }
-  /** Reorder — slot #1 (headliner) is fixed; the rest can move up/down. */
+  /** Reorder — slot #1 is fixed; the rest can move up/down. */
   function moveArtist(idx, dir) {
     setForm((f) => {
       const next = [...f.lineup];
@@ -599,16 +599,16 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
           </TouchableOpacity>
         </View>
 
-        {/* Line up — reorderable; slot #1 stays the headliner */}
+        {/* Line up — reorderable; slot #1 is fixed, order carries the billing */}
         <Text style={styles.sectionLabel}>Line up</Text>
         <View style={{ paddingHorizontal: SPACING.base }}>
           {form.lineup.map((a, idx) => (
             <View key={idx} style={styles.ticketCard}>
               <View style={styles.ticketHead}>
                 <View style={styles.ticketBadge}>
-                  <Text style={styles.ticketBadgeText}>
-                    {idx === 0 ? 'HEADLINER' : `ARTIST #${idx + 1}`}
-                  </Text>
+                  {/* No "HEADLINER" on slot #1 — every slot is just an artist
+                      number (client feedback 2026-07-09, repeated 07-26). */}
+                  <Text style={styles.ticketBadgeText}>{`ARTIST #${idx + 1}`}</Text>
                 </View>
                 <View style={styles.rowActions}>
                   {idx > 1 ? (

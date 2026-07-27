@@ -67,7 +67,8 @@ export default function VerificationScreen({ onBack }) {
           <DataRow label="Handle" value={displayHandle || '—'} />
           <DataRow label="City" value={user?.city || '—'} />
           <DataRow label="Instagram" value={socials.instagram || '—'} />
-          <DataRow label="Spotify" value={socials.spotify || '—'} />
+          {/* TikTok replaced Spotify; `spotify` is the pre-swap fallback. */}
+          <DataRow label="TikTok" value={socials.tiktok || socials.spotify || '—'} />
         </View>
 
         <View style={styles.helperCard}>

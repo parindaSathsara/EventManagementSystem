@@ -38,12 +38,12 @@ const DESC_PREVIEW_LINES = 4;
 /**
  * Guest event page.
  *
- * Ticketing is third-party: ticket types are display-only (no selection /
- * quantity) and the "Buy Now" CTA opens the organizer's external ticketing
- * link (`event.ticketUrl`). Booking falls back to the in-app guest reserve
- * flow only when no link was provided.
+ * Ticketing is entirely third-party: ticket types are display-only (no
+ * selection / quantity) and the "Buy Now" CTA opens the organizer's external
+ * ticketing link (`event.ticketUrl`). There is no in-app booking fallback —
+ * without a link the CTA reads "Tickets coming soon" and stays disabled.
  */
-export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook }) {
+export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
   const allEvents = useEventsData();
   const event = useMemo(() => allEvents.find((e) => e.id === eventId) || null, [allEvents, eventId]);
   const [sheet, setSheet] = useState(EMPTY_SHEET);
@@ -93,15 +93,13 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
     if (!event) return;
     // Buying is disabled once the event date/time has passed.
     if (new Date(event.endsAt || event.startsAt).getTime() < Date.now()) return;
-    // Third-party ticketing: the CTA goes straight to the external platform.
-    if (event.ticketUrl) {
-      Linking.openURL(event.ticketUrl).catch(() =>
-        alert.error('Could not open link', 'The ticketing page could not be opened on this device.'),
-      );
-      return;
-    }
-    // No external link yet — fall back to the in-app guest reservation flow.
-    if (onBook) onBook(event.id);
+    // Ticketing is entirely third-party now — the CTA only ever opens the
+    // organizer's external platform. The old in-app reservation form is gone
+    // (client feedback 2026-07-26); with no link there is nothing to open.
+    if (!event.ticketUrl) return;
+    Linking.openURL(event.ticketUrl).catch(() =>
+      alert.error('Could not open link', 'The ticketing page could not be opened on this device.'),
+    );
   }
 
   async function handleShare() {
@@ -153,15 +151,11 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
   const orgId = org.id;
   const socials = event.socials || org.socials || null;
   const { weekday, day, month, time } = fmtDate(event.startsAt);
-  // Cheapest ticket = the price shown next to the Buy Now CTA.
-  const cheapest = (event.ticketTypes || []).reduce(
-    (min, t) => (min == null || (t.priceCents ?? 0) < (min.priceCents ?? 0) ? t : min),
-    null,
-  );
   // ~4 lines of bodyMd fits ±160 chars — a simple, reliable overflow check
   // (onTextLayout on a clamped <Text> mis-reports on Android).
   const descNeedsToggle = (event.description || '').length > 160;
   const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
+  const buyDisabled = ended || !event.ticketUrl;
 
   return (
     <View style={styles.container}>
@@ -305,23 +299,20 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent, onBook
         <View style={{ height: 140 }} />
       </ScrollView>
 
-      {/* Floating Buy bar — price only next to Buy Now (the lone ticket-type
-          name there was confusing; the full type list is in the Tickets
-          section above). Disabled once the event has passed. */}
+      {/* Floating Buy bar — the Buy Now button only. The "Tickets from <price>"
+          block was dropped per client feedback 2026-07-26; prices still live in
+          the Tickets section above. Disabled once the event has passed, or
+          while the organizer hasn't set a ticketing link. */}
       <View style={styles.bookBar}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.bookLabel}>{ended ? 'This event has ended' : 'Tickets from'}</Text>
-          <Text style={styles.bookPrice}>{cheapest ? cheapest.priceLabel : '—'}</Text>
-        </View>
         <TouchableOpacity
-          style={[styles.buyBtn, ended && styles.buyBtnEnded]}
-          activeOpacity={ended ? 1 : 0.9}
-          disabled={ended}
+          style={[styles.buyBtn, buyDisabled && styles.buyBtnEnded]}
+          activeOpacity={buyDisabled ? 1 : 0.9}
+          disabled={buyDisabled}
           onPress={handleBuy}
         >
-          <Ionicons name="ticket" size={15} color={ended ? COLORS.textMuted : '#000'} />
-          <Text style={[styles.buyText, ended && styles.buyTextEnded]}>
-            {ended ? 'Ended' : 'Buy Now'}
+          <Ionicons name="ticket" size={15} color={buyDisabled ? COLORS.textMuted : '#000'} />
+          <Text style={[styles.buyText, buyDisabled && styles.buyTextEnded]}>
+            {ended ? 'Event ended' : event.ticketUrl ? 'Buy Now' : 'Tickets coming soon'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -342,7 +333,6 @@ EventDetailScreen.propTypes = {
   eventId: PropTypes.string.isRequired,
   onBack: PropTypes.func,
   onOpenEvent: PropTypes.func,
-  onBook: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -559,30 +549,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.lineSubtle,
   },
-  bookLabel: {
-    ...TYPE_SCALE.caption,
-    fontFamily: FONT_FAMILY.bodyMedium,
-    color: COLORS.textMuted,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  bookPrice: {
-    ...TYPE_SCALE.h4,
-    fontFamily: FONT_FAMILY.headingBold,
-    color: COLORS.textPrimary,
-    marginTop: 2,
-  },
-  // Compact Buy Now — smaller than the old full-width Book button.
+  // Buy Now owns the whole bar now that the price block is gone.
   buyBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 7,
     backgroundColor: COLORS.accent,
     paddingHorizontal: SPACING.lg,
-    height: 40,
+    height: 48,
     borderRadius: RADII.pill,
   },
-  buyText: { fontSize: 13, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
+  buyText: { fontSize: 15, fontFamily: FONT_FAMILY.bodyBold, color: '#000' },
   buyBtnEnded: {
     backgroundColor: COLORS.surface2,
     borderWidth: 1,

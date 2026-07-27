@@ -13,13 +13,14 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { Button, Input, ScreenHeader } from '../../../shared/components';
+import { Button, Input, ScreenHeader, AvatarPicker } from '../../../shared/components';
 import { useUser, useAlert } from '../../../shared/hooks';
-import { artists as artistsApi, ApiError } from '../../../services/api';
+import { artists as artistsApi, auth as authApi, ApiError } from '../../../services/api';
 
 /**
- * Edit the caller's own artist profile.
+ * Edit the caller's own stage profile.
  *
+ *   - Profile photo (lives on the User record, saved via /auth/complete-profile)
  *   - Handle (subject to uniqueness check via API)
  *   - Bio
  *   - Socials JSON blob — we present three named fields and serialise
@@ -36,8 +37,10 @@ export default function EditArtistProfileScreen({ onBack }) {
   const [bio, setBio] = useState('');
   const [category, setCategory] = useState('Event Company');
   const [instagram, setInstagram] = useState('');
-  const [spotify, setSpotify] = useState('');
+  const [tiktok, setTiktok] = useState('');
   const [youtube, setYoutube] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,12 +54,19 @@ export default function EditArtistProfileScreen({ onBack }) {
     try {
       const socials = artist.socialsJson ? JSON.parse(artist.socialsJson) : {};
       setInstagram(socials.instagram || '');
-      setSpotify(socials.spotify || '');
+      // Spotify was replaced by TikTok (client feedback 2026-07-26). Fall back
+      // to the old key so profiles saved before the swap don't lose the value.
+      setTiktok(socials.tiktok || socials.spotify || '');
       setYoutube(socials.youtube || '');
     } catch {
-      setInstagram(''); setSpotify(''); setYoutube('');
+      setInstagram(''); setTiktok(''); setYoutube('');
     }
   }, [artist]);
+
+  // Photo lives on the User record, not the artist one.
+  useEffect(() => {
+    setAvatarUrl(user?.avatarUrl || artist?.user?.avatarUrl || null);
+  }, [user, artist]);
 
   if (!artist) {
     return (
@@ -64,7 +74,7 @@ export default function EditArtistProfileScreen({ onBack }) {
         <ScreenHeader title="Edit profile" onBack={onBack} />
         <View style={styles.center}>
           <Ionicons name="person-circle-outline" size={48} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>No artist profile to edit yet.</Text>
+          <Text style={styles.emptyText}>No stage profile to edit yet.</Text>
         </View>
       </View>
     );
@@ -86,9 +96,10 @@ export default function EditArtistProfileScreen({ onBack }) {
     setSubmitting(true);
     const socialsJson = JSON.stringify({
       instagram: instagram.trim() || undefined,
-      spotify: spotify.trim() || undefined,
+      tiktok: tiktok.trim() || undefined,
       youtube: youtube.trim() || undefined,
     });
+    const currentAvatar = user?.avatarUrl || artist?.user?.avatarUrl || null;
     try {
       await artistsApi.updateMine({
         handle: handle.trim().toLowerCase(),
@@ -96,6 +107,10 @@ export default function EditArtistProfileScreen({ onBack }) {
         category,
         socialsJson,
       });
+      // Photo is a User field — only PATCH it when it actually changed.
+      if ((avatarUrl || null) !== currentAvatar) {
+        await authApi.updateProfile({ avatarUrl: avatarUrl || null });
+      }
       await refresh();
       alert.success('Profile saved', 'Your changes are live.', () => onBack && onBack());
     } catch (err) {
@@ -123,6 +138,19 @@ export default function EditArtistProfileScreen({ onBack }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Profile photo — stored on the user record. */}
+          <View style={styles.card}>
+            <AvatarPicker
+              value={avatarUrl}
+              name={artist?.user?.name || user?.name || handle}
+              size={96}
+              onChange={setAvatarUrl}
+              onUploadingChange={setPhotoUploading}
+              label="Profile photo"
+              hint="Shown on your profile, your events, and every card you appear on."
+            />
+          </View>
+
           {/* Identity */}
           <View style={styles.card}>
             <Text style={styles.cardKicker}>Public identity</Text>
@@ -130,7 +158,7 @@ export default function EditArtistProfileScreen({ onBack }) {
               label="Handle"
               value={handle}
               onChangeText={(t) => setHandle(t.replace(/\s/g, ''))}
-              placeholder="mihiran"
+              placeholder="Enter name"
               autoCapitalize="none"
               error={errors.handle}
               helper={!errors.handle ? `Fans see you as @${handle || 'your.handle'}` : undefined}
@@ -161,12 +189,13 @@ export default function EditArtistProfileScreen({ onBack }) {
               label="Bio"
               value={bio}
               onChangeText={setBio}
-              placeholder="Producer, DJ, live electronics."
+              placeholder="Enter short bio"
               autoCapitalize="sentences"
             />
           </View>
 
-          {/* Socials */}
+          {/* Socials — Instagram / TikTok / YouTube (TikTok replaced Spotify
+              per client feedback 2026-07-26). */}
           <View style={styles.card}>
             <Text style={styles.cardKicker}>Socials</Text>
             <View style={styles.socialRow}>
@@ -176,9 +205,9 @@ export default function EditArtistProfileScreen({ onBack }) {
               </View>
             </View>
             <View style={styles.socialRow}>
-              <Ionicons name="musical-notes" size={18} color={COLORS.accent} style={styles.socialIcon} />
+              <Ionicons name="logo-tiktok" size={18} color={COLORS.accent} style={styles.socialIcon} />
               <View style={{ flex: 1 }}>
-                <Input label="Spotify" value={spotify} onChangeText={setSpotify} placeholder="Artist name" autoCapitalize="sentences" />
+                <Input label="TikTok" value={tiktok} onChangeText={setTiktok} placeholder="@yourhandle" autoCapitalize="none" />
               </View>
             </View>
             <View style={styles.socialRow}>
@@ -209,10 +238,11 @@ export default function EditArtistProfileScreen({ onBack }) {
           </View>
 
           <Button
-            title="Save changes"
+            title={photoUploading ? 'Uploading photo…' : 'Save changes'}
             onPress={handleSave}
             variant="primary"
             loading={submitting}
+            disabled={photoUploading}
             style={{ marginTop: SPACING.lg }}
           />
         </ScrollView>

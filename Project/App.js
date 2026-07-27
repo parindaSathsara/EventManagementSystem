@@ -138,9 +138,9 @@ function AppContent() {
     setStage('completeProfile');
   }
 
-  async function handleProfileComplete({ phone, city }) {
+  async function handleProfileComplete({ phone, city, avatarUrl }) {
     try {
-      const updated = await authApi.updateProfile({ phone, city });
+      const updated = await authApi.updateProfile({ phone, city, avatarUrl });
       await setUser(updated);
     } catch (e) {
       alert.error('Could not save profile', e?.message || 'Please try again.');

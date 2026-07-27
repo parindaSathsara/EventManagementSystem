@@ -27,7 +27,8 @@ function fmt(iso) {
  * One full-screen event "page" in the vertical stepper feed, framed by a thin
  * grey border so each event reads as its own card. The event company is the
  * headline (no "EVENT BY" prefix). "Buy Tickets" jumps straight to the
- * organizer's third-party ticketing link when one is set.
+ * organizer's third-party ticketing link — there is no in-app booking form
+ * any more (client feedback 2026-07-26).
  */
 export default function EventStepCard({
   event,
@@ -35,7 +36,6 @@ export default function EventStepCard({
   isFollowing,
   onToggleFollow,
   onOpenEvent,
-  onOpenBooking,
   onOpenArtist,
   onOpenManager,
 }) {
@@ -44,17 +44,14 @@ export default function EventStepCard({
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
   const { date, time } = fmt(event.startsAt);
   const descNeedsToggle = (event.description || '').length > 90;
-  // Once the event date/time has passed, buying is disabled.
+  // Buying is disabled once the event has passed, or until the organizer
+  // sets a ticketing link.
   const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
+  const buyDisabled = ended || !event.ticketUrl;
 
   function handleBuy() {
-    if (ended) return;
-    // Third-party ticketing first; in-app reserve is only the fallback.
-    if (event.ticketUrl) {
-      Linking.openURL(event.ticketUrl).catch(() => {});
-      return;
-    }
-    if (onOpenBooking) onOpenBooking(event.id);
+    if (buyDisabled) return;
+    Linking.openURL(event.ticketUrl).catch(() => {});
   }
 
   return (
@@ -130,14 +127,14 @@ export default function EventStepCard({
         {/* Buy Tickets — compact pill on the right, opens third-party
             ticketing. Disabled (greyed) once the event has passed. */}
         <TouchableOpacity
-          style={[styles.bookBtn, ended && styles.bookBtnEnded]}
-          activeOpacity={ended ? 1 : 0.9}
-          disabled={ended}
+          style={[styles.bookBtn, buyDisabled && styles.bookBtnEnded]}
+          activeOpacity={buyDisabled ? 1 : 0.9}
+          disabled={buyDisabled}
           onPress={handleBuy}
         >
-          <Ionicons name="ticket" size={14} color={ended ? COLORS.textMuted : '#000'} />
-          <Text style={[styles.bookText, ended && styles.bookTextEnded]}>
-            {ended ? 'Event ended' : 'Buy Tickets'}
+          <Ionicons name="ticket" size={14} color={buyDisabled ? COLORS.textMuted : '#000'} />
+          <Text style={[styles.bookText, buyDisabled && styles.bookTextEnded]}>
+            {ended ? 'Event ended' : event.ticketUrl ? 'Buy Tickets' : 'Tickets coming soon'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -223,7 +220,6 @@ EventStepCard.propTypes = {
   isFollowing: PropTypes.bool,
   onToggleFollow: PropTypes.func,
   onOpenEvent: PropTypes.func,
-  onOpenBooking: PropTypes.func,
   onOpenArtist: PropTypes.func,
   onOpenManager: PropTypes.func,
 };

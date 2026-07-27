@@ -21,16 +21,19 @@ import { artists as artistsApi, ApiError } from '../../../services/api';
 const CATEGORIES = ['Event Company', 'Artist', 'Musician', 'Band', 'Other'];
 
 /**
- * Customer → Artist upgrade flow.
+ * Customer → Stage profile upgrade flow.
  *
  * Two responsibilities:
- *   1. Collect the public-facing artist identity (handle, category, bio).
+ *   1. Collect the public-facing stage identity (handle, category, bio).
  *   2. Call POST /artists/become and refresh the global user context so the
- *      caller can immediately enter the artist tabs without a re-login.
+ *      caller can immediately enter the manager tabs without a re-login.
  *
  * Verification is a separate, admin-driven step — this screen only creates
- * the profile. The artist sees a "Pending verification" badge until admin
+ * the profile. The owner sees a "Pending verification" badge until admin
  * approves them.
+ *
+ * Naming: the API/DB still calls this an "artist", but every user-facing
+ * label reads "stage profile" per client feedback 2026-07-26.
  */
 export default function BecomeArtistScreen({ onSuccess, onBack }) {
   const [handle, setHandle] = useState('');
@@ -65,8 +68,8 @@ export default function BecomeArtistScreen({ onSuccess, onBack }) {
       // picks up the new artist relation across the tree.
       await refresh();
       alert.success(
-        'Welcome, artist!',
-        'Your profile is live. Submit for verification from your profile to start publishing.',
+        'Welcome to Stage!',
+        'Your stage profile is live. Submit for verification from your profile to start publishing.',
         () => onSuccess && onSuccess(),
       );
     } catch (err) {
@@ -83,7 +86,7 @@ export default function BecomeArtistScreen({ onSuccess, onBack }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
-      <ScreenHeader title="Become an Artist" onBack={onBack} />
+      <ScreenHeader title="Stage Profile" onBack={onBack} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -98,7 +101,7 @@ export default function BecomeArtistScreen({ onSuccess, onBack }) {
             <View style={styles.heroIcon}>
               <Ionicons name="musical-notes" size={28} color={COLORS.accent} />
             </View>
-            <Text style={styles.heroTitle}>Set up your artist profile</Text>
+            <Text style={styles.heroTitle}>Set up your stage profile</Text>
             <Text style={styles.heroSub}>
               Pick a public handle, tell people what you do, and start publishing reels and
               events. Verification unlocks publishing — submit from your profile once this
@@ -111,7 +114,7 @@ export default function BecomeArtistScreen({ onSuccess, onBack }) {
               label="Public handle"
               value={handle}
               onChangeText={(t) => setHandle(t.replace(/\s/g, ''))}
-              placeholder="mihiran"
+              placeholder="Enter name"
               autoCapitalize="none"
               autoComplete="username"
               error={errors.handle}
@@ -146,12 +149,12 @@ export default function BecomeArtistScreen({ onSuccess, onBack }) {
               label="Short bio (optional)"
               value={bio}
               onChangeText={setBio}
-              placeholder="Producer, DJ, live electronics."
+              placeholder="Enter short bio"
               autoCapitalize="sentences"
             />
 
             <Button
-              title="Create artist profile"
+              title="Create stage profile"
               onPress={handleSubmit}
               variant="primary"
               loading={submitting}

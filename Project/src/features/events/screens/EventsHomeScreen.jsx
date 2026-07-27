@@ -31,7 +31,7 @@ const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, s
  * next event. The event name is the focus and the event owner (manager) is shown.
  * Tapping a lineup artist or the owner opens a bottom sheet (socials + events).
  */
-export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSearch, onManagerCreate }) {
+export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerCreate }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
   const [feed, setFeed] = useState('forYou');
@@ -139,7 +139,6 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenBooking, onOpenSea
                 isFollowing={isFollowing(item.organizer.id)}
                 onToggleFollow={() => toggle(item.organizer.id)}
                 onOpenEvent={onOpenEvent}
-                onOpenBooking={onOpenBooking}
                 onOpenArtist={openArtist}
                 onOpenManager={openManager}
               />
@@ -175,7 +174,6 @@ IconBtn.propTypes = { icon: PropTypes.string, onPress: PropTypes.func };
 
 EventsHomeScreen.propTypes = {
   onOpenEvent: PropTypes.func,
-  onOpenBooking: PropTypes.func,
   onOpenSearch: PropTypes.func,
   onManagerCreate: PropTypes.func,
 };

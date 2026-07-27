@@ -7,7 +7,9 @@ import { useUnseenAlerts } from '../shared/hooks';
 // Reels are disabled for now — kept on disk, just unwired from the guest app.
 // import { ReelsScreen } from '../features/reels';
 import { ArtistProfileScreen } from '../features/artists';
-import { EventDetailScreen, EventsHomeScreen, BookingScreen } from '../features/events';
+// BookingScreen (the in-app reserve form) is unwired — ticketing is entirely
+// third-party now. Kept on disk like ReelsScreen, in case it comes back.
+import { EventDetailScreen, EventsHomeScreen } from '../features/events';
 import { UpcomingEventsScreen } from '../features/calendar';
 import { SearchScreen } from '../features/search';
 import { NotificationsScreen } from '../features/notifications';
@@ -57,16 +59,6 @@ export default function GuestTabs({ onManagerLogin }) {
         eventId={stack.params.eventId}
         onBack={pop}
         onOpenEvent={(id) => push('event', { eventId: id })}
-        onBook={(eventId) => push('booking', { eventId })}
-      />
-    );
-  } else if (stack.name === 'booking') {
-    overlay = (
-      <BookingScreen
-        eventId={stack.params.eventId}
-        ticketTypeId={stack.params.ticketTypeId}
-        onBack={pop}
-        onDone={() => pop()}
       />
     );
   } else if (stack.name === 'artist') {
@@ -104,7 +96,6 @@ export default function GuestTabs({ onManagerLogin }) {
         {tab === 'events' ? (
           <EventsHomeScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
-            onOpenBooking={(eventId) => push('booking', { eventId })}
             onOpenSearch={() => push('search')}
             onManagerCreate={onManagerLogin}
           />

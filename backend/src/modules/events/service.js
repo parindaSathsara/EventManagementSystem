@@ -72,23 +72,23 @@ function shape(row, { isSaved = false } = {}) {
  * relational lineup (registered artist accounts, socials from their profile).
  */
 function buildLineup(row) {
-  // Per client feedback: only the first slot carries a role label
-  // ("Headliner") — the "Support" tag was removed from the rest.
+  // No role labels at all — "Support" went first, then "Headliner" (client
+  // feedback 2026-07-26). The lineup is just names; order carries the billing.
   const free = safeParse(row.lineupJson, null);
   if (Array.isArray(free) && free.length) {
     return free.map((a, idx) => ({
       id: `g${idx}`,
       name: a?.name || 'Artist',
       avatarUrl: a?.avatarUrl || null,
-      role: idx === 0 ? 'Headliner' : '',
+      role: '',
       socials: a?.socials || null,
     }));
   }
-  return (row.lineup || []).map((entry, idx) => ({
+  return (row.lineup || []).map((entry) => ({
     id: entry.artist?.id || entry.artistId,
     name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
     avatarUrl: entry.artist?.user?.avatarUrl || null,
-    role: idx === 0 ? 'Headliner' : '',
+    role: '',
     socials: safeParse(entry.artist?.socialsJson, null),
   }));
 }

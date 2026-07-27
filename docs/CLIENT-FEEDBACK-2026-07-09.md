@@ -105,8 +105,15 @@ Fixed in `EventCreatorScreen`:
 - Backend modules pass `node --check`; `prisma validate` OK.
 - Not yet run against the live backend.
 
-**Deploy steps:** on the server — `npx prisma db push` (adds `ticketUrl` +
-`GuestFollow`), deploy backend, `pm2 restart events-ai`, smoke-test `/api`
-health, then rebuild the APK from this tree. Until the backend is deployed the
-app degrades gracefully: guest-follow sync calls simply fail silently and
-counts stay local-only.
+**Deploy steps:** a real migration now ships with the repo
+(`prisma/migrations/20260726000000_ticket_url_and_guest_follows/`), so no
+manual `db push` is needed. Just commit + push, then run
+`./deploy/gcloud-deploy.sh` from `backend/` — it pulls, runs `prisma generate`
++ `prisma migrate deploy` (applies the new migration), reloads pm2, and
+health-checks `/api`. Then rebuild the APK.
+If someone already ran the old manual `ALTER TABLE Event ADD COLUMN ticketUrl`
+on the live DB, `migrate deploy` will fail on the duplicate column — fix with
+`npx prisma migrate resolve --applied 20260726000000_ticket_url_and_guest_follows`
+after applying the GuestFollow part manually.
+Until the backend is deployed the app degrades gracefully: guest-follow sync
+calls fail silently and counts stay local-only.
