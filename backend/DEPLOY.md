@@ -211,16 +211,41 @@ That single script:
 `deploy.sh` then:
 - `git fetch && git reset --hard origin/main`
 - skips `npm ci` if `package*.json` and `prisma/schema.prisma` are unchanged
-- always runs `prisma migrate deploy` (idempotent — no-op when nothing to apply)
+- runs `prisma generate` when the schema changed (code generation only — it
+  never touches the database)
 - `pm2 reload events-ai` (zero-downtime restart)
 - polls `/api/health` until it answers, fails loudly if not
 
 Useful flags (work both locally and on the box):
 ```bash
 SKIP_INSTALL=1 ./deploy/gcloud-deploy.sh   # only code changed
-SKIP_MIGRATE=1 ./deploy/gcloud-deploy.sh   # avoid running migrations
 BRANCH=hotfix ./deploy/gcloud-deploy.sh    # deploy a non-main branch / tag / SHA
 ```
+
+### Migrations are a separate, manual step
+
+`deploy.sh` does **not** run `prisma migrate deploy`. Deploying code and
+changing the database are separate decisions, and a half-applied migration
+used to abort the whole deploy. When a deploy pulls a change to
+`prisma/schema.prisma` the script ends with a loud reminder — apply it
+yourself, checking the state first:
+
+```bash
+./deploy/gcloud-connect.sh "cd /var/www/events-ai/backend && npx prisma migrate status"
+./deploy/gcloud-connect.sh "cd /var/www/events-ai/backend && npx prisma migrate deploy"
+```
+
+If a migration fails because its SQL was already applied by hand (`P3018`,
+e.g. `Duplicate column name`), mark that one as done and re-run:
+
+```bash
+npx prisma migrate resolve --applied <migration_folder_name>
+npx prisma migrate deploy
+```
+
+**The cost of this being manual:** code expecting a new column deploys happily
+against a database that lacks it, and you get runtime 500s instead of a failed
+deploy. Always run `migrate status` after a schema-changing deploy.
 
 ### Running ad-hoc remote commands
 
