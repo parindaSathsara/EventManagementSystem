@@ -21,6 +21,7 @@ import {
   ScreenHeader,
 } from '../../../shared/components';
 import { useAlert } from '../../../shared/hooks';
+import { PRICE_TBA, TEASER } from '../../../shared/utils';
 import { eventsRepo } from '../../../services';
 import { uploads } from '../../../services/api';
 
@@ -35,8 +36,11 @@ const APPROVAL_MODES = ['Auto-publish', 'Submit for review'];
 const REVEALED_SOON = 'Revealed Soon';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 15, 30, 45];
+// An event with no end time picked runs this long by default.
+const DEFAULT_DURATION_H = 4;
 
 const COVER_GRADIENTS = [
   ['#FF3B3B', '#3d0b0b'],
@@ -56,10 +60,29 @@ function fmtHour(h) {
   return `${display} ${period}`;
 }
 
+/** "8 PM" / "8:30 PM" — `null` hour means nothing is picked yet. */
+function fmtTime(h, m) {
+  if (h == null) return null;
+  const period = h < 12 ? 'AM' : 'PM';
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return m ? `${display}:${String(m).padStart(2, '0')} ${period}` : `${display} ${period}`;
+}
+
 function pricesDigits(priceLabel) {
-  // "LKR 4500" -> "4500"; "Free" -> ''.
+  // "LKR 4500" -> "4500"; "Free" / "Coming soon" -> ''.
   const m = (priceLabel || '').replace(/[,\s]/g, '').match(/(\d+)/);
   return m ? m[1] : '';
+}
+
+function isFreeLabel(priceLabel) {
+  return (priceLabel || '').trim().toLowerCase() === 'free';
+}
+
+/** Minute chips — keeps a saved odd minute (e.g. :20) selectable on edit. */
+function minuteOptions(...saved) {
+  const set = new Set(MINUTES);
+  saved.forEach((m) => { if (m != null) set.add(m); });
+  return [...set].sort((a, b) => a - b);
 }
 
 /** Initial form state — either blank (create) or prefilled from `event` (edit). */
@@ -74,11 +97,19 @@ function initialState(event) {
     category: event?.category && CATEGORIES.includes(event.category) ? event.category : (event?.category || 'Live Concert'),
     year: start ? start.getFullYear() : now.getFullYear(),
     monthIdx: start ? start.getMonth() : now.getMonth(),
-    day: start ? start.getDate() : Math.min(now.getDate() + 7, daysInMonth(now.getFullYear(), now.getMonth())),
-    startH: start ? start.getHours() : 20,
-    startM: start ? (MINUTES.includes(start.getMinutes()) ? start.getMinutes() : 0) : 0,
-    endH: end ? end.getHours() : 23,
-    endM: end ? (MINUTES.includes(end.getMinutes()) ? end.getMinutes() : 0) : 30,
+    // `null` means "not picked yet". Nothing about the date or the time is
+    // pre-selected on a new event — the old silent defaults (a week from
+    // today, 8 PM–11:30 PM) were shipping on every event nobody touched them
+    // on (client feedback 2026-08-10). Editing prefills the real values, so
+    // the date and time stay changeable after publishing.
+    day: start ? start.getDate() : null,
+    // A day-only event carries a placeholder hour in `startsAt` — never show
+    // it back to the organizer, or "to be announced" would silently become a
+    // real noon start the next time they save.
+    startH: start && !event?.startTimeTba ? start.getHours() : null,
+    startM: start && !event?.startTimeTba ? start.getMinutes() : null,
+    endH: end && !event?.startTimeTba ? end.getHours() : null,
+    endM: end && !event?.startTimeTba ? end.getMinutes() : null,
     venue: event?.venueName || '',
     city: event?.cityName || 'Colombo',
     age: event?.ageRestriction || '18+',
@@ -87,9 +118,15 @@ function initialState(event) {
     instagram: socials.instagram || '',
     facebook: socials.facebook || '',
     tiktok: socials.tiktok || '',
+    // No prefilled ticket name/price — the manager types into empty boxes
+    // instead of clearing "General Admission" first.
     tickets: event?.ticketTypes?.length
-      ? event.ticketTypes.map((t) => ({ name: t.name, price: pricesDigits(t.priceLabel) }))
-      : [{ name: 'General Admission', price: '4500' }],
+      ? event.ticketTypes.map((t) => ({
+          name: t.name,
+          price: pricesDigits(t.priceLabel),
+          free: isFreeLabel(t.priceLabel),
+        }))
+      : [{ name: '', price: '', free: false }],
     lineup: event?.lineup?.length
       ? event.lineup.map((a) => ({
           name: a.name || '',
@@ -114,7 +151,6 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   const [form, setForm] = useState(() => initialState(event));
   const [coverIdx, setCoverIdx] = useState(0);
   const [approval, setApproval] = useState('Auto-publish');
-  const [refundable, setRefundable] = useState(true);
   const [saving, setSaving] = useState(false);
   // Flyer upload state — local preview shows instantly, the uploaded URL
   // lands in form.bannerUrl once the backend accepts it.
@@ -165,8 +201,20 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   }
 
   const maxDay = daysInMonth(form.year, form.monthIdx);
-  const dayClamped = Math.min(form.day, maxDay);
-  const dateLabel = `${String(dayClamped).padStart(2, '0')} ${MONTHS[form.monthIdx]} ${form.year}`;
+  // `null` until the manager picks a day — nothing is assumed for them.
+  const dayClamped = form.day == null ? null : Math.min(form.day, maxDay);
+  const datePicked = dayClamped != null;
+  const timePicked = form.startH != null;
+  const dateLabel = datePicked
+    ? `${WEEKDAYS[new Date(form.year, form.monthIdx, dayClamped).getDay()]}, ${String(dayClamped).padStart(2, '0')} ${MONTHS[form.monthIdx]} ${form.year}`
+    : 'Not selected yet';
+  // No start time picked is a valid, deliberate state — guests are told the
+  // time is coming rather than being given a made-up one.
+  const startLabel = fmtTime(form.startH, form.startM) || 'To be announced';
+  const endLabel = !timePicked
+    ? 'To be announced'
+    : fmtTime(form.endH, form.endM) ||
+      `${fmtTime((form.startH + DEFAULT_DURATION_H) % 24, form.startM)} (auto)`;
 
   /* ---------- lineup helpers ---------- */
   function addArtist(prefillName = '') {
@@ -222,12 +270,21 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
 
   /* ---------- tickets ---------- */
   function addTicket() {
-    setForm((f) => ({ ...f, tickets: [...f.tickets, { name: '', price: '' }] }));
+    setForm((f) => ({ ...f, tickets: [...f.tickets, { name: '', price: '', free: false }] }));
   }
   function updateTicket(idx, key, value) {
     setForm((f) => ({
       ...f,
       tickets: f.tickets.map((t, i) => (i === idx ? { ...t, [key]: value } : t)),
+    }));
+  }
+  /** "Free entry" — a free ticket and an unpriced one must not look the same. */
+  function toggleFreeTicket(idx) {
+    setForm((f) => ({
+      ...f,
+      tickets: f.tickets.map((t, i) =>
+        i === idx ? { ...t, free: !t.free, price: !t.free ? '' : t.price } : t,
+      ),
     }));
   }
   function removeTicket(idx) {
@@ -240,25 +297,55 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
       alert.error('Missing title', 'Please enter an event title.');
       return;
     }
-    if (!form.venue.trim()) {
-      alert.error('Missing venue', 'Please enter a venue name.');
+    // Venue is optional — many events are announced before the venue is
+    // confirmed. Guests see "Venue revealed soon" until it is filled in.
+    if (!datePicked) {
+      alert.error('Pick the event date', 'Choose the day your event happens under Date & time.');
       return;
     }
 
-    const startsAt = new Date(form.year, form.monthIdx, dayClamped, form.startH, form.startM, 0, 0);
-    let endsAt = new Date(form.year, form.monthIdx, dayClamped, form.endH, form.endM, 0, 0);
-    // Ends past midnight → next day.
-    if (endsAt <= startsAt) endsAt = new Date(endsAt.getTime() + 24 * 3600 * 1000);
+    // Start time is optional. With none picked the event is "day only": we
+    // store noon (a neutral hour that can't drift into another day in any
+    // timezone, so calendars group it correctly) and end of day (so it never
+    // reads as "ended" while the day is still running). `startTimeTba` tells
+    // the guest side to show "Time revealed soon" instead of that hour.
+    const timeTba = !timePicked;
+    const startsAt = timeTba
+      ? new Date(form.year, form.monthIdx, dayClamped, 12, 0, 0, 0)
+      : new Date(form.year, form.monthIdx, dayClamped, form.startH, form.startM || 0, 0, 0);
 
+    let endsAt;
+    if (timeTba) {
+      endsAt = new Date(form.year, form.monthIdx, dayClamped, 23, 59, 0, 0);
+    } else {
+      // No end time picked → run for the default duration rather than
+      // stamping a fixed hour on every event.
+      endsAt =
+        form.endH == null
+          ? new Date(startsAt.getTime() + DEFAULT_DURATION_H * 3600 * 1000)
+          : new Date(form.year, form.monthIdx, dayClamped, form.endH, form.endM || 0, 0, 0);
+      // Ends past midnight → next day.
+      if (endsAt <= startsAt) endsAt = new Date(endsAt.getTime() + 24 * 3600 * 1000);
+    }
+
+    // "Already over" is the honest check — an event whose day is still
+    // running can be published even if its (unknown) time may have passed.
+    if (!editing && endsAt.getTime() < Date.now()) {
+      alert.error('That date has passed', 'Pick a date in the future for a new event.');
+      return;
+    }
+
+    // Prices are optional: "Free entry" ticks explicitly free, an empty price
+    // shows guests "Coming soon" until the organizer sets it.
     const ticketTypes = form.tickets
       .map((t) => {
         const trimmedName = t.name.trim();
-        const cleanPrice = (t.price || '').toString().replace(/[,\s]/g, '');
+        const cleanPrice = t.free ? '' : (t.price || '').toString().replace(/[,\s]/g, '');
         const priceNum = cleanPrice ? parseFloat(cleanPrice) : 0;
         return {
           name: trimmedName,
-          priceLabel: cleanPrice ? `LKR ${cleanPrice}` : 'Free',
-          priceCents: Number.isFinite(priceNum) ? Math.round(priceNum * 100) : 0,
+          priceLabel: t.free ? 'Free' : cleanPrice ? `LKR ${cleanPrice}` : PRICE_TBA,
+          priceCents: !t.free && Number.isFinite(priceNum) ? Math.round(priceNum * 100) : 0,
           currency: 'LKR',
           // Quantity is no longer collected — sales are on the third-party
           // platform; capacity is a display-only high default.
@@ -266,11 +353,6 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
         };
       })
       .filter((t) => t.name);
-
-    if (ticketTypes.length === 0) {
-      alert.error('Add at least one ticket type', 'Each ticket needs a type name (price optional).');
-      return;
-    }
 
     const banner = validUrl(form.bannerUrl);
     const ticketUrl = validUrl(form.ticketUrl);
@@ -288,6 +370,8 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
       lineup: lineupArtists,
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
+      startTimeTba: timeTba,
+      // Empty venue is allowed — the guest side shows "Venue revealed soon".
       venueName: form.venue.trim(),
       cityName: form.city.trim() || 'Colombo',
       ageRestriction: form.age,
@@ -304,9 +388,6 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
         const newEvent = await eventsRepo.create({
           ...payload,
           addressLine: '',
-          cancellationPolicy: refundable
-            ? 'Refunds available up to 24h before event start.'
-            : 'Non-refundable.',
           status: approval === 'Auto-publish' ? 'published' : 'draft',
         });
         if (onSubmit) onSubmit(newEvent);
@@ -374,7 +455,9 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
                   {form.title || 'Your event title'}
                 </Text>
                 <Text style={styles.bannerSub}>
-                  {form.city} · {dateLabel} · {fmtHour(form.startH)}
+                  {[form.city, datePicked ? dateLabel : null, timePicked ? startLabel : null]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </Text>
               </>
             ) : null}
@@ -457,13 +540,31 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
           ))}
         </ScrollView>
 
-        {/* Date & time — selection, no typing */}
+        {/* Date & time — selection, no typing. Nothing is pre-picked: the
+            manager chooses the day and the start time, and both stay
+            editable after the event is published. */}
         <Text style={styles.sectionLabel}>Date & time</Text>
         <View style={styles.card}>
-          <Text style={styles.pickedLabel}>
-            <Ionicons name="calendar-outline" size={13} color={COLORS.accent} />
-            {'  '}{dateLabel} · {fmtHour(form.startH)}{form.startM ? `:${String(form.startM).padStart(2, '0')}` : ''} – {fmtHour(form.endH)}{form.endM ? `:${String(form.endM).padStart(2, '0')}` : ''}
-          </Text>
+          <View style={styles.summaryCard}>
+            <SummaryLine
+              icon="calendar-outline"
+              label="Date"
+              value={dateLabel}
+              pending={!datePicked}
+            />
+            <SummaryLine
+              icon="time-outline"
+              label="Starts"
+              value={startLabel}
+              pending={!timePicked}
+            />
+            <SummaryLine
+              icon="hourglass-outline"
+              label="Ends"
+              value={endLabel}
+              pending={!timePicked}
+            />
+          </View>
 
           <PickRow
             label="Year"
@@ -480,7 +581,7 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
             onPick={(v) => set('monthIdx', v)}
           />
           <PickRow
-            label="Day"
+            label="Day (required)"
             options={Array.from({ length: maxDay }, (_, i) => i + 1)}
             value={dayClamped}
             format={String}
@@ -489,40 +590,72 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
           {/* Start & end minutes are picked separately (they used to share
               one selector, which forced the same minutes on both). */}
           <PickRow
-            label="Starts"
+            label="Start time (optional)"
             options={HOURS}
             value={form.startH}
             format={fmtHour}
             onPick={(v) => set('startH', v)}
+            onClear={timePicked ? () => setForm((f) => ({ ...f, startH: null, startM: null, endH: null, endM: null })) : undefined}
           />
-          <PickRow
-            label="Start minutes"
-            options={MINUTES}
-            value={form.startM}
-            format={(m) => `:${String(m).padStart(2, '0')}`}
-            onPick={(v) => set('startM', v)}
-          />
-          <PickRow
-            label="Ends"
-            options={HOURS}
-            value={form.endH}
-            format={fmtHour}
-            onPick={(v) => set('endH', v)}
-          />
-          <PickRow
-            label="End minutes"
-            options={MINUTES}
-            value={form.endM}
-            format={(m) => `:${String(m).padStart(2, '0')}`}
-            onPick={(v) => set('endM', v)}
-          />
+          {/* Minutes and the end time only mean something once a start hour
+              exists — until then the whole event is simply "that day". */}
+          {timePicked ? (
+            <>
+              <PickRow
+                label="Start minutes"
+                options={minuteOptions(form.startM)}
+                value={form.startM}
+                format={(m) => `:${String(m).padStart(2, '0')}`}
+                onPick={(v) => set('startM', v)}
+              />
+              <PickRow
+                label="End time (optional)"
+                options={HOURS}
+                value={form.endH}
+                format={fmtHour}
+                onPick={(v) => set('endH', v)}
+                onClear={form.endH != null ? () => setForm((f) => ({ ...f, endH: null, endM: null })) : undefined}
+              />
+              {form.endH != null ? (
+                <PickRow
+                  label="End minutes"
+                  options={minuteOptions(form.endM)}
+                  value={form.endM}
+                  format={(m) => `:${String(m).padStart(2, '0')}`}
+                  onPick={(v) => set('endM', v)}
+                />
+              ) : null}
+            </>
+          ) : null}
+          <View style={styles.hintRow}>
+            <Ionicons name="sparkles-outline" size={14} color={COLORS.textMuted} />
+            <Text style={styles.hintText}>
+              Only the day is required — nothing is filled in for you. Skip the start time and
+              guests see “{TEASER.time}” until you announce it. Pick a start time but no end time
+              and the event runs {DEFAULT_DURATION_H} hours. All of it stays editable from
+              My Events → Edit.
+            </Text>
+          </View>
         </View>
 
-        {/* Venue */}
+        {/* Venue — optional; announce first, confirm the venue later */}
         <Text style={styles.sectionLabel}>Venue</Text>
         <View style={styles.card}>
-          <Field icon="location-outline" label="Venue name" value={form.venue} onChange={(v) => set('venue', v)} placeholder="Stardust Arena" />
+          <Field
+            icon="location-outline"
+            label="Venue name (optional)"
+            value={form.venue}
+            onChange={(v) => set('venue', v)}
+            placeholder="Leave empty to keep it a secret"
+          />
           <Field icon="map-outline" label="City" value={form.city} onChange={(v) => set('city', v)} placeholder="Colombo" />
+          <View style={styles.hintRow}>
+            <Ionicons name="sparkles-outline" size={14} color={COLORS.textMuted} />
+            <Text style={styles.hintText}>
+              No venue yet? Guests see “Venue revealed soon” until you add it — perfect for a
+              surprise location.
+            </Text>
+          </View>
         </View>
 
         {/* Age */}
@@ -578,18 +711,42 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
                     label="Type name"
                     value={t.name}
                     onChange={(v) => updateTicket(idx, 'name', v)}
-                    placeholder="e.g. VIP Lounge"
+                    placeholder="e.g. General Admission"
                   />
                 </View>
                 <View style={{ width: SPACING.sm }} />
                 <View style={{ flex: 1 }}>
                   <Field
                     label="Price (LKR)"
-                    value={t.price}
-                    onChange={(v) => updateTicket(idx, 'price', v)}
-                    placeholder="4500"
+                    value={t.free ? '' : t.price}
+                    // Digits only — a stray letter would ship as "LKR abc" on
+                    // the guest page.
+                    onChange={(v) => updateTicket(idx, 'price', v.replace(/[^0-9.]/g, ''))}
+                    placeholder={t.free ? 'Free entry' : 'Leave empty'}
+                    editable={!t.free}
+                    keyboardType="number-pad"
                   />
                 </View>
+              </View>
+              <View style={styles.ticketFoot}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => toggleFreeTicket(idx)}
+                  style={[styles.freeChip, t.free && styles.freeChipOn]}
+                >
+                  <Ionicons
+                    name={t.free ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={14}
+                    color={t.free ? '#000' : COLORS.textMuted}
+                  />
+                  <Text style={[styles.freeChipText, t.free && styles.freeChipTextOn]}>Free entry</Text>
+                </TouchableOpacity>
+                <Text style={styles.pricePreview} numberOfLines={1}>
+                  Guests see:{' '}
+                  <Text style={styles.pricePreviewValue}>
+                    {t.free ? 'Free' : t.price.trim() ? `LKR ${t.price.trim()}` : PRICE_TBA}
+                  </Text>
+                </Text>
               </View>
             </View>
           ))}
@@ -597,6 +754,13 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
             <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
             <Text style={styles.addTicketText}>Add another ticket type</Text>
           </TouchableOpacity>
+          <View style={[styles.hintRow, { marginTop: SPACING.sm }]}>
+            <Ionicons name="sparkles-outline" size={14} color={COLORS.textMuted} />
+            <Text style={styles.hintText}>
+              Prices are optional. Leave one empty and guests see “{PRICE_TBA}” until you set it —
+              leave the whole section blank and they see “Ticket details coming soon”.
+            </Text>
+          </View>
         </View>
 
         {/* Line up — reorderable; slot #1 is fixed, order carries the billing */}
@@ -695,23 +859,11 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
           <Field icon="logo-tiktok" label="TikTok" value={form.tiktok} onChange={(v) => set('tiktok', v)} placeholder="https://tiktok.com/@…" />
         </View>
 
-        {/* Policies + approval — create only (kept as-is per client) */}
+        {/* Approval mode — create only. The refund/cancellation policy block
+            was removed entirely (client feedback 2026-08-10): ticketing and
+            its policies live on the third-party platform. */}
         {!editing ? (
           <>
-            <Text style={styles.sectionLabel}>Policies</Text>
-            <View style={styles.card}>
-              <View style={styles.policyRow}>
-                <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.highlight} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.policyLabel}>Refundable</Text>
-                  <Text style={styles.policySub}>Customers can request refunds up to 24h before the event.</Text>
-                </View>
-                <TouchableOpacity activeOpacity={0.7} onPress={() => setRefundable((r) => !r)} style={[styles.toggle, refundable && styles.toggleOn]}>
-                  <View style={[styles.toggleKnob, refundable && styles.toggleKnobOn]} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
             <Text style={styles.sectionLabel}>Approval mode</Text>
             <View style={styles.chipsRow}>
               {APPROVAL_MODES.map((m) => (
@@ -751,11 +903,42 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   );
 }
 
-/** Horizontal chip row picker — the "selection instead of typing" control. */
-function PickRow({ label, options, value, format, onPick }) {
+/** One line of the date/time summary — reads "Not selected yet" until picked. */
+function SummaryLine({ icon, label, value, pending }) {
+  return (
+    <View style={styles.summaryLine}>
+      <Ionicons name={icon} size={14} color={pending ? COLORS.textMuted : COLORS.accent} />
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={[styles.summaryValue, pending && styles.summaryValuePending]} numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+SummaryLine.propTypes = {
+  icon: PropTypes.string,
+  label: PropTypes.string,
+  value: PropTypes.string,
+  pending: PropTypes.bool,
+};
+
+/**
+ * Horizontal chip row picker — the "selection instead of typing" control.
+ * `onClear` adds a "Clear" affordance so an optional pick (the start time)
+ * can be taken back to "to be announced" once chosen.
+ */
+function PickRow({ label, options, value, format, onPick, onClear }) {
   return (
     <View style={styles.pickRow}>
-      <Text style={styles.pickLabel}>{label}</Text>
+      <View style={styles.pickHead}>
+        <Text style={styles.pickLabel}>{label}</Text>
+        {onClear ? (
+          <TouchableOpacity onPress={onClear} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.pickClear}>Clear</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.stripBar} contentContainerStyle={styles.pickStrip}>
         {options.map((opt) => {
           const active = opt === value;
@@ -783,13 +966,20 @@ PickRow.propTypes = {
   value: PropTypes.any,
   format: PropTypes.func,
   onPick: PropTypes.func,
+  onClear: PropTypes.func,
 };
 
-function Field({ icon, label, value, onChange, placeholder, multiline }) {
+function Field({ icon, label, value, onChange, placeholder, multiline, editable = true, keyboardType }) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.fieldInputWrap, multiline && styles.fieldInputWrapMulti]}>
+      <View
+        style={[
+          styles.fieldInputWrap,
+          multiline && styles.fieldInputWrapMulti,
+          !editable && styles.fieldInputWrapOff,
+        ]}
+      >
         {icon ? <Ionicons name={icon} size={14} color={COLORS.textMuted} style={{ marginRight: 6 }} /> : null}
         <TextInput
           value={value}
@@ -797,6 +987,8 @@ function Field({ icon, label, value, onChange, placeholder, multiline }) {
           placeholder={placeholder}
           placeholderTextColor={COLORS.textMuted}
           multiline={multiline}
+          editable={editable}
+          keyboardType={keyboardType}
           style={[styles.fieldInput, multiline && { minHeight: 88, textAlignVertical: 'top' }]}
         />
       </View>
@@ -811,6 +1003,8 @@ Field.propTypes = {
   onChange: PropTypes.func,
   placeholder: PropTypes.string,
   multiline: PropTypes.bool,
+  editable: PropTypes.bool,
+  keyboardType: PropTypes.string,
 };
 
 EventCreatorScreen.propTypes = {
@@ -950,6 +1144,7 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
     paddingBottom: SPACING.sm,
   },
+  fieldInputWrapOff: { opacity: 0.5 },
   fieldInput: {
     flex: 1,
     color: COLORS.textPrimary,
@@ -973,20 +1168,52 @@ const styles = StyleSheet.create({
   },
 
   /* date & time selection */
-  pickedLabel: {
+  summaryCard: {
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    marginBottom: SPACING.base,
+    borderRadius: RADII.md,
+    backgroundColor: COLORS.surface2,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+  },
+  summaryLine: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  summaryLabel: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    width: 52,
+  },
+  summaryValue: {
+    flex: 1,
     ...TYPE_SCALE.bodyMd,
     fontFamily: FONT_FAMILY.headingSemiBold,
     color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
+  },
+  summaryValuePending: {
+    fontFamily: FONT_FAMILY.body,
+    color: COLORS.textMuted,
   },
   pickRow: { marginBottom: SPACING.sm },
+  pickHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
   pickLabel: {
     ...TYPE_SCALE.caption,
     fontFamily: FONT_FAMILY.bodyMedium,
     color: COLORS.textMuted,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
-    marginBottom: 6,
+  },
+  pickClear: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accent,
   },
   pickStrip: { gap: 6, paddingRight: SPACING.base },
   pickChip: {
@@ -1064,30 +1291,36 @@ const styles = StyleSheet.create({
   addTicketText: { fontSize: 13, fontFamily: FONT_FAMILY.bodySemiBold, color: COLORS.accent },
   lineupBtns: { flexDirection: 'row', gap: SPACING.sm },
 
-  policyRow: {
+  /* ticket price row */
+  ticketFoot: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
-    paddingVertical: SPACING.sm,
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    marginTop: 2,
   },
-  policyLabel: { ...TYPE_SCALE.bodyMd, fontFamily: FONT_FAMILY.headingSemiBold, color: COLORS.textPrimary },
-  policySub: { ...TYPE_SCALE.caption, fontFamily: FONT_FAMILY.body, color: COLORS.textMuted, marginTop: 2 },
-  toggle: {
-    width: 44,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: COLORS.surface3,
-    padding: 3,
-    justifyContent: 'center',
+  freeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: SPACING.sm + 2,
+    paddingVertical: 6,
+    borderRadius: RADII.pill,
+    borderWidth: 1,
+    borderColor: COLORS.lineSubtle,
+    backgroundColor: COLORS.surface2,
   },
-  toggleOn: { backgroundColor: COLORS.accent },
-  toggleKnob: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#fff',
+  freeChipOn: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  freeChipText: { fontSize: 12, fontFamily: FONT_FAMILY.bodyMedium, color: COLORS.textSecondary },
+  freeChipTextOn: { color: '#000', fontFamily: FONT_FAMILY.bodyBold },
+  pricePreview: {
+    flexShrink: 1,
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.body,
+    color: COLORS.textMuted,
+    textAlign: 'right',
   },
-  toggleKnobOn: { transform: [{ translateX: 18 }] },
+  pricePreviewValue: { fontFamily: FONT_FAMILY.bodyBold, color: COLORS.textSecondary },
 
   helperCard: {
     flexDirection: 'row',

@@ -13,6 +13,7 @@ import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import { Chip, ScreenHeader, EmptyState } from '../../../shared/components';
 import { useTicketsData, useAlert } from '../../../shared/hooks';
+import { venueLine } from '../../../shared/utils';
 
 function formatLocal(iso) {
   const d = new Date(iso);
@@ -57,7 +58,7 @@ function TicketCard({ ticket, onPress }) {
         </View>
         <View style={styles.metaRow}>
           <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
-          <Text style={styles.meta} numberOfLines={1}>{event.venueName}</Text>
+          <Text style={styles.meta} numberOfLines={1}>{venueLine(event, { withCity: false })}</Text>
         </View>
         <View style={styles.bottomRow}>
           <Text style={styles.ticketTypeLabel}>{ticket.typeName}</Text>

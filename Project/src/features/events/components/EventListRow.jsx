@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
+import { hasStartTime, timeLabel, venueLine } from '../../../shared/utils';
 
 /**
  * One event in a company's list:
@@ -14,7 +15,7 @@ export default function EventListRow({ event, onPress }) {
   const d = new Date(event.startsAt);
   const day = d.getDate();
   const month = d.toLocaleString('en', { month: 'short' }).toUpperCase();
-  const time = d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' });
+  const time = timeLabel(event, { short: true });
 
   return (
     <TouchableOpacity style={styles.row} activeOpacity={0.8} onPress={onPress}>
@@ -27,12 +28,12 @@ export default function EventListRow({ event, onPress }) {
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
         <View style={styles.metaLine}>
           <Ionicons name="time-outline" size={13} color={COLORS.textMuted} />
-          <Text style={styles.time}>{time}</Text>
+          <Text style={[styles.time, !hasStartTime(event) && styles.timePending]}>{time}</Text>
         </View>
         <View style={styles.metaLine}>
           <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
           <Text style={styles.place} numberOfLines={1}>
-            {event.venueName}{event.cityName ? ` · ${event.cityName}` : ''}
+            {venueLine(event)}
           </Text>
         </View>
       </View>
@@ -95,6 +96,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.bodyMedium,
     color: COLORS.textSecondary,
   },
+  // Unannounced time reads as a teaser, not as real data.
+  timePending: { color: COLORS.accent, fontFamily: FONT_FAMILY.bodyBold },
   place: {
     ...TYPE_SCALE.caption,
     fontFamily: FONT_FAMILY.body,

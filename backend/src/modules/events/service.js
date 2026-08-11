@@ -50,8 +50,12 @@ function safeParse(json, fallback) {
 
 function shape(row, { isSaved = false } = {}) {
   if (!row) return row;
+  // Refund / cancellation policies are no longer part of the product — drop
+  // them from the API contract so legacy rows stop leaking them to the app.
+  // eslint-disable-next-line no-unused-vars
+  const { refundPolicy, cancellationPolicy, ...event } = row;
   return {
-    ...row,
+    ...event,
     geo: row.geoLat != null && row.geoLng != null
       ? { lat: row.geoLat, lng: row.geoLng }
       : null,
@@ -70,6 +74,12 @@ function shape(row, { isSaved = false } = {}) {
  * Lineup display list. Free-form `lineupJson` (artists the manager typed in,
  * each with their own socials) takes precedence; otherwise we fall back to the
  * relational lineup (registered artist accounts, socials from their profile).
+ *
+ * The organizer is never part of the displayed lineup. Events used to be
+ * created with the organising company as their own lineup entry, so an event
+ * with no artists announced showed the company's name under "Line Up" — the
+ * guest side now shows "Line up revealed soon" instead (client feedback
+ * 2026-08-10). Legacy rows still carry that entry, hence the filter here.
  */
 function buildLineup(row) {
   // No role labels at all — "Support" went first, then "Headliner" (client
@@ -84,13 +94,15 @@ function buildLineup(row) {
       socials: a?.socials || null,
     }));
   }
-  return (row.lineup || []).map((entry) => ({
-    id: entry.artist?.id || entry.artistId,
-    name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
-    avatarUrl: entry.artist?.user?.avatarUrl || null,
-    role: '',
-    socials: safeParse(entry.artist?.socialsJson, null),
-  }));
+  return (row.lineup || [])
+    .filter((entry) => (entry.artist?.id || entry.artistId) !== row.organizerArtistId)
+    .map((entry) => ({
+      id: entry.artist?.id || entry.artistId,
+      name: entry.artist?.user?.name || entry.artist?.handle || 'Artist',
+      avatarUrl: entry.artist?.user?.avatarUrl || null,
+      role: '',
+      socials: safeParse(entry.artist?.socialsJson, null),
+    }));
 }
 
 function whereForStatus(status) {
@@ -176,8 +188,10 @@ async function create(input, artistId) {
     throw new BadRequest('Event endsAt must be after startsAt.');
   }
   const { ticketTypes, lineupArtistIds, lineup, flyers, socials, ...rest } = input;
-  // The organizer is always part of their own event's lineup if not already.
-  const lineupIds = lineupArtistIds.length ? lineupArtistIds : [artistId];
+  // Only artists explicitly put on the bill get a lineup entry. The organizer
+  // used to be added to their own lineup, which surfaced the company name as
+  // a performing artist on events with nothing announced yet.
+  const lineupIds = lineupArtistIds;
 
   const created = await prisma.event.create({
     data: {

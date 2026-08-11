@@ -13,6 +13,7 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import Avatar from '../../../shared/components/Avatar';
+import { venueLine } from '../../../shared/utils';
 import SocialRow from './SocialRow';
 
 /**
@@ -98,7 +99,7 @@ export default function ProfileSheet({
                     <View style={{ flex: 1 }}>
                       <Text style={styles.eventTitle} numberOfLines={1}>{ev.title}</Text>
                       <Text style={styles.eventMeta} numberOfLines={1}>
-                        {ev.venueName}{ev.cityName ? ` · ${ev.cityName}` : ''}
+                        {venueLine(ev)}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />

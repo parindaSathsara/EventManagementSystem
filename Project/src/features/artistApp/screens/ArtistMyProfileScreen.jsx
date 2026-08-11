@@ -18,6 +18,7 @@ import {
   SectionHeader,
 } from '../../../shared/components';
 import { useEventsData, useReelsData, useAlert, useUser } from '../../../shared/hooks';
+import { venueLine } from '../../../shared/utils';
 
 const TABS = [
   { key: 'events', label: 'Events' },
@@ -256,7 +257,7 @@ function EventListRow({ event, muted, onPress }) {
       <View style={{ flex: 1 }}>
         <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
         <Text style={styles.eventMeta} numberOfLines={1}>
-          {event.venueName} · {event.cityName}
+          {venueLine(event)}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />

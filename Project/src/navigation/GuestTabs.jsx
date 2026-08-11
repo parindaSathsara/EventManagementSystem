@@ -82,6 +82,12 @@ export default function GuestTabs({ onManagerLogin }) {
 
   return (
     <View style={styles.container}>
+      {/* Every tab stays mounted and the inactive ones are just hidden. This
+          is what makes the Timeline hold its place: switching to Calendar or
+          Alerts and back returns to the exact event the guest was on, instead
+          of snapping to the first post (client feedback 2026-08-10). Each
+          screen reads from the shared repos, so keeping them mounted costs a
+          view tree, not extra fetches. */}
       <View style={styles.body}>
         {/* Reels tab disabled for now.
         {tab === 'reels' ? (
@@ -93,27 +99,28 @@ export default function GuestTabs({ onManagerLogin }) {
         ) : null}
         */}
 
-        {tab === 'events' ? (
+        <View style={[styles.page, tab !== 'events' && styles.pageHidden]}>
           <EventsHomeScreen
+            active={tab === 'events'}
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenSearch={() => push('search')}
             onManagerCreate={onManagerLogin}
           />
-        ) : null}
+        </View>
 
-        {tab === 'calendar' ? (
+        <View style={[styles.page, tab !== 'calendar' && styles.pageHidden]}>
           <UpcomingEventsScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
             onOpenSearch={() => push('search')}
             onManagerLogin={onManagerLogin}
           />
-        ) : null}
+        </View>
 
-        {tab === 'notifications' ? (
+        <View style={[styles.page, tab !== 'notifications' && styles.pageHidden]}>
           <NotificationsScreen
             onOpenEvent={(id) => push('event', { eventId: id })}
           />
-        ) : null}
+        </View>
       </View>
 
       <BottomTabBar tabs={tabs} activeKey={tab} onChange={setTab} />
@@ -130,5 +137,10 @@ GuestTabs.propTypes = {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bgStrong },
   body: { flex: 1 },
+  // Tabs are stacked; only the active one is displayed. `display: none` keeps
+  // the hidden screens mounted (and their scroll offsets alive) without
+  // painting or measuring them.
+  page: { ...StyleSheet.absoluteFillObject },
+  pageHidden: { display: 'none' },
   overlay: { backgroundColor: COLORS.bgStrong },
 });

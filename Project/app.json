@@ -4,13 +4,13 @@
     "slug": "event-social",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Logo/logo.png",
+    "icon": "./assets/Logo/STAGE_Primary.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/Logo/logo.png",
+      "image": "./assets/Logo/stage.png",
       "resizeMode": "contain",
-      "backgroundColor": "#050505"
+      "backgroundColor": "#0B0000"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,12 +19,13 @@
     "android": {
       "package": "com.aahaas.eventsocial",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Logo/logo.png",
-        "backgroundColor": "#050505"
+        "foregroundImage": "./assets/Logo/adaptive-foreground.png",
+        "backgroundImage": "./assets/Logo/adaptive-background.png",
+        "backgroundColor": "#8A0000"
       }
     },
     "web": {
-      "favicon": "./assets/Logo/logo.png"
+      "favicon": "./assets/Logo/STAGE_Primary.png"
     },
     "plugins": [
       "expo-font",

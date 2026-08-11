@@ -12,17 +12,14 @@ import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import { Button, Chip, ScreenHeader, EmptyState } from '../../../shared/components';
 import { useTicketsData } from '../../../shared/hooks';
+import { hasStartTime, timeLabel, venueLine } from '../../../shared/utils';
 import QRPlaceholder from '../components/QRPlaceholder';
 
-function format(iso) {
-  const d = new Date(iso);
-  return d.toLocaleString('en', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+/** Long date, plus the clock time only when the organizer announced one. */
+function format(event) {
+  const d = new Date(event.startsAt);
+  const day = d.toLocaleString('en', { weekday: 'long', day: 'numeric', month: 'long' });
+  return `${day}, ${timeLabel(event, { short: !hasStartTime(event) })}`;
 }
 
 export default function TicketDetailScreen({ ticketId, onBack, onOpenEvent }) {
@@ -77,8 +74,8 @@ export default function TicketDetailScreen({ ticketId, onBack, onOpenEvent }) {
 
           <View style={styles.divider} />
 
-          <Row icon="calendar-outline" label="Starts" value={format(event.startsAt)} />
-          <Row icon="location-outline" label="Venue" value={`${event.venueName}, ${event.cityName}`} />
+          <Row icon="calendar-outline" label="Starts" value={format(event)} />
+          <Row icon="location-outline" label="Venue" value={venueLine(event)} />
           <Row icon="ticket-outline" label="Ticket type" value={ticket.typeName} />
           <Row icon="person-outline" label="Holder" value={ticket.holderName} />
           {event.ageRestriction ? (

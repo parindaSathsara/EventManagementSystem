@@ -13,8 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
-import { EmptyState, Chip, Avatar } from '../../../shared/components';
+import { EmptyState, Chip, Avatar, ComingSoon } from '../../../shared/components';
 import { useEventsData, useAlert, useFollows } from '../../../shared/hooks';
+import { TEASER, hasVenue, hasLineup, hasStartTime, timeLabel, venueLine } from '../../../shared/utils';
 import EventHero from '../components/EventHero';
 import LineupRow from '../components/LineupRow';
 import SocialRow from '../components/SocialRow';
@@ -28,7 +29,6 @@ function fmtDate(iso) {
     weekday: d.toLocaleString('en', { weekday: 'short' }).toUpperCase(),
     day: d.getDate(),
     month: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
-    time: d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }),
   };
 }
 
@@ -107,9 +107,12 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
     const when = new Date(event.startsAt).toLocaleDateString('en', {
       weekday: 'short', day: 'numeric', month: 'short',
     });
+    // Unannounced details share as their teaser, never as a dangling "at ,".
+    const where = hasVenue(event) ? `${event.venueName}, ${event.cityName}` : TEASER.venue;
+    const at = hasStartTime(event) ? `, ${timeLabel(event)}` : ` (${TEASER.time.toLowerCase()})`;
     try {
       await Share.share({
-        message: `${event.title} · ${when} at ${event.venueName}, ${event.cityName}${event.ticketUrl ? `\nTickets: ${event.ticketUrl}` : ''}`,
+        message: `${event.title} · ${when}${at} · ${where}${event.ticketUrl ? `\nTickets: ${event.ticketUrl}` : ''}`,
         title: event.title,
       });
     } catch {
@@ -117,8 +120,9 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
     }
   }
 
+  /** Maps only makes sense once there is a venue (or coordinates) to point at. */
   function handleOpenMaps() {
-    if (!event) return;
+    if (!event || !mappable) return;
     const lat = event.geo?.lat;
     const lng = event.geo?.lng;
     const label = encodeURIComponent(`${event.venueName}, ${event.cityName}`);
@@ -150,12 +154,18 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
   const orgName = org.user?.name || org.handle || 'Event Company';
   const orgId = org.id;
   const socials = event.socials || org.socials || null;
-  const { weekday, day, month, time } = fmtDate(event.startsAt);
+  const { weekday, day, month } = fmtDate(event.startsAt);
   // ~4 lines of bodyMd fits ±160 chars — a simple, reliable overflow check
   // (onTextLayout on a clamped <Text> mis-reports on Android).
   const descNeedsToggle = (event.description || '').length > 160;
   const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
   const buyDisabled = ended || !event.ticketUrl;
+  // Details the organizer hasn't announced yet are shown as promises, not as
+  // blanks (client feedback 2026-08-10).
+  const venueKnown = hasVenue(event);
+  const lineupKnown = hasLineup(event);
+  const timeKnown = hasStartTime(event);
+  const mappable = venueKnown || (event.geo?.lat != null && event.geo?.lng != null);
 
   return (
     <View style={styles.container}>
@@ -202,11 +212,18 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
               <Text style={styles.eventTitle} numberOfLines={3}>{event.title}</Text>
               <View style={styles.metaLine}>
                 <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
-                <Text style={styles.metaText}>{time}{event.timezone ? ` · ${event.timezone}` : ''}</Text>
+                <Text style={[styles.metaText, !timeKnown && styles.metaTextPending]}>
+                  {timeLabel(event)}{timeKnown && event.timezone ? ` · ${event.timezone}` : ''}
+                </Text>
               </View>
               <View style={styles.metaLine}>
                 <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
-                <Text style={styles.metaText} numberOfLines={1}>{event.venueName} · {event.cityName}</Text>
+                <Text
+                  style={[styles.metaText, !venueKnown && styles.metaTextPending]}
+                  numberOfLines={1}
+                >
+                  {venueLine(event)}
+                </Text>
               </View>
             </View>
           </View>
@@ -238,62 +255,97 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
             </View>
           ) : null}
 
-          {/* Lineup */}
-          {event.lineup && event.lineup.length ? (
-            <View style={styles.section}>
-              <Text style={styles.lineupLabel}>Line Up</Text>
+          {/* Lineup — always shown. Nothing announced yet reads as a promise,
+              which is half the reason guests come back to this page. */}
+          <View style={styles.section}>
+            <Text style={styles.lineupLabel}>Line Up</Text>
+            {lineupKnown ? (
               <View style={styles.lineupInset}>
                 <LineupRow lineup={event.lineup} onArtistPress={openArtist} />
               </View>
-              {socials ? (
-                <View style={styles.socialInLineup}>
-                  <Text style={styles.socialLabel}>Follow on social</Text>
-                  <SocialRow socials={socials} />
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+            ) : (
+              <ComingSoon
+                title={TEASER.lineup}
+                message={`${orgName} hasn't announced the artists yet. Follow them and we'll alert you the moment the line up drops.`}
+                icon="musical-notes"
+              />
+            )}
+            {socials ? (
+              <View style={styles.socialInLineup}>
+                <Text style={styles.socialLabel}>Follow on social</Text>
+                <SocialRow socials={socials} />
+              </View>
+            ) : null}
+          </View>
 
           {/* Venue */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Venue</Text>
-            <View style={styles.venueCard}>
-              <View style={styles.venueIcon}>
-                <Ionicons name="location" size={20} color={COLORS.accent} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.venueName}>{event.venueName}</Text>
-                <Text style={styles.venueAddress} numberOfLines={2}>{event.addressLine}</Text>
-              </View>
-              <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7} onPress={handleOpenMaps}>
-                <Ionicons name="navigate" size={16} color="#000" />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleOpenMaps}
-              style={styles.mapPreview}
-            >
-              <Ionicons name="map" size={32} color={COLORS.textMuted} />
-              <Text style={styles.mapHint}>Tap to open in Maps</Text>
-            </TouchableOpacity>
+            {venueKnown ? (
+              <>
+                <View style={styles.venueCard}>
+                  <View style={styles.venueIcon}>
+                    <Ionicons name="location" size={20} color={COLORS.accent} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.venueName}>{event.venueName}</Text>
+                    {event.addressLine ? (
+                      <Text style={styles.venueAddress} numberOfLines={2}>{event.addressLine}</Text>
+                    ) : event.cityName ? (
+                      <Text style={styles.venueAddress} numberOfLines={2}>{event.cityName}</Text>
+                    ) : null}
+                  </View>
+                  <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7} onPress={handleOpenMaps}>
+                    <Ionicons name="navigate" size={16} color="#000" />
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleOpenMaps}
+                  style={styles.mapPreview}
+                >
+                  <Ionicons name="map" size={32} color={COLORS.textMuted} />
+                  <Text style={styles.mapHint}>Tap to open in Maps</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <ComingSoon
+                title={TEASER.venue}
+                message={
+                  event.cityName
+                    ? `Somewhere in ${event.cityName} — the exact venue is announced closer to the date. Stay tuned.`
+                    : 'The exact venue is announced closer to the date. Stay tuned.'
+                }
+                icon="location"
+              />
+            )}
           </View>
 
           {/* Tickets — display-only (sales happen on the third-party platform) */}
-          {event.ticketTypes && event.ticketTypes.length ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Tickets</Text>
-              {event.ticketTypes.map((t) => (
-                <TicketTypeRow key={t.id} ticket={t} />
-              ))}
-              {event.ticketUrl ? (
-                <View style={styles.ticketNote}>
-                  <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
-                  <Text style={styles.ticketNoteText}>Tickets are sold on the organizer's ticketing platform.</Text>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Tickets</Text>
+            {/* Types with no price yet still list — each row says "Coming
+                soon" — so guests can see what categories exist. */}
+            {event.ticketTypes && event.ticketTypes.length ? (
+              <>
+                {event.ticketTypes.map((t) => (
+                  <TicketTypeRow key={t.id} ticket={t} />
+                ))}
+                {event.ticketUrl ? (
+                  <View style={styles.ticketNote}>
+                    <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
+                    <Text style={styles.ticketNoteText}>Tickets are sold on the organizer's ticketing platform.</Text>
+                  </View>
+                ) : null}
+              </>
+            ) : (
+              <ComingSoon
+                title={TEASER.tickets}
+                message="Prices and ticket categories are announced soon. Follow the company to be alerted first."
+                icon="ticket"
+              />
+            )}
+          </View>
         </View>
 
         <View style={{ height: 140 }} />
@@ -386,6 +438,8 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     flexShrink: 1,
   },
+  // "Revealed soon" reads as a teaser, not as real data.
+  metaTextPending: { color: COLORS.accent, fontFamily: FONT_FAMILY.bodySemiBold },
   orgRow: {
     flexDirection: 'row',
     alignItems: 'center',

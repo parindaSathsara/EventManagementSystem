@@ -37,14 +37,16 @@ export default function AnimatedGradient({ intensity = 0.4 }) {
     outputRange: [0.5 * intensity, 0.2 * intensity],
   });
 
+  // Red & black only — the navy/violet stops here predated the 2026-07 rebrand
+  // and were tinting every screen that uses this behind the red chrome.
   return (
     <>
       {/* Deep base glow */}
       <AnimatedLinearGradient
         colors={[
           '#020202',   // almost black
-          '#05070C',   // deep navy
-          '#0A0215',   // dark violet
+          '#120202',   // black with a red undertone
+          '#2A0000',   // deep brand red, heavily darkened
           '#020202',
         ]}
         start={{ x: 0, y: 0 }}
@@ -53,12 +55,12 @@ export default function AnimatedGradient({ intensity = 0.4 }) {
         pointerEvents="none"
       />
 
-      {/* Very subtle neon hint */}
+      {/* Very subtle ember hint */}
       <AnimatedLinearGradient
         colors={[
           '#020202',
-          '#0F0A1F',   // dark purple
-          '#120818',   // deep magenta shadow
+          '#1F0303',   // dark ember
+          '#3A0000',   // deep red shadow
           '#020202',
         ]}
         start={{ x: 1, y: 0 }}

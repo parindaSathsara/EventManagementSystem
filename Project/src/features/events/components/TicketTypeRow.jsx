@@ -4,24 +4,35 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
+import { PRICE_TBA, isPriced } from '../../../shared/utils';
 
 /**
  * Display-only ticket category row. Ticketing happens on the organizer's
  * third-party platform, so there is no selection / quantity here — just the
  * type name and its price, like a notice board.
+ *
+ * A type the organizer hasn't priced yet shows "Coming soon" in the teaser
+ * style — it must never be mistaken for a free ticket.
  */
 export default function TicketTypeRow({ ticket }) {
   const soldOut = ticket.remaining === 0;
+  const priced = isPriced(ticket);
   return (
     <View style={[styles.row, soldOut && styles.rowSoldOut]}>
       <View style={styles.iconWrap}>
-        <Ionicons name="ticket-outline" size={16} color={COLORS.accent} />
+        <Ionicons name={priced ? 'ticket-outline' : 'sparkles-outline'} size={16} color={COLORS.accent} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.name, soldOut && styles.dim]}>{ticket.name}</Text>
-        {soldOut ? <Text style={[styles.meta, styles.dim]}>Sold out</Text> : null}
+        {soldOut ? (
+          <Text style={[styles.meta, styles.dim]}>Sold out</Text>
+        ) : !priced ? (
+          <Text style={styles.meta}>Price announced soon — stay tuned</Text>
+        ) : null}
       </View>
-      <Text style={[styles.price, soldOut && styles.dim]}>{ticket.priceLabel}</Text>
+      <Text style={[styles.price, !priced && styles.priceTba, soldOut && styles.dim]}>
+        {priced ? ticket.priceLabel : PRICE_TBA}
+      </Text>
     </View>
   );
 }
@@ -69,6 +80,11 @@ const styles = StyleSheet.create({
     ...TYPE_SCALE.bodyMd,
     fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.highlight,
+  },
+  priceTba: {
+    ...TYPE_SCALE.bodySm,
+    fontFamily: FONT_FAMILY.bodySemiBold,
+    color: COLORS.accent,
   },
   dim: { color: COLORS.textMuted },
 });

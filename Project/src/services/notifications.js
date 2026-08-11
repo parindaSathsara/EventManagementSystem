@@ -54,6 +54,21 @@ function reminderDate(startsAt, daysBefore) {
  */
 export async function syncReminders(events = []) {
   if (!available()) return;
+
+  // Nothing to schedule → clear leftovers (the guest unfollowed everything)
+  // and stop. Crucially we do NOT ask for permission here: the Alerts tab is
+  // mounted from app start now, so asking would put an OS permission dialog
+  // in front of every guest on launch. The prompt belongs to the moment they
+  // follow a company with an upcoming event.
+  if (!events.length) {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch {
+      /* nothing scheduled / module unavailable — nothing to clean up */
+    }
+    return;
+  }
+
   const ok = await ensurePermission();
   if (!ok) return;
 

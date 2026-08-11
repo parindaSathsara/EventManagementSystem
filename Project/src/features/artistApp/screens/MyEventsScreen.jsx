@@ -18,6 +18,7 @@ import {
   TopBar,
 } from '../../../shared/components';
 import { useEventsData, useAlert, useUser } from '../../../shared/hooks';
+import { hasStartTime, timeLabel, venueLine } from '../../../shared/utils';
 import { eventsRepo } from '../../../services';
 
 const TABS = [
@@ -65,10 +66,11 @@ function rangeFor(key) {
 
 function fmtDate(iso) {
   const d = new Date(iso);
+  // The clock time comes from `timeLabel()` instead — a day-only event must
+  // not show the placeholder hour back to its own organizer.
   return {
     day: d.getDate(),
     month: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
-    time: d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }),
     weekday: d.toLocaleString('en', { weekday: 'short' }).toUpperCase(),
   };
 }
@@ -164,7 +166,7 @@ export default function MyEventsScreen({
     return tabItems.filter((e) => {
       const t = new Date(e.startsAt).getTime();
       if (t < from || t > to) return false;
-      if (q && !`${e.title} ${e.venueName} ${e.cityName}`.toLowerCase().includes(q)) {
+      if (q && !`${e.title} ${e.venueName || ''} ${e.cityName || ''}`.toLowerCase().includes(q)) {
         return false;
       }
       return true;
@@ -334,11 +336,13 @@ function EventManageRow({ event, onPress, onEdit, onReschedule, onDuplicate, onC
           ) : (
             <Chip label={(event.status || 'PUBLISHED').toUpperCase()} variant="verified" />
           )}
-          <Text style={styles.time}>{d.time}</Text>
+          <Text style={[styles.time, !hasStartTime(event) && styles.timePending]}>
+          {timeLabel(event, { short: true })}
+        </Text>
         </View>
         <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
         <Text style={styles.venue} numberOfLines={1}>
-          {event.venueName} · {event.cityName}
+          {venueLine(event)}
         </Text>
 
         <View style={styles.metaStrip}>
@@ -512,6 +516,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   time: { fontSize: 11, fontFamily: FONT_FAMILY.bodyMedium, color: COLORS.textMuted },
+  // Unannounced time reads as a teaser, not as real data.
+  timePending: { color: COLORS.accent, fontFamily: FONT_FAMILY.bodyBold },
   title: { ...TYPE_SCALE.bodyMd, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary, marginTop: SPACING.xs },
   venue: { ...TYPE_SCALE.caption, fontFamily: FONT_FAMILY.body, color: COLORS.textMuted, marginTop: 2 },
 

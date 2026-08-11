@@ -13,14 +13,12 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import Avatar from '../../../shared/components/Avatar';
+import ComingSoon from '../../../shared/components/ComingSoon';
+import { TEASER, hasVenue, hasLineup, hasStartTime, pendingDetails, timeLabel, venueLine } from '../../../shared/utils';
 import LineupRow from './LineupRow';
 
-function fmt(iso) {
-  const d = new Date(iso);
-  return {
-    date: d.toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' }),
-    time: d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }),
-  };
+function fmtDay(iso) {
+  return new Date(iso).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 /**
@@ -42,12 +40,21 @@ export default function EventStepCard({
   const org = event.organizer || {};
   const ownerName = org.user?.name || org.handle || 'Event Company';
   const poster = event.bannerImageUrl || (event.flyers && event.flyers[0]) || event.coverImageUrl || null;
-  const { date, time } = fmt(event.startsAt);
+  const date = fmtDay(event.startsAt);
   const descNeedsToggle = (event.description || '').length > 90;
   // Buying is disabled once the event has passed, or until the organizer
   // sets a ticketing link.
   const ended = new Date(event.endsAt || event.startsAt).getTime() < Date.now();
   const buyDisabled = ended || !event.ticketUrl;
+  // The lineup and the start time already have their own treatment on this
+  // card (the block below, and the poster's meta line) — the pill summarises
+  // only what's left, so nothing is said twice.
+  const pendingRest = pendingDetails(event).filter(
+    (p) => p !== 'Line up' && p !== 'Start time',
+  );
+  const teaser = pendingRest.length
+    ? `${pendingRest.join(' · ')} coming soon — ${TEASER.stayTuned.toLowerCase()}`
+    : null;
 
   function handleBuy() {
     if (buyDisabled) return;
@@ -89,11 +96,11 @@ export default function EventStepCard({
         >
           {poster ? (
             <TopAlignedPoster uri={poster}>
-              <PosterOverlay event={event} date={date} time={time} />
+              <PosterOverlay event={event} date={date} />
             </TopAlignedPoster>
           ) : (
             <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
-              <PosterOverlay event={event} date={date} time={time} />
+              <PosterOverlay event={event} date={date} />
             </LinearGradient>
           )}
         </TouchableOpacity>
@@ -113,16 +120,33 @@ export default function EventStepCard({
           </View>
         ) : null}
 
-        {/* This event's line up */}
-        {event.lineup && event.lineup.length ? (
-          <View style={styles.lineupWrap}>
-            <Text style={styles.sectionLabel}>Line Up</Text>
+        {/* This event's line up — never hidden. An event with nothing
+            announced yet teases the reveal instead of showing a gap, which is
+            exactly what keeps guests checking back (client feedback
+            2026-08-10). */}
+        <View style={styles.lineupWrap}>
+          <Text style={styles.sectionLabel}>Line Up</Text>
+          {hasLineup(event) ? (
             <LineupRow
               lineup={event.lineup}
               onArtistPress={(a) => onOpenArtist && onOpenArtist(a, event)}
             />
-          </View>
-        ) : null}
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.teaserWrap}
+              onPress={() => onOpenEvent && onOpenEvent(event.id)}
+            >
+              <ComingSoon
+                title={TEASER.lineup}
+                message="Artists are announced soon — stay tuned."
+                icon="musical-notes"
+              />
+            </TouchableOpacity>
+          )}
+          {/* Whatever else is still unannounced, in one quiet line. */}
+          {teaser ? <ComingSoon title={teaser} variant="inline" style={styles.teaserPill} /> : null}
+        </View>
 
         {/* Buy Tickets — compact pill on the right, opens third-party
             ticketing. Disabled (greyed) once the event has passed. */}
@@ -184,7 +208,7 @@ function TopAlignedPoster({ uri, children }) {
 
 TopAlignedPoster.propTypes = { uri: PropTypes.string.isRequired, children: PropTypes.node };
 
-function PosterOverlay({ event, date, time }) {
+function PosterOverlay({ event, date }) {
   return (
     <>
       <LinearGradient colors={['rgba(0,0,0,0.2)', 'transparent', 'rgba(0,0,0,0.9)']} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
@@ -202,17 +226,24 @@ function PosterOverlay({ event, date, time }) {
         <Text style={styles.eventName} numberOfLines={2}>{event.title}</Text>
         <View style={styles.metaLine}>
           <Ionicons name="calendar-outline" size={13} color="#fff" />
-          <Text style={styles.metaText}>{date} · {time}</Text>
+          <Text style={[styles.metaText, !hasStartTime(event) && styles.metaTextPending]}>
+            {date} · {timeLabel(event, { short: true })}
+          </Text>
           <Text style={styles.metaDot}>·</Text>
           <Ionicons name="location-outline" size={13} color="#fff" />
-          <Text style={styles.metaText} numberOfLines={1}>{event.venueName}</Text>
+          <Text
+            style={[styles.metaText, !hasVenue(event) && styles.metaTextPending]}
+            numberOfLines={1}
+          >
+            {venueLine(event, { withCity: false })}
+          </Text>
         </View>
       </View>
     </>
   );
 }
 
-PosterOverlay.propTypes = { event: PropTypes.object, date: PropTypes.string, time: PropTypes.string };
+PosterOverlay.propTypes = { event: PropTypes.object, date: PropTypes.string };
 
 EventStepCard.propTypes = {
   event: PropTypes.object.isRequired,
@@ -309,6 +340,13 @@ const styles = StyleSheet.create({
   sectionLabel: {
     ...TYPE_SCALE.bodySm, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary,
     letterSpacing: 1.1, textTransform: 'uppercase', paddingHorizontal: SPACING.md,
+  },
+  // "Revealed soon" blocks sit inside the same gutter as the lineup row.
+  teaserWrap: { paddingHorizontal: SPACING.md },
+  teaserPill: { marginHorizontal: SPACING.md, marginTop: SPACING.xs },
+  metaTextPending: {
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.accentSoft,
   },
   // Compact Buy Tickets pill — sits on the right of the card.
   bookBtn: {

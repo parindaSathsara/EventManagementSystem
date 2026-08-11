@@ -35,6 +35,8 @@ async function feed(viewerUserId, { windowDays = 5 } = {}) {
       id: true,
       title: true,
       startsAt: true,
+      // Alerts must not print the placeholder hour for a day-only event.
+      startTimeTba: true,
       venueName: true,
       cityName: true,
       coverColor: true,
@@ -75,12 +77,16 @@ async function feed(viewerUserId, { windowDays = 5 } = {}) {
       companyId: e.organizer?.id || null,
       companyAvatarUrl: e.organizer?.user?.avatarUrl || null,
       startsAt: e.startsAt,
+      startTimeTba: e.startTimeTba,
       venueName: e.venueName,
       cityName: e.cityName,
       coverColor: e.coverColor,
       bannerImageUrl: e.bannerImageUrl,
       saved: savedSet.has(e.id),
-      message: `${prefix}: ${companyName ? `${companyName} · ` : ''}${e.title} at ${e.venueName}`,
+      // The venue may not be announced yet — never render "at " with nothing.
+      message: `${prefix}: ${companyName ? `${companyName} · ` : ''}${e.title}${
+        e.venueName ? ` at ${e.venueName}` : ''
+      }`,
     });
   }
 

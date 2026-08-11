@@ -4,6 +4,8 @@ const id = z.string().cuid().or(z.string().min(1));
 
 const ticketTypeInput = z.object({
   name: z.string().trim().min(1).max(80),
+  // "LKR 4500" / "Free" / "Coming soon" — organizers publish before prices
+  // are locked, so an unpriced type is valid.
   priceLabel: z.string().trim().min(1).max(40),
   priceCents: z.number().int().nonnegative().default(0),
   currency: z.string().trim().min(1).max(8).default('LKR'),
@@ -43,16 +45,22 @@ const createEventBody = z.object({
   ticketUrl: z.string().trim().url().max(500).optional().nullable(),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
+  // True when only the day is announced — the client sends noon/end-of-day
+  // for startsAt/endsAt and the guest UI shows "Time revealed soon".
+  startTimeTba: z.boolean().default(false),
   timezone: z.string().trim().max(40).default('Asia/Colombo'),
-  venueName: z.string().trim().min(1).max(160),
+  // Venue is optional — events are announced before the venue is confirmed
+  // (client feedback 2026-08-10). Empty means "revealed soon" on the guest
+  // side, so it is stored as an empty string rather than rejected.
+  venueName: z.string().trim().max(160).default(''),
   cityName: z.string().trim().min(1).max(80),
   addressLine: z.string().max(240).optional(),
   geoLat: z.number().min(-90).max(90).optional().nullable(),
   geoLng: z.number().min(-180).max(180).optional().nullable(),
   ageRestriction: z.string().max(20).default('All ages'),
   status: z.enum(['draft', 'published', 'live', 'cancelled', 'ended']).default('published'),
-  refundPolicy: z.string().max(2000).optional(),
-  cancellationPolicy: z.string().max(2000).optional(),
+  // Refund / cancellation policies were dropped from the product entirely —
+  // ticketing (and its policies) live on the third-party platform.
   ticketTypes: z.array(ticketTypeInput).default([]),
   lineupArtistIds: z.array(id).default([]),
   // Free-form lineup (name + their socials), stored as lineupJson.

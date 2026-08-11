@@ -1,154 +1,300 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, Animated, Dimensions } from 'react-native';
-import { COLORS } from '../../../theme';
-import { BackgroundOverlay, AnimatedGradient, BrushedGlow } from '../../../shared/components';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Animated,
+  Easing,
+  Dimensions,
+  StatusBar,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import PropTypes from 'prop-types';
+import { COLORS, SPACING } from '../../../theme';
+import { FONT_FAMILY } from '../../../theme';
+import { BrushedGlow } from '../../../shared/components';
 
 const { width, height } = Dimensions.get('window');
 
+// Reds sampled from the logo artwork itself (STAGE_Primary.png) so the splash
+// glow is the same family as the mark, not an approximation.
+const CORE_RED = '#F70000';
+const MID_RED = '#9D0000';
+const DEEP_RED = '#3A0000';
+
+const HOLD_MS = 2400;
+
+/**
+ * Brand splash — the logomark rising out of a red glow on black.
+ *
+ * Layers, back to front:
+ *   1. vertical black → deep-red wash (static)
+ *   2. two breathing radial glows, counter-drifting, behind the mark
+ *   3. an expanding halo ring that pulses out from the mark
+ *   4. the white logomark, fading up with a slight scale + lift
+ *   5. wordmark + loading bar
+ *
+ * All animation is `useNativeDriver: true` — the JS thread is busy booting
+ * (session restore + repo hydration) while this is on screen, so anything
+ * driven from JS would stutter.
+ */
 export default function SplashScreen({ onFinish }) {
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const logoScale = useRef(new Animated.Value(0.85)).current;
+  const logoScale = useRef(new Animated.Value(0.82)).current;
+  const logoLift = useRef(new Animated.Value(18)).current;
 
-  // Glow breathing — same as WelcomeScreen
-  const glow1 = useRef(new Animated.Value(0.12)).current;
-  const glow2 = useRef(new Animated.Value(0.08)).current;
-  const glow3 = useRef(new Animated.Value(0.1)).current;
+  const wordOpacity = useRef(new Animated.Value(0)).current;
 
-  // Slow drift
-  const drift1 = useRef(new Animated.Value(0)).current;
-  const drift2 = useRef(new Animated.Value(0)).current;
+  // Glow breathing.
+  const glowA = useRef(new Animated.Value(0.35)).current;
+  const glowB = useRef(new Animated.Value(0.15)).current;
+  // Counter-drift so the light never looks static.
+  const drift = useRef(new Animated.Value(0)).current;
+  // Halo ring pulse.
+  const ring = useRef(new Animated.Value(0)).current;
+  // Loading bar sweep.
+  const bar = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Mark entrance.
     Animated.parallel([
       Animated.timing(logoOpacity, {
         toValue: 1,
-        duration: 900,
+        duration: 850,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.spring(logoScale, {
         toValue: 1,
-        friction: 6,
-        tension: 30,
+        friction: 7,
+        tension: 34,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoLift, {
+        toValue: 0,
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Glow 1 — large accent, slow deep breath
+    // Wordmark follows the mark.
+    Animated.timing(wordOpacity, {
+      toValue: 1,
+      duration: 700,
+      delay: 420,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+
+    const breathe = (v, lo, hi, up, down) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(v, { toValue: hi, duration: up, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(v, { toValue: lo, duration: down, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+
+    breathe(glowA, 0.35, 0.85, 2400, 2600).start();
+    breathe(glowB, 0.15, 0.55, 3100, 2900).start();
+
     Animated.loop(
       Animated.sequence([
-        Animated.timing(glow1, { toValue: 0.32, duration: 3200, useNativeDriver: true }),
-        Animated.timing(glow1, { toValue: 0.12, duration: 3200, useNativeDriver: true }),
-      ])
+        Animated.timing(drift, { toValue: 1, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(drift, { toValue: 0, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
     ).start();
 
-    // Glow 2 — highlight, offset rhythm
+    // Halo: expand + fade, repeating.
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow2, { toValue: 0.25, duration: 2800, useNativeDriver: true }),
-        Animated.timing(glow2, { toValue: 0.06, duration: 3400, useNativeDriver: true }),
-      ])
+      Animated.timing(ring, {
+        toValue: 1,
+        duration: 2600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
     ).start();
 
-    // Glow 3 — soft white, very gentle
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow3, { toValue: 0.18, duration: 4000, useNativeDriver: true }),
-        Animated.timing(glow3, { toValue: 0.06, duration: 4000, useNativeDriver: true }),
-      ])
+      Animated.timing(bar, {
+        toValue: 1,
+        duration: 1150,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: true,
+      }),
     ).start();
 
-    // Drift 1 — slow diagonal float
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(drift1, { toValue: 1, duration: 7000, useNativeDriver: true }),
-        Animated.timing(drift1, { toValue: 0, duration: 7000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Drift 2 — opposite direction
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(drift2, { toValue: 1, duration: 5500, useNativeDriver: true }),
-        Animated.timing(drift2, { toValue: 0, duration: 5500, useNativeDriver: true }),
-      ])
-    ).start();
-
-    const timer = setTimeout(() => {
-      if (onFinish) {
-        onFinish();
-      }
-    }, 2200);
-
+    const timer = setTimeout(() => onFinish && onFinish(), HOLD_MS);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const driftX1 = drift1.interpolate({ inputRange: [0, 1], outputRange: [-12, 18] });
-  const driftY1 = drift1.interpolate({ inputRange: [0, 1], outputRange: [0, 20] });
-  const driftX2 = drift2.interpolate({ inputRange: [0, 1], outputRange: [8, -14] });
-  const driftY2 = drift2.interpolate({ inputRange: [0, 1], outputRange: [-8, 12] });
+  const driftX = drift.interpolate({ inputRange: [0, 1], outputRange: [-16, 16] });
+  const driftY = drift.interpolate({ inputRange: [0, 1], outputRange: [10, -14] });
+
+  const ringScale = ring.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1.9] });
+  const ringOpacity = ring.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0.5, 0] });
+
+  const barX = bar.interpolate({ inputRange: [0, 1], outputRange: [-70, 70] });
 
   return (
     <View style={styles.container}>
-      <BackgroundOverlay opacity={0.3} />
-      <AnimatedGradient intensity={0.6} />
+      <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
 
-      {/* Large accent blue glow — upper area */}
-      <Animated.View
-        style={{ opacity: glow1, transform: [{ translateX: driftX1 }, { translateY: driftY1 }] }}
+      {/* 1 — base wash: black at the edges, deep red through the middle */}
+      <LinearGradient
+        colors={['#000000', DEEP_RED, '#1A0000', '#000000']}
+        locations={[0, 0.42, 0.68, 1]}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
-      >
-        <BrushedGlow color={COLORS.accent} size={width * 1.2} opacity={0.5} style={{ top: height * 0.06, left: -width * 0.1 }} />
-      </Animated.View>
+      />
 
-      {/* Highlight blue glow — right side */}
+      {/* 2 — breathing glows behind the mark */}
       <Animated.View
-        style={{ opacity: glow2, transform: [{ translateX: driftX2 }, { translateY: driftY2 }] }}
         pointerEvents="none"
-      >
-        <BrushedGlow color={COLORS.highlight} size={380} opacity={0.4} style={{ top: height * 0.28, right: -90 }} />
-      </Animated.View>
-
-      {/* Soft white ambient glow — lower area */}
-      <Animated.View
-        style={{ opacity: glow3, transform: [{ translateX: Animated.multiply(driftX1, -1) }] }}
-        pointerEvents="none"
-      >
-        <BrushedGlow color={COLORS.lightWhiteGlow} size={350} opacity={0.2} style={{ bottom: height * 0.12, left: -60 }} />
-      </Animated.View>
-
-      {/* Logo — centered */}
-      <Animated.View
         style={[
-          styles.logoWrapper,
+          styles.glowLayer,
+          { opacity: glowA, transform: [{ translateX: driftX }, { translateY: driftY }] },
+        ]}
+      >
+        <BrushedGlow
+          color={CORE_RED}
+          size={width * 1.45}
+          opacity={0.85}
+          style={{ top: height * 0.5 - width * 0.72, left: -width * 0.22 }}
+        />
+      </Animated.View>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.glowLayer,
           {
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
+            opacity: glowB,
+            transform: [
+              { translateX: Animated.multiply(driftX, -1) },
+              { translateY: Animated.multiply(driftY, -1) },
+            ],
           },
         ]}
       >
-        <Image
-          source={require('../../../../assets/Logo/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
+        <BrushedGlow
+          color={MID_RED}
+          size={width * 1.05}
+          opacity={0.7}
+          style={{ top: height * 0.5 - width * 0.62, left: width * 0.1 }}
         />
       </Animated.View>
+
+      {/* 3 — halo ring pulsing out from behind the mark */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ring,
+          { opacity: ringOpacity, transform: [{ scale: ringScale }] },
+        ]}
+      />
+
+      {/* 4 + 5 — mark, wordmark, loader */}
+      <View style={styles.center}>
+        <Animated.View
+          style={{
+            opacity: logoOpacity,
+            transform: [{ scale: logoScale }, { translateY: logoLift }],
+          }}
+        >
+          <Image
+            source={require('../../../../assets/Logo/stage.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Animated.View>
+
+        <Animated.View style={{ opacity: wordOpacity, alignItems: 'center' }}>
+          <Text style={styles.wordmark}>STAGE</Text>
+          <Text style={styles.tagline}>EVERY SHOW. ONE PLACE.</Text>
+
+          <View style={styles.barTrack}>
+            <Animated.View style={[styles.barThumb, { transform: [{ translateX: barX }] }]}>
+              <LinearGradient
+                colors={['transparent', CORE_RED, 'transparent']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
+          </View>
+        </Animated.View>
+      </View>
+
+      {/* Vignette — pulls the corners down so the centre glow reads brighter */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.75)', 'transparent', 'transparent', 'rgba(0,0,0,0.85)']}
+        locations={[0, 0.28, 0.72, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
     </View>
   );
 }
 
+SplashScreen.propTypes = {
+  onFinish: PropTypes.func,
+};
+
+const RING = width * 0.62;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgStrong,
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  glowLayer: { ...StyleSheet.absoluteFillObject },
+  ring: {
+    position: 'absolute',
+    width: RING,
+    height: RING,
+    borderRadius: RING / 2,
+    borderWidth: 1.5,
+    borderColor: CORE_RED,
+    top: height * 0.5 - RING / 2 - height * 0.045,
   },
+  center: { alignItems: 'center', zIndex: 2 },
   logo: {
-    width: 220,
-    height: 100,
+    width: width * 0.52,
+    height: width * 0.46,
+  },
+  wordmark: {
+    fontSize: 34,
+    fontFamily: FONT_FAMILY.headingExtraBold,
+    color: COLORS.textPrimary,
+    letterSpacing: 10,
+    marginTop: SPACING.lg,
+    // Red bloom under the wordmark, echoing the logo's glow.
+    textShadowColor: 'rgba(247,0,0,0.85)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 18,
+  },
+  tagline: {
+    fontSize: 10,
+    fontFamily: FONT_FAMILY.bodySemiBold,
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 3.4,
+    marginTop: SPACING.sm,
+  },
+  barTrack: {
+    width: 140,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    overflow: 'hidden',
+    marginTop: SPACING.xl,
+  },
+  barThumb: {
+    width: 70,
+    height: 2,
   },
 });

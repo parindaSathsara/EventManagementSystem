@@ -108,7 +108,9 @@ export async function toggleSave(eventId) {
 export async function decrementTicket(eventId, ticketTypeId, by = 1) {
   _set(cache.map((e) => {
     if (e.id !== eventId) return e;
-    const ticketTypes = e.ticketTypes.map((t) =>
+    // Ticket types are optional now — an event can be published before its
+    // categories exist.
+    const ticketTypes = (e.ticketTypes || []).map((t) =>
       t.id === ticketTypeId
         ? { ...t, remaining: Math.max(0, (t.remaining || 0) - by) }
         : t,

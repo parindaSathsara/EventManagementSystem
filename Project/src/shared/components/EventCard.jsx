@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../theme';
 import Chip from './Chip';
+import { hasStartTime, timeLabel, venueLine } from '../utils';
 
 function formatDay(iso) {
   if (!iso) return { day: '--', month: '---' };
@@ -13,12 +14,14 @@ function formatDay(iso) {
   return {
     day: d.getDate().toString().padStart(2, '0'),
     month: d.toLocaleString('en', { month: 'short' }).toUpperCase(),
-    time: d.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }),
   };
 }
 
 export default function EventCard({ event, onPress, variant = 'default' }) {
-  const { day, month, time } = formatDay(event.startsAt);
+  const { day, month } = formatDay(event.startsAt);
+  // Day-only events show "Time TBA" rather than the placeholder hour.
+  const time = timeLabel(event, { short: true });
+  const timePending = !hasStartTime(event);
   const imgUrl = event.coverImageUrl || event.bannerImageUrl || (event.flyers && event.flyers[0]) || null;
 
   if (variant === 'grid') {
@@ -49,8 +52,8 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
             <Text style={styles.gridCompany} numberOfLines={1}>{companyName}</Text>
           ) : null}
           <Text style={styles.gridTitle} numberOfLines={2}>{event.title}</Text>
-          <Text style={styles.gridMeta} numberOfLines={1}>
-            {time} · {event.venueName}
+          <Text style={[styles.gridMeta, timePending && styles.metaPending]} numberOfLines={1}>
+            {time} · {venueLine(event, { withCity: false })}
           </Text>
         </View>
       </TouchableOpacity>
@@ -68,8 +71,8 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.compactTitle} numberOfLines={1}>{event.title}</Text>
-          <Text style={styles.compactMeta} numberOfLines={1}>
-            {time} · {event.venueName}
+          <Text style={[styles.compactMeta, timePending && styles.metaPending]} numberOfLines={1}>
+            {time} · {venueLine(event, { withCity: false })}
           </Text>
           {event.status === 'live' ? (
             <View style={{ marginTop: 6, alignSelf: 'flex-start' }}>
@@ -122,12 +125,12 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
           <View style={styles.metaRow}>
             <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
             <Text style={styles.metaText} numberOfLines={1}>
-              {event.venueName} · {event.cityName}
+              {venueLine(event)}
             </Text>
           </View>
           <View style={styles.metaRow}>
             <Ionicons name="time-outline" size={13} color={COLORS.textSecondary} />
-            <Text style={styles.metaText}>{time}</Text>
+            <Text style={[styles.metaText, timePending && styles.metaPending]}>{time}</Text>
             {event.distanceKm != null ? (
               <>
                 <View style={styles.dotSep} />
@@ -280,6 +283,8 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.bodyMedium,
     color: COLORS.textMuted,
   },
+  // Unannounced time reads as a teaser, not as real data.
+  metaPending: { color: COLORS.accent, fontFamily: FONT_FAMILY.bodySemiBold },
 
   /* compact variant */
   compactWrap: {

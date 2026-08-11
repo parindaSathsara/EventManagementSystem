@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -26,17 +26,28 @@ const VISIBLE_STATUS = new Set(['published', 'live']);
 const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
 
 /**
+ * Last event index the guest stepped to, per feed. Module-level on purpose:
+ * it outlives a remount of this screen, so coming back from the manager area
+ * (or any full remount) reopens the feed where the guest left off instead of
+ * at the first post. Tab switches are handled by GuestTabs keeping the screen
+ * mounted — this is the belt to that pair of braces.
+ */
+const lastIndexByFeed = { forYou: 0, following: 0 };
+
+/**
  * The app's landing page (guest experience). Events listed **event-wise** as a
  * vertical stepper feed — one event per screen, scroll/snap down to step to the
  * next event. The event name is the focus and the event owner (manager) is shown.
  * Tapping a lineup artist or the owner opens a bottom sheet (socials + events).
  */
-export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerCreate }) {
+export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerCreate, active = true }) {
   const events = useEventsData();
   const { isFollowing, toggle } = useFollows();
   const [feed, setFeed] = useState('forYou');
   const [bodyH, setBodyH] = useState(0);
   const [sheet, setSheet] = useState(EMPTY_SHEET);
+  const listRef = useRef(null);
+  const wasActive = useRef(active);
 
   const all = useMemo(
     () =>
@@ -49,6 +60,31 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
     () => (feed === 'following' ? all.filter((e) => isFollowing(e.organizer.id)) : all),
     [all, feed, isFollowing],
   );
+
+  /**
+   * Coming back to this tab, re-assert the remembered position. Keeping the
+   * screen mounted is what normally preserves it, but a hidden tab is laid
+   * out at zero height and some Android builds clamp the native scroll offset
+   * when that happens — so we put the guest back on their event explicitly
+   * rather than trusting the platform. Scrolling to where we already are is a
+   * no-op, so this is safe either way.
+   */
+  useEffect(() => {
+    const becameActive = active && !wasActive.current;
+    wasActive.current = active;
+    if (!becameActive || bodyH <= 0 || visible.length === 0) return undefined;
+    const index = Math.min(lastIndexByFeed[feed] || 0, visible.length - 1);
+    if (index <= 0) return undefined;
+    // Next frame: the tab has just been shown, so let it lay out first.
+    const raf = requestAnimationFrame(() => {
+      try {
+        listRef.current?.scrollToIndex({ index, animated: false });
+      } catch {
+        /* list not measured yet — the stored offset already holds */
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [active, bodyH, feed, visible.length]);
 
   function openArtist(artist, fromEvent) {
     // "Revealed Soon" is a surprise slot, not a real artist — no social links
@@ -109,7 +145,16 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
       </View>
 
       {/* Event-wise vertical stepper feed */}
-      <View style={styles.body} onLayout={(e) => setBodyH(e.nativeEvent.layout.height)}>
+      <View
+        style={styles.body}
+        // Ignore 0-height layouts: while this tab is hidden the body measures
+        // 0, and dropping the height would tear down the list (and its scroll
+        // position) every time the guest visits another tab.
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 0) setBodyH(h);
+        }}
+      >
         {events.error && all.length === 0 ? (
           <ConnectionError error={events.error} onRetry={events.refresh} loading={events.loading} />
         ) : visible.length === 0 ? (
@@ -124,6 +169,9 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
           />
         ) : bodyH > 0 ? (
           <FlatList
+            // Remount per feed so each one restores its own last position.
+            key={feed}
+            ref={listRef}
             data={visible}
             keyExtractor={(e) => e.id}
             snapToInterval={bodyH}
@@ -132,6 +180,10 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
             decelerationRate="fast"
             showsVerticalScrollIndicator={false}
             getItemLayout={(_d, i) => ({ length: bodyH, offset: bodyH * i, index: i })}
+            initialScrollIndex={Math.min(lastIndexByFeed[feed] || 0, Math.max(visible.length - 1, 0))}
+            onMomentumScrollEnd={(e) => {
+              lastIndexByFeed[feed] = Math.max(0, Math.round(e.nativeEvent.contentOffset.y / bodyH));
+            }}
             renderItem={({ item }) => (
               <EventStepCard
                 event={item}
@@ -176,6 +228,8 @@ EventsHomeScreen.propTypes = {
   onOpenEvent: PropTypes.func,
   onOpenSearch: PropTypes.func,
   onManagerCreate: PropTypes.func,
+  // False while another tab is showing — the screen stays mounted either way.
+  active: PropTypes.bool,
 };
 
 const styles = StyleSheet.create({

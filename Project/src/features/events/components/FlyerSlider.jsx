@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
+import { venueLine } from '../../../shared/utils';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const H_PAD = SPACING.base;
@@ -95,7 +96,7 @@ function Overlay({ ev }) {
       </View>
       <View style={styles.meta}>
         <Text style={styles.flyerTitle} numberOfLines={1}>{ev.title}</Text>
-        <Text style={styles.flyerDate} numberOfLines={1}>{date} · {ev.venueName}</Text>
+        <Text style={styles.flyerDate} numberOfLines={1}>{date} · {venueLine(ev, { withCity: false })}</Text>
       </View>
     </>
   );

@@ -113,6 +113,13 @@ model Event {
   ticketUrl          String?     @db.Text
   startsAt           DateTime
   endsAt             DateTime
+  // The start time is optional for the organizer (client feedback
+  // 2026-08-10). When true, only the DAY is announced: `startsAt` holds that
+  // day at noon (a neutral hour that can't drift into the previous/next day
+  // in any timezone) and `endsAt` the end of that day, so the event sorts and
+  // groups on the right date and never reads as "ended" mid-day. The guest UI
+  // shows "Time revealed soon" instead of the placeholder hour.
+  startTimeTba       Boolean     @default(false)
   timezone           String      @default("Asia/Colombo")
   venueName          String
   cityName           String

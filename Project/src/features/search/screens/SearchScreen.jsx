@@ -77,8 +77,8 @@ export default function SearchScreen({ onOpenEvent, onOpenArtist, onBack }) {
             ).toLowerCase();
             return (
               e.title.toLowerCase().includes(q) ||
-              e.venueName.toLowerCase().includes(q) ||
-              e.cityName.toLowerCase().includes(q) ||
+              (e.venueName || '').toLowerCase().includes(q) ||
+              (e.cityName || '').toLowerCase().includes(q) ||
               (e.category || '').toLowerCase().includes(q) ||
               orgName.includes(q) ||
               inLineup
