@@ -4,7 +4,7 @@
     "slug": "event-social",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Logo/STAGE_Primary.png",
+    "icon": "./assets/Logo/StagewithBorder.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -25,7 +25,7 @@
       }
     },
     "web": {
-      "favicon": "./assets/Logo/STAGE_Primary.png"
+      "favicon": "./assets/Logo/StagewithBorder.png"
     },
     "plugins": [
       "expo-font",
