@@ -111,7 +111,9 @@ function initialState(event) {
     endH: end && !event?.startTimeTba ? end.getHours() : null,
     endM: end && !event?.startTimeTba ? end.getMinutes() : null,
     venue: event?.venueName || '',
-    city: event?.cityName || 'Colombo',
+    // Not prefilled — a default city had to be cleared on every new event
+    // before the real one could be typed (client feedback 2026-08-21).
+    city: event?.cityName || '',
     age: event?.ageRestriction || '18+',
     ticketUrl: event?.ticketUrl || '',
     bannerUrl: event?.bannerImageUrl || '',
@@ -299,6 +301,12 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
     }
     // Venue is optional — many events are announced before the venue is
     // confirmed. Guests see "Venue revealed soon" until it is filled in.
+    // City is not: it is what guests filter and search on, and the API
+    // rejects an empty one, so ask for it rather than guessing a default.
+    if (!form.city.trim()) {
+      alert.error('Add the city', 'Type the city your event is in so guests can find it.');
+      return;
+    }
     if (!datePicked) {
       alert.error('Pick the event date', 'Choose the day your event happens under Date & time.');
       return;
@@ -373,7 +381,9 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
       startTimeTba: timeTba,
       // Empty venue is allowed — the guest side shows "Venue revealed soon".
       venueName: form.venue.trim(),
-      cityName: form.city.trim() || 'Colombo',
+      // No silent fallback — an empty city is caught in handleSubmit above
+      // rather than quietly saved as somewhere the event isn't.
+      cityName: form.city.trim(),
       ageRestriction: form.age,
       ticketTypes,
     };
@@ -540,6 +550,21 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
           ))}
         </ScrollView>
 
+        {/* Age — sits directly under Category; both describe what the event
+            *is*, so they are answered together before date and place. */}
+        <Text style={styles.sectionLabel}>Age restriction</Text>
+        <View style={styles.chipsRow}>
+          {AGES.map((a) => (
+            <Chip
+              key={a}
+              label={a}
+              active={form.age === a}
+              onPress={() => set('age', a)}
+              style={{ marginRight: SPACING.sm }}
+            />
+          ))}
+        </View>
+
         {/* Date & time — selection, no typing. Nothing is pre-picked: the
             manager chooses the day and the start time, and both stay
             editable after the event is published. */}
@@ -648,28 +673,22 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
             onChange={(v) => set('venue', v)}
             placeholder="Leave empty to keep it a secret"
           />
-          <Field icon="map-outline" label="City" value={form.city} onChange={(v) => set('city', v)} placeholder="Colombo" />
+          {/* "e.g." keeps the hint reading as a hint — a bare "Colombo" was
+              mistaken for a filled-in value that had to be cleared. */}
+          <Field
+            icon="map-outline"
+            label="City"
+            value={form.city}
+            onChange={(v) => set('city', v)}
+            placeholder="e.g. Colombo"
+          />
           <View style={styles.hintRow}>
             <Ionicons name="sparkles-outline" size={14} color={COLORS.textMuted} />
             <Text style={styles.hintText}>
               No venue yet? Guests see “Venue revealed soon” until you add it — perfect for a
-              surprise location.
+              surprise location. The city is still needed so they can find it.
             </Text>
           </View>
-        </View>
-
-        {/* Age */}
-        <Text style={styles.sectionLabel}>Age restriction</Text>
-        <View style={styles.chipsRow}>
-          {AGES.map((a) => (
-            <Chip
-              key={a}
-              label={a}
-              active={form.age === a}
-              onPress={() => set('age', a)}
-              style={{ marginRight: SPACING.sm }}
-            />
-          ))}
         </View>
 
         {/* Ticketing link — powers the guest "Buy Now" jump */}
