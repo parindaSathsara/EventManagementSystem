@@ -28,10 +28,15 @@ import { BecomeArtistScreen } from './src/features/artistApp';
 import { GuestTabs, CustomerTabs, ArtistTabs, RoleSelectScreen } from './src/navigation';
 import { AlertProvider, UserProvider, useUser } from './src/shared/providers';
 import { useAlert } from './src/shared/hooks';
-import { hydrateAll, clearAll } from './src/services';
+import { hydrateAll, clearAll, push } from './src/services';
 import { auth as authApi } from './src/services/api';
 
 SplashScreenModule.preventAutoHideAsync();
+
+// Module scope on purpose: a notification tap can launch the app, and the
+// foreground handler + Android channels must exist before React mounts or the
+// first alert of the session is silently dropped.
+push.configure();
 
 /**
  * Boot sequence (guest-first)
@@ -56,6 +61,9 @@ function isManager(u) {
 function AppContent() {
   const [stage, setStage] = useState('splash');
   const [bootReady, setBootReady] = useState(false);
+  // Set when a notification is tapped. Carries a nonce as well as the id so
+  // tapping the same event twice still re-opens it.
+  const [pushTarget, setPushTarget] = useState(null);
   const { user, artist, setUser, logout } = useUser();
   const alert = useAlert();
 
@@ -100,6 +108,18 @@ function AppContent() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Tapping an alert — from the tray or from the lock screen, warm or cold —
+  // opens that event. Registered once, high up, so the target survives the
+  // guest/manager stage switches below.
+  useEffect(() => {
+    return push.addResponseListener(({ eventId }) => {
+      if (!eventId) return;
+      setPushTarget({ eventId, nonce: Date.now() });
+      // A tap always lands in the guest experience: that's where events open.
+      setStage((current) => (current === 'splash' ? 'guest' : current));
+    });
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
@@ -266,7 +286,13 @@ function AppContent() {
   }
 
   // Default: guest experience (Reels · Events · Notifications).
-  return <GuestTabs onManagerLogin={() => setStage('login')} />;
+  return (
+    <GuestTabs
+      onManagerLogin={() => setStage('login')}
+      openEvent={pushTarget}
+      onOpenEventHandled={() => setPushTarget(null)}
+    />
+  );
 }
 
 export default function App() {

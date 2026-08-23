@@ -1,5 +1,22 @@
 const prisma = require('../../prisma');
 const { NotFound, Forbidden, BadRequest } = require('../../lib/errors');
+const push = require('../notifications/service');
+
+// Edits that followers actually care about. Tweaking the description or
+// swapping a flyer is not worth waking someone's phone; moving the date,
+// renaming the show, or announcing the venue is.
+const PUSHWORTHY_FIELDS = ['title', 'startsAt', 'venueName', 'cityName', 'ticketUrl', 'startTimeTba'];
+
+function hasPushworthyChange(before, after) {
+  return PUSHWORTHY_FIELDS.some((field) => {
+    const a = before[field];
+    const b = after[field];
+    if (a instanceof Date || b instanceof Date) {
+      return new Date(a || 0).getTime() !== new Date(b || 0).getTime();
+    }
+    return (a ?? null) !== (b ?? null);
+  });
+}
 
 const EVENT_INCLUDE = {
   ticketTypes: { orderBy: { createdAt: 'asc' } },
@@ -216,6 +233,14 @@ async function create(input, artistId) {
     },
     include: EVENT_INCLUDE,
   });
+
+  // Announce it to the company's followers. Fire-and-forget: a push outage
+  // must never turn a successful publish into a failed save. The scheduler
+  // re-runs the same dedupe key later, so a miss here is caught up, not lost.
+  if (['published', 'live'].includes(created.status)) {
+    push.dispatchEventAsync(created.id, push.TYPES.PUBLISHED);
+  }
+
   return shape(created);
 }
 
@@ -282,6 +307,18 @@ async function update(id, input, requesterArtistId, requesterRole) {
     },
     include: EVENT_INCLUDE,
   });
+
+  const wasPublic = ['published', 'live'].includes(existing.status);
+  const isPublic = ['published', 'live'].includes(updated.status);
+  if (updated.status === 'cancelled' && wasPublic) {
+    push.dispatchEventAsync(updated.id, push.TYPES.CANCELLED);
+  } else if (isPublic && !wasPublic) {
+    // Draft → published is an announcement, not an edit.
+    push.dispatchEventAsync(updated.id, push.TYPES.PUBLISHED);
+  } else if (isPublic && hasPushworthyChange(existing, updated)) {
+    push.dispatchEventAsync(updated.id, push.TYPES.UPDATED);
+  }
+
   return shape(updated);
 }
 

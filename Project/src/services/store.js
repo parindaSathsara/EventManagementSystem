@@ -38,4 +38,6 @@ export const CHANNELS = {
   NOTIFICATIONS: 'notifications',
   FOLLOWS: 'follows',
   ALERTS_SEEN: 'alertsSeen',
+  // Push service status (permission, token, on/off) — see notifications.js.
+  PUSH: 'push',
 };

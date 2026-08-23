@@ -5,6 +5,7 @@ export { default as useTicketsData } from './useTicketsData';
 export { default as useNotificationsData } from './useNotificationsData';
 export { default as useFollows } from './useFollows';
 export { default as useUnseenAlerts } from './useUnseenAlerts';
+export { default as usePushNotifications } from './usePushNotifications';
 export { default as useDebounce } from './useDebounce';
 // Re-export from providers/ for convenience: `import { useUser } from '@/shared/hooks'`
 export { useUser } from '../providers';

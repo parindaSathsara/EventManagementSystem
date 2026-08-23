@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import { COLORS } from '../theme';
 import { BottomTabBar } from '../shared/components';
 import { useUnseenAlerts } from '../shared/hooks';
+// Aliased: `push` is already the local navigation helper in this file.
+import { push as pushService } from '../services';
 // Reels are disabled for now — kept on disk, just unwired from the guest app.
 // import { ReelsScreen } from '../features/reels';
 import { ArtistProfileScreen } from '../features/artists';
@@ -30,7 +32,7 @@ const TABS = [
   { key: 'notifications', label: 'Alerts', icon: 'notifications-outline', iconActive: 'notifications' },
 ];
 
-export default function GuestTabs({ onManagerLogin }) {
+export default function GuestTabs({ onManagerLogin, openEvent, onOpenEventHandled }) {
   const [tab, setTab] = useState('events'); // land on Timeline
   const [stack, setStack] = useState({ name: null, params: {} });
   const { count: unseenAlerts, markSeen } = useUnseenAlerts();
@@ -38,10 +40,23 @@ export default function GuestTabs({ onManagerLogin }) {
   const push = useCallback((name, params = {}) => setStack({ name, params }), []);
   const pop = useCallback(() => setStack({ name: null, params: {} }), []);
 
-  // Opening the Alerts tab clears the unseen badge — no leftover dot.
+  // Opening the Alerts tab clears the unseen badge — no leftover dot. It also
+  // clears the OS tray and app-icon badge: the guest is looking at the same
+  // alerts right now, so leaving copies stacked in the shade is just noise.
   useEffect(() => {
-    if (tab === 'notifications') markSeen();
+    if (tab !== 'notifications') return;
+    markSeen();
+    pushService.clearDelivered().catch(() => {});
   }, [tab, markSeen]);
+
+  // A tapped notification opens straight onto its event. `nonce` changes on
+  // every tap, so tapping the same event twice re-opens it after a back-out.
+  useEffect(() => {
+    if (!openEvent?.eventId) return;
+    push('event', { eventId: openEvent.eventId });
+    onOpenEventHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openEvent?.eventId, openEvent?.nonce]);
 
   const tabs = TABS.map((t) =>
     t.key === 'notifications' && unseenAlerts > 0 && tab !== 'notifications'
@@ -132,6 +147,12 @@ export default function GuestTabs({ onManagerLogin }) {
 
 GuestTabs.propTypes = {
   onManagerLogin: PropTypes.func,
+  // Deep-link target from a tapped notification: { eventId, nonce }.
+  openEvent: PropTypes.shape({
+    eventId: PropTypes.string,
+    nonce: PropTypes.number,
+  }),
+  onOpenEventHandled: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

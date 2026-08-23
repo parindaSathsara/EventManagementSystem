@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aahaas.eventsocial"
+      "bundleIdentifier": "com.aahaas.eventsocial",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "package": "com.aahaas.eventsocial",
@@ -22,13 +25,26 @@
         "foregroundImage": "./assets/Logo/adaptive-foreground.png",
         "backgroundImage": "./assets/Logo/adaptive-background.png",
         "backgroundColor": "#8A0000"
-      }
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/Logo/StagewithBorder.png"
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/Logo/notification-icon.png",
+          "color": "#FF3B3B",
+          "defaultChannel": "default"
+        }
+      ],
       [
         "expo-image-picker",
         {

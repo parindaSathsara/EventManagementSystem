@@ -350,3 +350,59 @@ model ReelRepost {
   @@unique([userId, reelId])
   @@index([userId])
 }
+
+// -----------------------------------------------------------------------------
+// Push notifications
+// -----------------------------------------------------------------------------
+
+// One row per install. Keyed by the same anonymous `deviceId` the guest-first
+// app already uses for GuestFollow, so "who follows this company" joins
+// straight onto "where do we push" without an account.
+//
+// `expoPushToken` is the Expo Push Service address (ExponentPushToken[...]).
+// It is NOT unique-constrained: reinstalling the app mints a new deviceId but
+// FCM/APNs may hand back the same token, so registration explicitly detaches
+// the token from any older device row instead of erroring on a dup.
+model PushDevice {
+  id            String   @id @default(cuid())
+  deviceId      String   @unique
+  expoPushToken String?  @db.VarChar(255)
+  platform      String?  // ios | android
+  appVersion    String?
+  // Set when a manager is logged in on this install — lets us push to a user
+  // across their devices, on top of the device-local guest follows.
+  userId        String?
+  // Guest-facing on/off switch (the Alerts screen toggle). Separate from OS
+  // permission: revoking permission leaves the row, it just stops delivering.
+  enabled       Boolean  @default(true)
+  // Consecutive Expo delivery failures. Devices are retired at PUSH_MAX_FAILURES.
+  failureCount  Int      @default(0)
+  lastSeenAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([expoPushToken])
+  @@index([enabled])
+  @@index([userId])
+}
+
+// Delivery ledger — the reason a guest never gets the same alert twice.
+// `dedupeKey` is deterministic per (event, kind): "evt:<id>:published",
+// "evt:<id>:T-3", … so the sweep can run every few minutes and stay idempotent.
+model NotificationDelivery {
+  id               String    @id @default(cuid())
+  deviceId         String
+  dedupeKey        String    @db.VarChar(160)
+  eventId          String?
+  // Expo push ticket id — resolved into a receipt a few minutes later, which
+  // is where DeviceNotRegistered actually shows up for most dead tokens.
+  ticketId         String?   @db.VarChar(191)
+  status           String    @default("sent") // sent | failed
+  error            String?   @db.Text
+  sentAt           DateTime  @default(now())
+  receiptCheckedAt DateTime?
+
+  @@unique([deviceId, dedupeKey])
+  @@index([sentAt])
+  @@index([ticketId])
+}

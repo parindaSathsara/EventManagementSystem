@@ -10,9 +10,17 @@ import * as ticketsRepo from './ticketsRepo';
 import * as notificationsRepo from './notificationsRepo';
 import * as followRepo from './followRepo';
 import * as alertsSeenRepo from './alertsSeenRepo';
+import * as pushService from './notifications';
 
 export { reelsRepo, eventsRepo, ticketsRepo, notificationsRepo, followRepo, alertsSeenRepo };
 export { subscribe, emit, CHANNELS } from './store';
+export { ensureDeviceId } from './deviceId';
+/**
+ * `push` is the notification service: OS permission, the Expo push token, and
+ * the on-device reminder schedule. Exported under the old
+ * `notificationScheduler` name too — it started life as local scheduling only.
+ */
+export * as push from './notifications';
 export * as notificationScheduler from './notifications';
 export * as api from './api';
 
@@ -30,6 +38,10 @@ export async function hydrateAll() {
     notificationsRepo.hydrate(),
     followRepo.hydrate(),
     alertsSeenRepo.hydrate(),
+    // Refreshes this install's push registration (and its liveness heartbeat,
+    // which is how the backend knows not to duplicate the on-device
+    // reminders). `prompt: false` — boot never shows an OS permission dialog.
+    pushService.register({ prompt: false }).catch(() => {}),
   ]);
 }
 

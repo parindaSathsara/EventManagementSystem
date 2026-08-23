@@ -5,6 +5,7 @@
 
 import { notifications as notificationsApi } from './api';
 import { emit, CHANNELS } from './store';
+import { ensureDeviceId } from './deviceId';
 
 let cache = [];
 let lastError = null;
@@ -23,7 +24,10 @@ export async function fetch() {
   if (inflight) return inflight;
   inflight = (async () => {
     try {
-      const data = await notificationsApi.list();
+      // The device id is what tells the backend which companies this install
+      // follows, so their reminders can lead the feed.
+      const deviceId = await ensureDeviceId();
+      const data = await notificationsApi.list(deviceId);
       lastError = null;
       _set(data.items || []);
       return cache;

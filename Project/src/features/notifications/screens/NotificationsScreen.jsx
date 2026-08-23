@@ -19,9 +19,11 @@ import {
   useEventsData,
   useFollows,
   useUnseenAlerts,
+  usePushNotifications,
+  useAlert,
 } from '../../../shared/hooks';
 import { hasStartTime, timeLabel, venueLine } from '../../../shared/utils';
-import { notificationScheduler } from '../../../services';
+import { push as pushService } from '../../../services';
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
 
@@ -44,13 +46,18 @@ const ALL_COMPANIES = '__all__';
  *  - "New events": fresh events published/updated by followed companies.
  *  - Both can be narrowed to a single event manager, so following a busy
  *    company doesn't bury the rest.
- *  - On-device local notifications are (re)scheduled for followed events.
+ *  - A settings row on top owns the OS-level half: permission, the push
+ *    token, and the guest's on/off switch.
+ *  - On-device local notifications are (re)scheduled for followed events,
+ *    which is what makes reminders fire with the app closed.
  */
 export default function NotificationsScreen({ onOpenEvent }) {
   const items = useNotificationsData();
   const events = useEventsData();
   const { ids, isFollowing } = useFollows();
   const { newFromFollowed } = useUnseenAlerts();
+  const notifications = usePushNotifications();
+  const alert = useAlert();
   // `null` = the guest hasn't chosen a filter, so we pick the best one for
   // them (see `activeFilter`). Once they tap a chip we respect it exactly.
   const [filter, setFilter] = useState(null);
@@ -66,15 +73,21 @@ export default function NotificationsScreen({ onOpenEvent }) {
         id: e.id,
         title: e.title,
         startsAt: e.startsAt,
+        // Without this the day-of nudge would fire "2 hours before" a
+        // placeholder noon on events whose time isn't announced yet.
+        startTimeTba: e.startTimeTba,
         venueName: e.venueName,
         companyName: e.organizer?.user?.name || e.organizer?.handle,
       }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, ids]);
 
+  // Re-arm the OS alarms whenever the follow list or the events behind it
+  // change — and when the guest flips the switch, since turning alerts off
+  // has to cancel what's already scheduled.
   useEffect(() => {
-    notificationScheduler.syncReminders(followedUpcoming).catch(() => {});
-  }, [followedUpcoming]);
+    pushService.syncReminders(followedUpcoming).catch(() => {});
+  }, [followedUpcoming, notifications.on]);
 
   /** Event managers appearing anywhere in the alerts — the company filter. */
   const companies = useMemo(() => {
@@ -130,6 +143,20 @@ export default function NotificationsScreen({ onOpenEvent }) {
       <View style={styles.header}>
         <Text style={styles.title}>Alerts</Text>
       </View>
+
+      {/* The OS-level switch. Always visible: a guest who thinks alerts are
+          broken needs to find the reason here, not guess. */}
+      <PushSettingsRow
+        state={notifications}
+        onTest={async () => {
+          try {
+            await notifications.sendTest();
+            alert.success('Sent', 'Check your notification tray in a second.');
+          } catch (e) {
+            alert.error('Could not send', e?.message || 'Please try again.');
+          }
+        }}
+      />
 
       {/* Filters — pinned above the feed so the page never has to be scrolled
           to reach them. */}
@@ -240,6 +267,65 @@ export default function NotificationsScreen({ onOpenEvent }) {
   );
 }
 
+/**
+ * Push on/off row.
+ *
+ * Collapses (permission × push token × the guest's own switch) into one line
+ * and one button. The distinction that matters to a guest is *who* turned
+ * alerts off: if the OS did, the button has to send them to system settings,
+ * because the app is no longer allowed to ask.
+ */
+function PushSettingsRow({ state, onTest }) {
+  // Nothing to configure in a build without the native module (web, or an
+  // Expo Go client that dropped it) — don't show a control that can't work.
+  if (!state.supported) return null;
+
+  const blocked = state.permission === 'denied';
+  const on = state.on;
+
+  return (
+    <View style={styles.pushRow}>
+      <View style={[styles.pushIcon, on && styles.pushIconOn]}>
+        <Ionicons
+          name={on ? 'notifications' : blocked ? 'notifications-off' : 'notifications-outline'}
+          size={18}
+          color={on ? '#000' : COLORS.textMuted}
+        />
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.pushTitle}>Push notifications</Text>
+        <Text style={styles.pushSummary} numberOfLines={2}>
+          {state.summary}
+        </Text>
+      </View>
+
+      {/* Only offer the test once there's a server-reachable token to test. */}
+      {on && state.remote ? (
+        <TouchableOpacity
+          style={styles.pushTest}
+          disabled={state.busy}
+          onPress={onTest}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.pushTestText}>Test</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      <TouchableOpacity
+        style={[styles.pushToggle, on && styles.pushToggleOn]}
+        disabled={state.busy}
+        activeOpacity={0.85}
+        onPress={() => (on ? state.disable() : state.enable())}
+      >
+        <Text style={[styles.pushToggleText, on && styles.pushToggleTextOn]}>
+          {state.busy ? '…' : on ? 'On' : blocked ? 'Settings' : 'Turn on'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 /** "Company published / updated an event" card. */
 function PublishCard({ event, onPress }) {
   const org = event.organizer || {};
@@ -299,6 +385,10 @@ function ReminderCard({ item, onPress }) {
 
 PublishCard.propTypes = { event: PropTypes.object.isRequired, onPress: PropTypes.func };
 ReminderCard.propTypes = { item: PropTypes.object.isRequired, onPress: PropTypes.func };
+PushSettingsRow.propTypes = {
+  state: PropTypes.object.isRequired,
+  onTest: PropTypes.func.isRequired,
+};
 
 NotificationsScreen.propTypes = {
   onOpenEvent: PropTypes.func,
@@ -320,6 +410,61 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.headingBold,
     color: COLORS.textPrimary,
   },
+  // Push settings row — reads as a setting, not as another alert card: no
+  // full-width surface, just a hairline rule under the header.
+  pushRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginHorizontal: SPACING.base,
+    marginBottom: SPACING.sm,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lineSubtle,
+  },
+  pushIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: RADII.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface2,
+  },
+  pushIconOn: { backgroundColor: COLORS.accent },
+  pushTitle: {
+    ...TYPE_SCALE.bodyMd,
+    fontFamily: FONT_FAMILY.headingSemiBold,
+    color: COLORS.textPrimary,
+  },
+  pushSummary: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyMedium,
+    color: COLORS.textMuted,
+    marginTop: 1,
+  },
+  pushTest: { paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
+  pushTestText: {
+    ...TYPE_SCALE.caption,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.textMuted,
+    textDecorationLine: 'underline',
+  },
+  pushToggle: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm - 2,
+    borderRadius: RADII.pill,
+    borderWidth: 1,
+    borderColor: COLORS.lineStrong,
+    minWidth: 68,
+    alignItems: 'center',
+  },
+  pushToggleOn: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  pushToggleText: {
+    fontSize: 12,
+    fontFamily: FONT_FAMILY.bodyBold,
+    color: COLORS.textPrimary,
+  },
+  pushToggleTextOn: { color: '#000' },
   filterBar: { flexGrow: 0, marginBottom: SPACING.xs },
   filterStrip: {
     paddingHorizontal: SPACING.base,

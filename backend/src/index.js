@@ -6,6 +6,7 @@
 const { build } = require('./app');
 const config = require('./config');
 const prisma = require('./prisma');
+const pushScheduler = require('./modules/notifications/scheduler');
 
 const app = build();
 
@@ -14,11 +15,14 @@ const server = app.listen(config.port, () => {
   console.log(
     `[eventsocial] listening on :${config.port} (${config.env})`,
   );
+  // Reminder / catch-up push sweep. No-ops when PUSH_ENABLED=false.
+  pushScheduler.start();
 });
 
 async function shutdown(signal) {
   // eslint-disable-next-line no-console
   console.log(`[eventsocial] ${signal} received — shutting down`);
+  pushScheduler.stop();
   server.close(async () => {
     await prisma.$disconnect();
     process.exit(0);

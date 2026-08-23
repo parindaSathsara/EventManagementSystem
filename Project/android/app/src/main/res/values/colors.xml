@@ -3,4 +3,6 @@
   <color name="iconBackground">#8A0000</color>
   <color name="colorPrimary">#023c69</color>
   <color name="colorPrimaryDark">#0B0000</color>
+  <!-- Brand red — tints the notification small icon and the LED. -->
+  <color name="notification_icon_color">#FF3B3B</color>
 </resources>

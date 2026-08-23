@@ -13,6 +13,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "db:seed": "node prisma/seed.js",
+    "check:notifications": "node scripts/check-notifications.js && node scripts/check-notifications-http.js",
     "lint": "eslint src --ext .js",
     "format": "prettier --write \"src/**/*.js\""
   },

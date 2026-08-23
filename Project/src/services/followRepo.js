@@ -11,41 +11,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emit, CHANNELS } from './store';
 import { artists as artistsApi } from './api';
+import { ensureDeviceId } from './deviceId';
+import * as push from './notifications';
 
 const KEY = '@eventsocial.v1.follows';
-const DEVICE_KEY = '@eventsocial.v1.deviceId';
 
 let set = new Set();
 let hydrated = false;
-let deviceId = null;
-let deviceIdPromise = null;
 
 function persist() {
   AsyncStorage.setItem(KEY, JSON.stringify([...set])).catch(() => {});
-}
-
-function makeDeviceId() {
-  return `dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
-}
-
-/** Resolves the persistent per-install device id, creating it on first use. */
-function ensureDeviceId() {
-  if (deviceId) return Promise.resolve(deviceId);
-  if (!deviceIdPromise) {
-    deviceIdPromise = (async () => {
-      try {
-        deviceId = await AsyncStorage.getItem(DEVICE_KEY);
-        if (!deviceId) {
-          deviceId = makeDeviceId();
-          await AsyncStorage.setItem(DEVICE_KEY, deviceId);
-        }
-      } catch {
-        deviceId = deviceId || makeDeviceId(); // in-memory fallback for this run
-      }
-      return deviceId;
-    })();
-  }
-  return deviceIdPromise;
 }
 
 export async function hydrate() {
@@ -78,10 +53,17 @@ export function toggle(companyId) {
   persist();
   emit(CHANNELS.FOLLOWS);
   // Fire-and-forget backend sync — the local state is the source of truth
-  // for this device; the API call keeps the company's follower count real.
+  // for this device; the API call keeps the company's follower count real
+  // AND is what makes this device an audience member for the company's push
+  // announcements (the backend joins GuestFollow → PushDevice on this id).
   ensureDeviceId()
     .then((id) => artistsApi.guestFollow(companyId, id, following))
     .catch(() => {});
+
+  // Following someone is the moment a guest has actually asked to hear from
+  // us, so it's where the OS permission prompt belongs — not on app launch.
+  if (following) push.onFollow().catch(() => {});
+
   return following;
 }
 

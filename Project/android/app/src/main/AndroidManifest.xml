@@ -19,6 +19,19 @@
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/df709ac8-60e3-4f63-8ef4-9a8c61b5724d"/>
+    <!-- Notification appearance. Android tints the small icon, so it must be a
+         white-on-transparent silhouette (res/drawable-*/notification_icon.png)
+         or the status bar shows a solid blob. The `expo.modules.*` pair covers
+         locally scheduled notifications, the `com.google.firebase.messaging.*`
+         pair covers remote pushes; both are needed for the two paths to look
+         the same. Mirrored by the expo-notifications plugin block in app.json —
+         this project commits its android/ folder and does not run prebuild
+         (see the release notes), so the values live here too. -->
+    <meta-data android:name="expo.modules.notifications.default_notification_icon" android:resource="@drawable/notification_icon"/>
+    <meta-data android:name="expo.modules.notifications.default_notification_color" android:resource="@color/notification_icon_color"/>
+    <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/notification_icon"/>
+    <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notification_icon_color"/>
+    <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="default"/>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
