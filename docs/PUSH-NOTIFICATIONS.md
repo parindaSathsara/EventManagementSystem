@@ -189,16 +189,31 @@ Backend env (all optional — the defaults are the shipped behaviour):
 
 ## Deploying
 
-The two new tables (`PushDevice`, `NotificationDelivery`) are additive, so the
-project's usual `prisma db push` is safe:
+From the repo root, after pushing:
 
 ```bash
-# on the server, /var/www/events-ai
-git pull --ff-only
+./deploy.sh                 # pre-flight → remote deploy → verify the public URL
+./deploy.sh --status        # health + pm2 status, deploys nothing
+./deploy.sh --logs          # recent server logs
+```
+
+It refuses to run if your work isn't on the branch the server pulls — the
+server deploys from GitHub, so committing is not shipping.
+
+The two new tables (`PushDevice`, `NotificationDelivery`) are additive, so the
+schema sync inside the deploy handles them. It runs `prisma db push` (this
+project has one migration and syncs everything since by push) **without**
+`--accept-data-loss`, so a destructive change aborts the deploy rather than
+dropping data.
+
+Doing it by hand, on the server:
+
+```bash
+cd /var/www/events-ai && git pull --ff-only
 cd backend
 npx --no-install prisma generate
 npx --no-install prisma db push --skip-generate
-pm2 restart events-ai --update-env
+pm2 reload ecosystem.config.js --env production --update-env
 pm2 logs events-ai --lines 30      # look for "[push:scheduler] every 300s …"
 ```
 

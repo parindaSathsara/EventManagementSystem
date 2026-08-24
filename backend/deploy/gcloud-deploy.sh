@@ -6,16 +6,20 @@
 #   BRANCH=hotfix ./deploy/gcloud-deploy.sh      # deploy a non-main branch
 #   SKIP_INSTALL=1 ./deploy/gcloud-deploy.sh     # skip npm ci
 #
+# Prefer `./deploy.sh` at the repo root — same thing, plus the pre-flight that
+# refuses to deploy work you haven't pushed, and post-deploy checks against the
+# public hostname. This script is the transport underneath it.
+#
 # What it does:
 #   1. `gcloud compute ssh` (via IAP) into the backend VM
 #   2. `docker exec` into the workspace container
-#   3. `cd $APP_DIR/backend && ./deploy/deploy.sh`   (git pull → install → pm2 reload → healthcheck)
+#   3. `cd $APP_DIR/backend && ./deploy/deploy.sh`
+#      (git pull → install → prisma generate → prisma db push → pm2 reload → smoke tests)
 #
-# Database migrations are deliberately NOT part of this — run them yourself
-# when the schema changes (deploy.sh prints a reminder):
-#
-#   ./deploy/gcloud-connect.sh "cd /var/www/events-ai/backend && npx prisma migrate status"
-#   ./deploy/gcloud-connect.sh "cd /var/www/events-ai/backend && npx prisma migrate deploy"
+# The schema sync IS part of the remote script now — this project uses
+# `prisma db push`, and it runs without `--accept-data-loss`, so an additive
+# change applies and a destructive one aborts the deploy. Skip it with
+# SKIP_DB=1 if you want to apply the change by hand.
 #
 # Local prerequisite: gcloud CLI authenticated (`gcloud auth login`).
 # =============================================================================
@@ -38,6 +42,7 @@ source "$CONFIG"
 ENV_FORWARD=""
 [ -n "${BRANCH:-}" ]       && ENV_FORWARD+="BRANCH='${BRANCH}' "
 [ "${SKIP_INSTALL:-0}" = "1" ] && ENV_FORWARD+="SKIP_INSTALL=1 "
+[ "${SKIP_DB:-0}" = "1" ]      && ENV_FORWARD+="SKIP_DB=1 "
 
 REMOTE="cd $APP_DIR/backend && $ENV_FORWARD ./deploy/deploy.sh"
 

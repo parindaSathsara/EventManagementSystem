@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <Link className="brand" href="/"><img src="/brand/stage-mark.png" alt="" /><span>STAGE</span></Link>
+          <Link className="brand footer-wordmark" href="/"><img src="/brand/stage-wordmark.png" alt="Stage" /></Link>
           <p>Sri Lanka&apos;s home for discovering live events and the people behind them.</p>
         </div>
         <div><h3>Discover</h3><Link href="/events">Events</Link><Link href="/calendar">Calendar</Link><Link href="/artists">Artists</Link><Link href="/reels">Reels</Link></div>

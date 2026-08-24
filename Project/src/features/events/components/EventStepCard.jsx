@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +13,7 @@ import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import Avatar from '../../../shared/components/Avatar';
 import ComingSoon from '../../../shared/components/ComingSoon';
+import TopCropImage from '../../../shared/components/TopCropImage';
 import { TEASER, hasVenue, hasLineup, hasStartTime, pendingDetails, timeLabel, venueLine } from '../../../shared/utils';
 import LineupRow from './LineupRow';
 
@@ -95,9 +95,9 @@ export default function EventStepCard({
           onPress={() => onOpenEvent && onOpenEvent(event.id)}
         >
           {poster ? (
-            <TopAlignedPoster uri={poster}>
+            <TopCropImage uri={poster} style={styles.posterBg}>
               <PosterOverlay event={event} date={date} />
-            </TopAlignedPoster>
+            </TopCropImage>
           ) : (
             <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.posterBg}>
               <PosterOverlay event={event} date={date} />
@@ -165,48 +165,6 @@ export default function EventStepCard({
     </View>
   );
 }
-
-/**
- * Fills its parent and top-aligns the image: full width, natural aspect
- * ratio, overflow cropped at the bottom. Landscape images (shorter than the
- * box) fall back to a centered cover crop.
- */
-function TopAlignedPoster({ uri, children }) {
-  const [box, setBox] = useState(null);
-  const [ratio, setRatio] = useState(null); // natural height / width
-
-  useEffect(() => {
-    let alive = true;
-    Image.getSize(
-      uri,
-      (w, h) => { if (alive && w > 0) setRatio(h / w); },
-      () => { if (alive) setRatio(null); },
-    );
-    return () => { alive = false; };
-  }, [uri]);
-
-  const topAligned = box && ratio && box.w * ratio >= box.h;
-
-  return (
-    <View
-      style={styles.posterBg}
-      onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
-    >
-      {topAligned ? (
-        <Image
-          source={{ uri }}
-          resizeMode="cover"
-          style={{ position: 'absolute', top: 0, left: 0, width: box.w, height: box.w * ratio }}
-        />
-      ) : (
-        <Image source={{ uri }} resizeMode="cover" style={StyleSheet.absoluteFill} />
-      )}
-      {children}
-    </View>
-  );
-}
-
-TopAlignedPoster.propTypes = { uri: PropTypes.string.isRequired, children: PropTypes.node };
 
 function PosterOverlay({ event, date }) {
   return (

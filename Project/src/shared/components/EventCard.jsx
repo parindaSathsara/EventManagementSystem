@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../theme';
 import Chip from './Chip';
+import TopCropImage from './TopCropImage';
 import { hasStartTime, timeLabel, venueLine } from '../utils';
 
 function formatDay(iso) {
@@ -33,7 +34,9 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
       <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.gridWrap}>
         <View style={styles.gridCover}>
           {imgUrl ? (
-            <Image source={{ uri: imgUrl }} style={styles.cover} />
+            // Top-anchored: flyers are portrait and the faces sit high, so a
+            // centred crop in this short tile cuts heads off.
+            <TopCropImage uri={imgUrl} style={styles.cover} />
           ) : (
             <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.cover} />
           )}
@@ -91,9 +94,9 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
         {/* Backend returns a `coverImageUrl` string; legacy mocks used a
             local `coverImage` asset. Accept both, fall back to the gradient. */}
         {imgUrl ? (
-          <Image source={{ uri: imgUrl }} style={styles.cover} />
+          <TopCropImage uri={imgUrl} style={styles.cover} />
         ) : event.coverImage ? (
-          <Image source={event.coverImage} style={styles.cover} />
+          <TopCropImage source={event.coverImage} style={styles.cover} />
         ) : (
           <LinearGradient
             colors={[event.coverColor || '#1a0a2e', '#000']}

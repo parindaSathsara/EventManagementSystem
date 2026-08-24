@@ -24,7 +24,7 @@ test('public pages, API proxy, and dynamic links are healthy', async ({ page, re
   }
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: /your night/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /one island/i })).toBeVisible();
   await expect(page.locator('.event-card').first()).toBeVisible();
   await expect(page.locator('.artist-card').first()).toBeVisible();
 
@@ -113,8 +113,8 @@ test('navigation has no broken internal destinations', async ({ page, request })
   const hrefs = new Set<string>();
 
   for (const route of sourcePages) {
-    await page.goto(route);
-    await page.waitForLoadState('networkidle');
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toBeVisible();
     const links = await page.locator('a[href]').evaluateAll((anchors) =>
       anchors.map((anchor) => anchor.getAttribute('href')).filter((href): href is string => !!href),
     );

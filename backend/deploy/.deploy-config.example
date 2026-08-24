@@ -17,5 +17,10 @@ CONTAINER=aahaas-workspace-1
 # Path inside the container where the app lives.
 APP_DIR=/var/www/events-ai
 
-# Git branch deploy.sh will pull. Override per-deploy with `BRANCH=hotfix ./deploy.sh`.
+# Git branch deploy.sh will pull. Override per-deploy with `./deploy.sh --branch hotfix`.
 BRANCH=main
+
+# Public hostname. The root ./deploy.sh checks this after deploying, so it
+# verifies the path a phone actually takes (Cloudflare → nginx → node) rather
+# than only the loopback check the server does for itself.
+PUBLIC_URL=https://events-api.aahaas.com

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, CalendarDays, Menu, RadioTower, Search, Ticket, UserRound, X } from 'lucide-react';
+import { Bell, CalendarDays, Flame, Menu, Search, Ticket, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from './auth-provider';
 import { Avatar } from './media';
@@ -23,8 +23,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="nav-wrap">
         <Link className="brand" href="/" aria-label="Stage home">
-          <img src="/brand/stage-mark.png" alt="" />
-          <span>STAGE</span>
+          <img className="brand-wordmark" src="/brand/stage-wordmark.png" alt="Stage" />
         </Link>
 
         <nav className={open ? 'main-nav is-open' : 'main-nav'} aria-label="Primary navigation">
@@ -41,7 +40,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="nav-actions">
-          <span className="network-status desktop-only"><RadioTower size={13} /><span>Live network</span></span>
+          <Link className="stage-live-pill desktop-only" href="/events"><Flame size={13} fill="currentColor" /><span>Discover live</span></Link>
           <Link className="icon-link" href="/events?focus=search" aria-label="Search"><Search size={19} /></Link>
           {user && <Link className="icon-link" href="/alerts" aria-label="Upcoming alerts"><Bell size={18} /></Link>}
           {user && <Link className="icon-link" href="/tickets" aria-label="My tickets"><Ticket size={19} /></Link>}
