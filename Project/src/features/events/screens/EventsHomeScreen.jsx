@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -25,7 +24,6 @@ const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACIN
 const TAB_BAR_H = Platform.OS === 'ios' ? 90 : 70;
 const VISIBLE_STATUS = new Set(['published', 'live']);
 const EMPTY_SHEET = { visible: false, name: '', subtitle: '', avatarUrl: null, socials: null, relatedEvents: [] };
-const STAGE_WORDMARK = require('../../../../assets/Logo/logo.png');
 
 /**
  * Last event index the guest stepped to, per feed. Module-level on purpose:
@@ -137,29 +135,15 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgStrong} translucent />
 
-      {/* Header */}
+      {/* Header — ONE row (client feedback 2026-11-08): the feed tabs sit up
+          top-left, so the space the second row used goes to the flyer.
+          (The old striped wordmark here was not the client's logo.) */}
       <View style={styles.header}>
-        <View style={styles.brandRow}>
-          <Image
-            source={STAGE_WORDMARK}
-            resizeMode="contain"
-            style={styles.brandLogo}
-            accessible
-            accessibilityLabel="Stage"
-          />
-          <View style={styles.actions}>
-            <IconBtn icon="search-outline" onPress={onOpenSearch} />
-          {/* "+" between search & refresh — event companies / managers create
-              an event from here (routes through the manager login). */}
-            <IconBtn icon="add-circle-outline" onPress={onManagerCreate} />
-            <IconBtn icon="refresh-outline" onPress={events.refresh} />
-          </View>
+        <View style={styles.tabs}>
+          <Tab label="For You" active={feed === 'forYou'} onPress={() => setFeed('forYou')} />
+          <Tab label="Following" active={feed === 'following'} onPress={() => setFeed('following')} />
         </View>
-        <View style={styles.feedRow}>
-          <View style={styles.tabs}>
-            <Tab label="For You" active={feed === 'forYou'} onPress={() => setFeed('forYou')} />
-            <Tab label="Following" active={feed === 'following'} onPress={() => setFeed('following')} />
-          </View>
+        <View style={styles.actions}>
           <View
             style={styles.feedPosition}
             accessibilityLabel={`Event ${Math.min(activeIndex + 1, visible.length)} of ${visible.length}`}
@@ -167,8 +151,13 @@ export default function EventsHomeScreen({ onOpenEvent, onOpenSearch, onManagerC
             <Text style={styles.feedPositionCurrent}>
               {String(visible.length ? activeIndex + 1 : 0).padStart(2, '0')}
             </Text>
-            <Text style={styles.feedPositionTotal}> / {String(visible.length).padStart(2, '0')}</Text>
+            <Text style={styles.feedPositionTotal}>/{String(visible.length).padStart(2, '0')}</Text>
           </View>
+          <IconBtn icon="search-outline" onPress={onOpenSearch} />
+          {/* "+" between search & refresh — event companies / managers create
+              an event from here (routes through the manager login). */}
+          <IconBtn icon="add-circle-outline" onPress={onManagerCreate} />
+          <IconBtn icon="refresh-outline" onPress={events.refresh} />
         </View>
       </View>
 
@@ -267,20 +256,19 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: TOP,
     paddingHorizontal: SPACING.base,
-    paddingBottom: SPACING.sm,
-    gap: SPACING.sm,
+    paddingBottom: SPACING.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: COLORS.bgStrong,
   },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  brandLogo: { width: 132, height: 31 },
-  feedRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   tabs: { flexDirection: 'row', gap: SPACING.md },
   tab: { alignItems: 'center', paddingVertical: 2 },
   tabText: { fontSize: 15, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textMuted },
   tabTextActive: { color: COLORS.textPrimary },
   tabUnderline: { height: 2, width: 18, borderRadius: 1, backgroundColor: COLORS.accent, marginTop: 3 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  feedPosition: { flexDirection: 'row', alignItems: 'baseline', paddingBottom: 3 },
+  feedPosition: { flexDirection: 'row', alignItems: 'baseline', marginRight: SPACING.xs },
   feedPositionCurrent: { fontSize: 13, fontFamily: FONT_FAMILY.headingBold, color: COLORS.textPrimary },
   feedPositionTotal: { fontSize: 10, fontFamily: FONT_FAMILY.bodyMedium, color: COLORS.textMuted },
   iconBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },

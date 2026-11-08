@@ -33,12 +33,14 @@ const FADE_INTO = 70;
  * One full-screen event "page" in the vertical Timeline feed.
  *
  * The flyer IS the card (client feedback 2026-11-08): it fills the card from
- * the top, at full width and its own aspect ratio — never centre-cropped —
- * and fades into a blurred, dimmed copy of itself exactly where the details
- * begin. Company, title, line up and Buy Tickets float over the artwork.
+ * just below the company strip, at full width and its own aspect ratio —
+ * never centre-cropped — and fades into a blurred, dimmed copy of itself
+ * exactly where the details begin. Title, line up and Buy Tickets float over
+ * the artwork; the company row does NOT (it hid the flyer's own title).
  *
  *   ┌───────────────────────┐
- *   │ (UJ) Company  Follow  │ ← light top scrim for legibility
+ *   │ (UJ) Company  Follow  │ ← solid strip, above the flyer
+ *   ├───────────────────────┤
  *   │                       │
  *   │      FLYER (sharp)    │ ← tap anywhere here to open the event
  *   │                       │
@@ -117,7 +119,33 @@ export default function EventStepCard({
 
   return (
     <View style={[styles.page, { height }]}>
-      <View style={styles.card} onLayout={onCardLayout}>
+      <View style={styles.card}>
+        {/* Company strip — ABOVE the flyer, never on top of it (client feedback
+            2026-11-08: the row covered the flyer's own title). */}
+        <View style={styles.ownerRow}>
+          <TouchableOpacity style={styles.ownerMain} activeOpacity={0.8} onPress={() => onOpenManager && onOpenManager(org)}>
+            <Avatar uri={org.user?.avatarUrl} name={ownerName} size={38} verified={org.isVerified} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.ownerName} numberOfLines={1}>{ownerName}</Text>
+              {org.category ? (
+                <Text style={styles.ownerCat} numberOfLines={1}>{org.category}</Text>
+              ) : null}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+            activeOpacity={0.85}
+            onPress={onToggleFollow}
+          >
+            <Text style={[styles.followText, isFollowing && styles.followTextActive]}>
+              {isFollowing ? 'Following' : 'Follow'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* The flyer stage: everything below the company strip. Measured, so
+            the flyer is laid out at full width from the stage's top edge. */}
+        <View style={styles.stage} onLayout={onCardLayout}>
         {/* ---- Artwork layers ---- */}
         {poster ? (
           <>
@@ -148,28 +176,6 @@ export default function EventStepCard({
 
         {/* ---- Content ---- */}
         <View style={styles.content}>
-          {/* Company — the headline of the card (no "EVENT BY" label) */}
-          <View style={styles.ownerRow}>
-            <TouchableOpacity style={styles.ownerMain} activeOpacity={0.8} onPress={() => onOpenManager && onOpenManager(org)}>
-              <Avatar uri={org.user?.avatarUrl} name={ownerName} size={38} verified={org.isVerified} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.ownerName, styles.onArt]} numberOfLines={1}>{ownerName}</Text>
-                {org.category ? (
-                  <Text style={[styles.ownerCat, styles.onArt]} numberOfLines={1}>{org.category}</Text>
-                ) : null}
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.followBtn, isFollowing && styles.followBtnActive]}
-              activeOpacity={0.85}
-              onPress={onToggleFollow}
-            >
-              <Text style={[styles.followText, isFollowing && styles.followTextActive]}>
-                {isFollowing ? 'Following' : 'Follow'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           {/* The open flyer area — tap anywhere on the artwork to open. */}
           <TouchableOpacity style={styles.artTap} activeOpacity={1} onPress={open} />
 
@@ -256,6 +262,7 @@ export default function EventStepCard({
             </TouchableOpacity>
           </View>
         </View>
+        </View>
       </View>
     </View>
   );
@@ -272,8 +279,7 @@ function fadeStops(cardH, flyerH, detailsH) {
   const f = (px) => Math.min(Math.max(px / cardH, 0), 1);
   const detailsTop = detailsH ? cardH - detailsH : cardH * 0.55;
   const fadeEndPx = Math.min(detailsTop + FADE_INTO, flyerH || cardH);
-  // Top scrim reaches past the company row: busy flyers put text up there.
-  const topEnd = f(120);
+  const topEnd = f(1);
   let fadeEnd = f(fadeEndPx);
   let fadeStart = f(fadeEndPx - FADE_LEAD - FADE_INTO);
   // Locations must strictly increase.
@@ -285,8 +291,9 @@ function fadeStops(cardH, flyerH, detailsH) {
   // blurred backdrop's colour still glows through below.
   return {
     colors: [
-      'rgba(0,0,0,0.7)',
-      'rgba(0,0,0,0.25)',
+      // Top of the flyer stays untouched — the company row is above it now.
+      'rgba(0,0,0,0)',
+      'rgba(0,0,0,0)',
       'rgba(0,0,0,0)',
       `rgba(${INK},0)`,
       `rgba(${INK},0.55)`,
@@ -334,7 +341,14 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
 
-  ownerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  // Company strip: a solid bar above the flyer (not on it).
+  ownerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm + 2,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  // Everything below the strip: flyer, fade, details.
+  stage: { flex: 1, overflow: 'hidden' },
   ownerMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   // Company name is the headline — bigger, no "EVENT BY" prefix.
   ownerName: { ...TYPE_SCALE.h4, fontFamily: FONT_FAMILY.headingBold, color: '#fff' },
