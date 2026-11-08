@@ -62,6 +62,21 @@ warn() { printf '\033[33m·\033[0m %s\n' "$*"; }
 die()  { printf '\033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 rule() { printf '\n\033[2m%s\033[0m\n' "────────────────────────────────────────────────────────"; }
 
+# ---- Running ON the server? Hand straight to the server-side script. -------
+# This file drives the deploy from a laptop over gcloud. Inside the workspace
+# container there's no gcloud and no .deploy-config — the build just runs here.
+if [ ! -f "$CONFIG" ] && ! command -v gcloud >/dev/null 2>&1 && [ -f "$HERE/web/deploy/deploy.sh" ]; then
+  export BRANCH="${BRANCH_OVERRIDE:-$(git -C "$HERE" branch --show-current)}"
+  say "On the server — running web/deploy/deploy.sh for branch $BRANCH"
+  cd "$HERE/web"
+  case "$MODE" in
+    status)   exec bash deploy/deploy.sh --status ;;
+    rollback) exec bash deploy/deploy.sh --rollback ;;
+    logs)     exec pm2 logs events-web --lines "$LOG_LINES" --nostream ;;
+    *)        [ "$FORCE_INSTALL" = "1" ] && export FORCE_INSTALL=1; exec bash deploy/deploy.sh ;;
+  esac
+fi
+
 # ---- Config -----------------------------------------------------------------
 
 [ -f "$CONFIG" ] || die "Missing $CONFIG — copy it from .deploy-config.example and fill it in."

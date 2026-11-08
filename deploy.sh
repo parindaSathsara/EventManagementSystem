@@ -61,6 +61,20 @@ warn() { printf '\033[33m·\033[0m %s\n' "$*"; }
 die()  { printf '\033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 rule() { printf '\n\033[2m%s\033[0m\n' "────────────────────────────────────────────────────────"; }
 
+# ---- Running ON the server? Hand straight to the server-side script. -------
+if [ ! -f "$CONFIG" ] && ! command -v gcloud >/dev/null 2>&1 && [ -f "$DEPLOY_DIR/deploy.sh" ]; then
+  export BRANCH="${BRANCH_OVERRIDE:-$(git -C "$HERE" branch --show-current)}"
+  say "On the server — running backend/deploy/deploy.sh for branch $BRANCH"
+  case "$MODE" in
+    logs)   exec pm2 logs events-ai --lines "$LOG_LINES" --nostream ;;
+    status) exec pm2 describe events-ai ;;
+    shell)  exec bash ;;
+  esac
+  cd "$HERE/backend"
+  [ "$SKIP_INSTALL_FLAG" = "1" ] && export SKIP_INSTALL=1
+  exec bash deploy/deploy.sh
+fi
+
 # ---- Config -----------------------------------------------------------------
 
 [ -f "$CONFIG" ] || die "Missing $CONFIG — copy it from .deploy-config.example and fill it in."
