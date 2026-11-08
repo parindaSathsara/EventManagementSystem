@@ -4,14 +4,16 @@ import './globals.css';
 import { AuthProvider } from '@/components/auth-provider';
 import { MobileDock, SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
+import { Reveal } from '@/components/reveal';
 
 const sora = Sora({ subsets: ['latin'], variable: '--font-heading' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-body' });
 
 export const metadata: Metadata = {
-  title: { default: 'Stage — Find your next night out', template: '%s · Stage' },
-  description: 'Discover live music, festivals and unforgettable events across Sri Lanka.',
-  icons: { icon: '/brand/stage-mark.png' },
+  title: { default: 'Stage — Your next stage is waiting', template: '%s · Stage' },
+  description: "Sri Lanka's home for live events — festivals, EDM nights, live concerts and hip hop. Follow the companies you love and never miss a drop.",
+  // Built by Project/scripts/build-icons.py from the same master as the app icon.
+  icons: { icon: '/brand/app-icon.png', apple: '/brand/apple-icon.png' },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <main>{children}</main>
           <SiteFooter />
           <MobileDock />
+          <Reveal />
         </AuthProvider>
       </body>
     </html>

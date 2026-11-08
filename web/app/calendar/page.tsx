@@ -15,7 +15,7 @@ import { api } from '@/lib/api';
 import type { EventItem, Paginated } from '@/lib/types';
 import { eventDate, eventTime, getImage } from '@/lib/format';
 import { ErrorState, LoadingState } from '@/components/states';
-import { MediaImage } from '@/components/media';
+import { FlyerImage } from '@/components/media';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -208,7 +208,7 @@ function AgendaEvent({ event }: { event: EventItem }) {
   const image = getImage(event);
   return (
     <Link className="agenda-event" href={`/events/${event.id}`}>
-      <div className="agenda-event-image" style={{ backgroundColor: event.coverColor || '#211' }}><MediaImage src={image} alt={`${event.title} artwork`} /></div>
+      <div className="agenda-event-image flyer-frame" style={{ backgroundColor: event.coverColor || '#211' }}><FlyerImage src={image} alt={`${event.title} artwork`} seed={event.id} compact /></div>
       <div className="agenda-event-copy">
         <p>{event.category}</p>
         <h3>{event.title}</h3>

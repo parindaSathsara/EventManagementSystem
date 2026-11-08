@@ -66,6 +66,8 @@ export type EventItem = {
   ticketTypes?: TicketType[];
   lineup?: LineupArtist[];
   isSaved?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   _count?: { savedBy?: number; tickets?: number };
 };
 

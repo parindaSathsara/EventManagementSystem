@@ -1123,3 +1123,294 @@ body::after { opacity: 0; }
   .event-date-block { left: 12px; bottom: 12px; }
   .footer-wordmark img { width: 155px; }
 }
+
+/* Square event flyers (client feedback 2026-11-08) --------------------------
+   Every flyer surface is a 1:1 square, matching the mobile app. The flyer is
+   laid out at full width with its TOP pinned to the top of the square: a
+   square flyer fills it exactly, a portrait flyer reads from its start (the
+   bottom is clipped), a landscape flyer sits at the top over a blurred copy
+   of itself. Markup: <FlyerImage> inside a `.flyer-frame` container. */
+.flyer-frame { position: relative; overflow: hidden; aspect-ratio: 1 / 1; }
+.flyer-frame > img.flyer-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; filter: blur(22px) brightness(.5); transform: scale(1.15); opacity: 1; }
+.flyer-frame > img.flyer-cover { position: absolute; inset: 0; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; }
+.flyer-frame > img.flyer-img { position: absolute; top: 0; left: 0; width: 100%; height: auto; min-width: 0; min-height: 0; max-height: none; object-fit: fill; opacity: 1; }
+.event-card:hover .event-card-media > img.flyer-img { transform: scale(1.035); transform-origin: top center; }
+.event-card:hover .event-card-media > img.flyer-backdrop { transform: scale(1.15); }
+
+/* Listing cards: square everywhere (overrides the 4:3 / 2:1 / 1.15:1 crops),
+   with a lighter scrim so the flyer is not hidden behind it. */
+.event-card-media.flyer-frame, .event-card.featured .event-card-media.flyer-frame { aspect-ratio: 1 / 1; }
+.event-card-media.flyer-frame::after { background: linear-gradient(0deg, rgba(0,0,0,.55), transparent 30%); }
+.hero-event-card.flyer-frame { aspect-ratio: 1 / 1; }
+.mini-event-art.flyer-frame { aspect-ratio: 1 / 1; }
+.mini-event-art.flyer-frame > span { z-index: 1; }
+
+/* Calendar agenda thumbnails. */
+.agenda-event-image.flyer-frame { width: 76px; height: 76px; }
+
+/* Editor upload preview: a square showing the flyer as guests will see it. */
+.upload-zone.has-media.flyer-frame { width: min(100%, 460px); min-height: 0; height: auto; display: block; }
+.upload-zone.has-media.flyer-frame > .upload-overlay { z-index: 1; }
+
+/* Studio event list thumbnails: square, flyer top first. */
+.data-row img, .data-row-image { width: 58px; height: 58px; object-fit: cover; object-position: top center; }
+
+/* Event page: the flyer as an unobstructed square beside the title. */
+.detail-hero-content.has-flyer { display: grid; grid-template-columns: minmax(0, 1fr) min(420px, 38%); gap: 48px; align-items: end; }
+.detail-hero-content.has-flyer > .detail-flyer { order: 2; }
+.detail-flyer { position: relative; overflow: hidden; aspect-ratio: 1 / 1; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.detail-flyer > img.flyer-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(22px) brightness(.5); transform: scale(1.15); }
+.detail-flyer > img.flyer-img { position: absolute; top: 0; left: 0; width: 100%; height: auto; }
+.detail-hero-copy { min-width: 0; }
+
+@media (max-width: 760px) {
+  .agenda-event-image.flyer-frame { width: 64px; height: 64px; }
+  .upload-zone.has-media.flyer-frame { width: 100%; min-height: 0; height: auto; }
+  .detail-hero-content.has-flyer { grid-template-columns: 1fr; gap: 28px; padding-top: 28px; }
+  .detail-hero-content.has-flyer > .detail-flyer { order: 0; width: min(100%, 440px); }
+  .data-row img, .data-row-image { width: 54px; height: 54px; }
+}
+
+/* Client feedback 2026-11-08 — website parity with the app ------------------ */
+
+/* Follow pill (no account needed). */
+.follow-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(255,59,59,.08); color: var(--accent); font-weight: 800; font-size: 13px; cursor: pointer; transition: background .18s ease, color .18s ease, border-color .18s ease; white-space: nowrap; }
+.follow-button:hover { background: rgba(255,59,59,.16); }
+.follow-button.is-following { background: var(--accent); color: #000; }
+.follow-button.follow-small { min-height: 30px; padding: 0 12px; font-size: 11px; }
+.follow-button:disabled { opacity: .7; cursor: progress; }
+.follow-button.button-block { width: 100%; min-height: 46px; margin-top: 4px; }
+.organizer-strip .follow-button { margin-left: auto; }
+.organizer-strip .follow-button + .button { margin-left: 0; }
+
+/* Discover: For you / Following. */
+.view-tabs { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+.view-tabs button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 18px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-weight: 800; font-size: 13px; cursor: pointer; }
+.view-tabs button.active { background: var(--accent); color: #000; }
+.view-tabs button span { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 10px; }
+.view-tabs button.active span { background: rgba(0,0,0,.18); }
+.following-empty { display: grid; justify-items: center; gap: 14px; }
+
+/* Line-up social icons. */
+.lineup-person-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.social-links { display: inline-flex; gap: 8px; }
+.social-links a { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-light); background: var(--surface-2); color: #fff; transition: background .18s ease, border-color .18s ease, transform .18s ease; }
+.social-links a:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.social-links svg { width: 15px; height: 15px; }
+
+/* No flyer yet: a branded tile in the event's colour, not a stock photo. */
+.flyer-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--cover) 75%, #ff3b3b 25%), var(--cover) 45%, #050505 100%); }
+.flyer-frame .flyer-placeholder > img { position: static; width: 34%; max-width: 120px; height: auto; min-width: 0; min-height: 0; object-fit: contain; opacity: .9; filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); border-radius: 0; background: none; }
+.flyer-placeholder small { color: rgba(255,255,255,.72); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.flyer-frame .flyer-placeholder.is-compact > img { width: 52%; }
+.data-row-image.flyer-frame { display: block; flex: none; }
+
+/* Event page: the WHOLE flyer, uncropped, over a blurred copy of itself. */
+.detail-hero.has-flyer { min-height: calc(100vh - 78px); }
+.detail-hero.has-flyer .detail-hero-bg img { filter: blur(28px) brightness(.62) saturate(1.15); transform: scale(1.15); opacity: 1; }
+.detail-hero-content.has-flyer { grid-template-columns: minmax(0, 1fr) min(480px, 44%); align-items: center; }
+.detail-flyer { aspect-ratio: auto; background: transparent; display: flex; justify-content: center; }
+.detail-flyer > img { position: static; display: block; width: auto; max-width: 100%; height: auto; max-height: min(76vh, 760px); object-fit: contain; border-radius: 18px; }
+.detail-flyer { border: 0; box-shadow: none; overflow: visible; }
+.detail-flyer > img { box-shadow: 0 30px 80px rgba(0,0,0,.55); outline: 1px solid rgba(255,255,255,.14); }
+.button.is-static { pointer-events: none; opacity: .8; }
+.ticket-price-list { display: grid; gap: 1px; margin: 14px 0 16px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--line); }
+.ticket-price-list > div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--surface-2); font-size: 13px; }
+.ticket-price-list strong { white-space: nowrap; }
+.tickets-alerts-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 12px; }
+
+/* Alerts. */
+.alerts-filters { margin-bottom: 18px; }
+.alerts-follow-prompt { display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin-bottom: 22px; border: 1px dashed rgba(255,59,59,.45); border-radius: var(--radius); background: rgba(255,59,59,.05); }
+.alerts-follow-prompt > svg { flex: none; color: var(--accent); }
+.alerts-follow-prompt div { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.alerts-follow-prompt span { color: var(--muted); font-size: 13px; }
+.alerts-section { margin-bottom: 28px; }
+.alerts-section h2 { display: flex; align-items: center; gap: 8px; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px; }
+.alerts-section h2 svg { color: var(--accent); }
+.data-row.alert-row { grid-template-columns: 64px minmax(0, 1fr) auto; }
+.alert-thumb { width: 64px; height: 64px; border-radius: 10px; }
+.alert-row p { display: flex; align-items: center; gap: 6px; }
+
+/* Studio: four overview tiles. */
+.studio-page .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 1100px) {
+  .studio-page .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .detail-hero.has-flyer { min-height: 0; }
+  .detail-hero-content.has-flyer { grid-template-columns: 1fr; }
+  .detail-flyer > img { max-height: 70vh; }
+  .alerts-follow-prompt { flex-wrap: wrap; }
+  .data-row.alert-row { grid-template-columns: 52px minmax(0, 1fr); }
+  .data-row.alert-row .status-pill { display: none; }
+  .alert-thumb { width: 52px; height: 52px; }
+  .studio-page .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Brand lockup — the client's own mark + STAGE (2026-11-08) ---------------- */
+.brand-lockup { display: inline-flex; align-items: center; gap: 11px; color: #fff; line-height: 1; }
+.brand-lockup-name { font: 800 21px/1 var(--font-heading), sans-serif; letter-spacing: .2em; transform: skewX(-9deg); padding-right: .1em; }
+.brand .brand-lockup-badge .brand-lockup-icon { width: 36px; height: 36px; border-radius: 9px; object-fit: contain; filter: drop-shadow(0 0 14px rgba(255,59,59,.35)); }
+.footer-wordmark .brand-lockup .brand-lockup-icon { width: 46px; height: 46px; border-radius: 11px; }
+.footer-wordmark .brand-lockup .brand-lockup-name { font-size: 26px; }
+.stage-hero-copy .stage-hero-wordmark { width: auto; margin: 0 0 30px; font-size: inherit; letter-spacing: 0; }
+.stage-hero-wordmark .brand-lockup { gap: 22px; }
+.stage-hero-wordmark .brand-lockup-icon { width: auto; height: 92px; filter: drop-shadow(0 0 30px rgba(255,59,59,.35)); }
+.stage-hero-wordmark .brand-lockup-name { font-size: 76px; letter-spacing: .14em; text-shadow: 0 0 40px rgba(255,59,59,.25); }
+@media (max-width: 760px) {
+  .brand .brand-lockup-badge .brand-lockup-icon { width: 32px; height: 32px; }
+  .brand-lockup-name { font-size: 18px; }
+  .stage-hero-wordmark .brand-lockup { gap: 14px; }
+  .stage-hero-wordmark .brand-lockup-icon { height: 58px; }
+  .stage-hero-wordmark .brand-lockup-name { font-size: 46px; }
+  .footer-wordmark .brand-lockup .brand-lockup-icon { width: 40px; height: 40px; }
+  .footer-wordmark .brand-lockup .brand-lockup-name { font-size: 22px; }
+}
+
+/* Flyer-less events: the Stage mark under coloured stage lights. */
+.flyer-placeholder {
+  overflow: hidden;
+  background:
+    radial-gradient(120% 85% at 80% 0%, color-mix(in srgb, var(--glow) 55%, transparent), transparent 58%),
+    radial-gradient(90% 70% at 10% 105%, color-mix(in srgb, var(--glow) 28%, transparent), transparent 62%),
+    var(--base);
+}
+.flyer-placeholder-beams { position: absolute; inset: -25%; background: repeating-conic-gradient(from 200deg at 82% -6%, color-mix(in srgb, var(--glow) 20%, transparent) 0deg 3.5deg, transparent 3.5deg 12deg); -webkit-mask-image: linear-gradient(180deg, #000 10%, transparent 72%); mask-image: linear-gradient(180deg, #000 10%, transparent 72%); opacity: .75; }
+.flyer-frame .flyer-placeholder > img { position: relative; z-index: 1; width: 30%; max-width: 110px; filter: drop-shadow(0 10px 24px rgba(0,0,0,.5)) drop-shadow(0 0 22px color-mix(in srgb, var(--glow) 40%, transparent)); }
+.flyer-placeholder small { position: relative; z-index: 1; padding: 6px 11px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: rgba(255,255,255,.85); font-size: 10px; letter-spacing: .16em; }
+.flyer-frame .flyer-placeholder.is-compact > img { width: 56%; }
+
+/* Studio Day count: countdown to the next event. */
+.metric-countdown small a { color: #fff; font-weight: 800; text-decoration: underline; text-decoration-color: rgba(255,59,59,.6); text-underline-offset: 3px; }
+/* Hero feed cards carry their own date/title overlay: mark only, set high. */
+.hero-event-card .flyer-placeholder { justify-content: flex-start; padding-top: 20%; }
+.hero-event-card.flyer-frame .flyer-placeholder.is-compact > img { width: 30%; }
+/* All five Browse-by shortcuts stay visible on phones (they wrap). */
+@media (max-width: 760px) { .stage-hero-copy .hero-pills a:last-child { display: inline-block; } }
+
+/* ===== UI pass 2026-11-08 ================================================= */
+
+/* Event hero: countdown + presenter */
+.detail-kicker { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.detail-category { padding: 7px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(0,0,0,.35); backdrop-filter: blur(8px); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.countdown-chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; border: 1px solid transparent; }
+.countdown-chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.countdown-chip.tone-hot { color: #ffd1d1; background: rgba(255,59,59,.18); border-color: rgba(255,59,59,.45); }
+.countdown-chip.tone-hot i, .countdown-chip.tone-live i { animation: pulse-dot 1.6s ease-in-out infinite; box-shadow: 0 0 10px currentColor; }
+.countdown-chip.tone-live { color: #000; background: var(--accent); }
+.countdown-chip.tone-calm { color: #fff; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); }
+.countdown-chip.tone-muted { color: var(--muted); background: rgba(255,255,255,.05); border-color: var(--line); }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.75); } }
+.detail-hero h1 { margin: 0 0 12px; }
+.detail-presenter { display: flex; align-items: center; gap: 6px; margin: 0 0 24px; color: #d6d6da; font-size: 15px; }
+.detail-presenter a { color: #fff; font-weight: 800; text-decoration: underline; text-decoration-color: rgba(255,59,59,.6); text-underline-offset: 4px; }
+.button.icon-only { width: 46px; padding: 0; }
+
+/* Add to calendar */
+.calendar-menu { position: relative; }
+.calendar-menu summary { list-style: none; cursor: pointer; }
+.calendar-menu summary::-webkit-details-marker { display: none; }
+.calendar-menu[open] summary { border-color: rgba(255,255,255,.4); }
+.calendar-menu-panel { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; min-width: 230px; display: grid; gap: 2px; padding: 6px; border: 1px solid var(--line-light); border-radius: 14px; background: rgba(16,16,18,.96); backdrop-filter: blur(14px); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.calendar-menu-panel a, .calendar-menu-panel button { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 0; border-radius: 10px; background: transparent; color: #fff; font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
+.calendar-menu-panel a:hover, .calendar-menu-panel button:hover { background: rgba(255,255,255,.07); }
+.calendar-menu-panel svg { color: var(--accent); flex: none; }
+
+/* Toast */
+.toast { position: fixed; z-index: 80; left: 50%; bottom: 28px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #fff; color: #000; font-size: 13px; font-weight: 800; box-shadow: 0 18px 50px rgba(0,0,0,.45); animation: toast-in .25s ease; }
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 10px); } }
+
+/* Event body */
+.detail-section { margin-top: 48px; }
+.detail-section > .eyebrow { margin-bottom: 16px; }
+.fact-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.fact-tile { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(160deg, #161618, #0e0e0f); overflow: hidden; }
+.fact-tile::after { content: ""; position: absolute; width: 90px; height: 90px; right: -30px; top: -30px; border-radius: 50%; background: radial-gradient(circle, rgba(255,59,59,.22), transparent 70%); }
+.fact-tile > svg { width: 20px; height: 20px; color: var(--accent); margin-bottom: 8px; }
+.fact-tile span { color: var(--faint); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.fact-tile strong { font-family: var(--font-heading); font-size: 15px; line-height: 1.3; }
+.fact-tile small { color: var(--muted); font-size: 12px; }
+.detail-description { margin: 0; color: #c9c9ce; font-size: 17px; line-height: 1.75; white-space: pre-line; }
+.detail-description.is-clamped { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent); mask-image: linear-gradient(180deg, #000 60%, transparent); }
+.read-more { margin-top: 10px; border: 0; background: none; padding: 0; cursor: pointer; font: inherit; font-weight: 800; }
+.teaser-card { display: flex; align-items: center; gap: 16px; padding: 22px; border: 1px dashed rgba(255,59,59,.45); border-radius: var(--radius); background: radial-gradient(circle at 0% 50%, rgba(255,59,59,.12), transparent 55%), var(--surface); }
+.teaser-card > svg { flex: none; width: 26px; height: 26px; color: var(--accent); }
+.teaser-card div { display: flex; flex-direction: column; gap: 4px; }
+.teaser-card strong { font-family: var(--font-heading); font-size: 17px; }
+.teaser-card span { color: var(--muted); font-size: 14px; }
+
+.lineup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.lineup-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 14px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(180deg, #151517, #0d0d0e); text-align: center; transition: border-color .2s ease, transform .2s ease; }
+.lineup-tile:hover { border-color: rgba(255,59,59,.45); transform: translateY(-3px); }
+.lineup-tile .avatar { box-shadow: 0 0 0 3px rgba(255,59,59,.25), 0 12px 30px rgba(0,0,0,.4); }
+.lineup-tile strong { font-family: var(--font-heading); font-size: 15px; line-height: 1.25; }
+.lineup-tile-order { position: absolute; top: 10px; left: 12px; color: var(--faint); font: 800 10px/1 var(--font-heading); letter-spacing: .1em; }
+
+.organizer-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: radial-gradient(circle at 100% 0%, rgba(255,59,59,.12), transparent 45%), var(--surface); }
+.organizer-card-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.organizer-card-copy strong { display: flex; align-items: center; gap: 6px; font-family: var(--font-heading); font-size: 19px; }
+.organizer-card-copy span { color: var(--muted); font-size: 13px; }
+.organizer-card-copy p { margin: 6px 0 0; color: #bdbdc2; font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.organizer-card-actions { display: flex; align-items: center; gap: 10px; }
+.organizer-card-actions .follow-button { min-height: 46px; }
+
+.location-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.location-card > div { display: flex; flex-direction: column; gap: 4px; }
+.location-card strong { font-family: var(--font-heading); font-size: 17px; }
+.location-card > div span { color: var(--muted); font-size: 13px; }
+.location-map { position: relative; width: 84px; height: 84px; display: grid; place-items: center; border-radius: 14px; overflow: hidden; background: linear-gradient(#ffffff0d 1px, transparent 1px) 0 0 / 14px 14px, linear-gradient(90deg, #ffffff0d 1px, transparent 1px) 0 0 / 14px 14px, radial-gradient(circle at 50% 55%, rgba(255,59,59,.3), #120607 70%); }
+.location-map i { position: absolute; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,59,59,.55); animation: ping 2.4s ease-out infinite; }
+.location-map svg { position: relative; color: #fff; filter: drop-shadow(0 0 8px rgba(255,59,59,.9)); }
+@keyframes ping { 0% { transform: scale(.4); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+.location-soon { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+
+.booking-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.more-from { border-top: 1px solid var(--line); margin-top: 40px; }
+
+/* Loading skeletons */
+.skeleton-card { pointer-events: none; }
+.skeleton-media { aspect-ratio: 1 / 1; background: linear-gradient(110deg, #141416 30%, #1f1f22 50%, #141416 70%) 0 0 / 300% 100%; animation: shimmer 1.4s linear infinite; }
+.skeleton-line { display: block; height: 12px; margin: 10px 0; border-radius: 6px; background: linear-gradient(110deg, #18181a 30%, #232326 50%, #18181a 70%) 0 0 / 300% 100%; animation: shimmer 1.4s linear infinite; }
+.skeleton-line.short { width: 40%; }
+.skeleton-line.mid { width: 70%; }
+@keyframes shimmer { to { background-position: -150% 0; } }
+
+/* Ease in on scroll (only when components/reveal.tsx is running) */
+.reveal-on :is(.event-card, .artist-card, .journey-card, .section-head, .fact-tile, .lineup-tile, .organizer-card, .location-card, .metric, .data-row, .hero-event-card):not(.is-in) { opacity: 0; transform: translateY(22px); }
+.reveal-on :is(.event-card, .artist-card, .journey-card, .section-head, .fact-tile, .lineup-tile, .organizer-card, .location-card, .metric, .data-row, .hero-event-card).is-in { animation: reveal-in .7s cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0ms) both; }
+@keyframes reveal-in { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 1000px) {
+  .fact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .organizer-card { grid-template-columns: auto minmax(0, 1fr); }
+  .organizer-card-actions { grid-column: 1 / -1; }
+  .organizer-card-actions > * { flex: 1; }
+  .location-card { grid-template-columns: auto minmax(0, 1fr); }
+  .location-card > .button, .location-card > .location-soon { grid-column: 1 / -1; }
+  .lineup-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calendar-menu-panel { left: auto; right: 0; }
+  .detail-section { margin-top: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdown-chip i, .location-map i { animation: none !important; }
+}
+
+/* The blurred flyer must not bleed below the hero. */
+.detail-hero-bg { overflow: hidden; }
+
+/* Tickets card: sticky beside the details on desktop; in normal flow on phones.
+   (A later shared card rule had forced position: relative, which kept the
+   sticky top: 100px as a plain offset - the card overlapped the facts.) */
+.detail-grid > .booking-card { position: sticky; top: 96px; }
+@media (max-width: 760px) { .detail-grid > .booking-card { position: relative; top: auto; } }
+
+/* Surprise act (the app's "Revealed Soon" slot). */
+.lineup-tile.is-surprise { border-style: dashed; border-color: rgba(255,59,59,.5); background: radial-gradient(circle at 50% 30%, rgba(255,59,59,.18), transparent 60%), #0d0d0e; }
+.surprise-avatar { display: grid; place-items: center; background: linear-gradient(145deg, #ff3b3b, #7a0a14); color: #fff; font: 800 26px/1 var(--font-heading); animation: surprise-glow 2.4s ease-in-out infinite; }
+@keyframes surprise-glow { 0%, 100% { box-shadow: 0 0 0 3px rgba(255,59,59,.25), 0 0 18px rgba(255,59,59,.25); } 50% { box-shadow: 0 0 0 3px rgba(255,59,59,.45), 0 0 34px rgba(255,59,59,.55); } }
+.surprise-note { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .surprise-avatar { animation: none; } }
