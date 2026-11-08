@@ -6,8 +6,11 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../theme';
 import Chip from './Chip';
-import TopCropImage from './TopCropImage';
+import SquareFlyer from './SquareFlyer';
 import { hasStartTime, timeLabel, venueLine } from '../utils';
+
+// Square flyer thumbnail on the compact (list-row) variant.
+const COMPACT_THUMB = 64;
 
 function formatDay(iso) {
   if (!iso) return { day: '--', month: '---' };
@@ -34,9 +37,8 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
       <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.gridWrap}>
         <View style={styles.gridCover}>
           {imgUrl ? (
-            // Top-anchored: flyers are portrait and the faces sit high, so a
-            // centred crop in this short tile cuts heads off.
-            <TopCropImage uri={imgUrl} style={styles.cover} />
+            // Square tile showing the whole flyer, same as the event page.
+            <SquareFlyer uri={imgUrl} style={styles.cover} />
           ) : (
             <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={styles.cover} />
           )}
@@ -66,12 +68,17 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
   if (variant === 'compact') {
     return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.compactWrap}>
-        <View style={styles.dateBadgeSm}>
-          <Text style={styles.dateBadgeMonth}>{month}</Text>
-          {/* Dark badge → white day number. The shared `dateBadgeDay` is black
-              because the other two variants sit on a white chip. */}
-          <Text style={[styles.dateBadgeDay, styles.dateBadgeDayOnDark]}>{day}</Text>
-        </View>
+        {/* Square flyer thumbnail (top of the flyer pinned to the top) with
+            the date chip on it; gradient when the event has no flyer. */}
+        <SquareFlyer uri={imgUrl} size={COMPACT_THUMB} style={styles.compactThumb}>
+          {!imgUrl ? (
+            <LinearGradient colors={[event.coverColor || '#1a0a2e', '#000']} style={StyleSheet.absoluteFill} />
+          ) : null}
+          <View style={styles.compactDate}>
+            <Text style={styles.compactDateMonth}>{month}</Text>
+            <Text style={styles.compactDateDay}>{day}</Text>
+          </View>
+        </SquareFlyer>
         <View style={{ flex: 1 }}>
           <Text style={styles.compactTitle} numberOfLines={1}>{event.title}</Text>
           <Text style={[styles.compactMeta, timePending && styles.metaPending]} numberOfLines={1}>
@@ -88,26 +95,19 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
     );
   }
 
+  // Listing card: the flyer as a full-width SQUARE (nothing printed over the
+  // artwork except the date and LIVE chips), the details underneath.
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
       <View style={styles.coverWrap}>
-        {/* Backend returns a `coverImageUrl` string; legacy mocks used a
-            local `coverImage` asset. Accept both, fall back to the gradient. */}
         {imgUrl ? (
-          <TopCropImage uri={imgUrl} style={styles.cover} />
-        ) : event.coverImage ? (
-          <TopCropImage source={event.coverImage} style={styles.cover} />
+          <SquareFlyer uri={imgUrl} style={styles.cover} />
         ) : (
           <LinearGradient
             colors={[event.coverColor || '#1a0a2e', '#000']}
             style={styles.cover}
           />
         )}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)']}
-          locations={[0.4, 1]}
-          style={StyleSheet.absoluteFill}
-        />
 
         <View style={styles.dateBadge}>
           <Text style={styles.dateBadgeMonth}>{month}</Text>
@@ -119,28 +119,28 @@ export default function EventCard({ event, onPress, variant = 'default' }) {
             <Chip label="LIVE NOW" variant="live" icon="radio" />
           </View>
         ) : null}
+      </View>
 
-        <View style={styles.cardContent}>
-          {event.category ? (
-            <Text style={styles.category}>{event.category.toUpperCase()}</Text>
+      <View style={styles.cardContent}>
+        {event.category ? (
+          <Text style={styles.category}>{event.category.toUpperCase()}</Text>
+        ) : null}
+        <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
+        <View style={styles.metaRow}>
+          <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
+          <Text style={styles.metaText} numberOfLines={1}>
+            {venueLine(event)}
+          </Text>
+        </View>
+        <View style={styles.metaRow}>
+          <Ionicons name="time-outline" size={13} color={COLORS.textSecondary} />
+          <Text style={[styles.metaText, timePending && styles.metaPending]}>{time}</Text>
+          {event.distanceKm != null ? (
+            <>
+              <View style={styles.dotSep} />
+              <Text style={styles.metaText}>{event.distanceKm.toFixed(1)} km</Text>
+            </>
           ) : null}
-          <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
-          <View style={styles.metaRow}>
-            <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
-            <Text style={styles.metaText} numberOfLines={1}>
-              {venueLine(event)}
-            </Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Ionicons name="time-outline" size={13} color={COLORS.textSecondary} />
-            <Text style={[styles.metaText, timePending && styles.metaPending]}>{time}</Text>
-            {event.distanceKm != null ? (
-              <>
-                <View style={styles.dotSep} />
-                <Text style={styles.metaText}>{event.distanceKm.toFixed(1)} km</Text>
-              </>
-            ) : null}
-          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -160,8 +160,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface1,
     marginBottom: SPACING.md,
   },
+  // Square flyer, full card width.
   coverWrap: {
-    height: 200,
+    width: '100%',
+    aspectRatio: 1,
     position: 'relative',
   },
   cover: {
@@ -180,14 +182,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 50,
   },
-  dateBadgeSm: {
-    backgroundColor: COLORS.surface2,
-    borderRadius: RADII.sm,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 6,
-    alignItems: 'center',
-    minWidth: 46,
-  },
   dateBadgeMonth: {
     fontSize: 10,
     letterSpacing: 1,
@@ -200,17 +194,13 @@ const styles = StyleSheet.create({
     color: COLORS.ink,
     marginTop: -2,
   },
-  dateBadgeDayOnDark: { color: COLORS.textPrimary },
   liveTag: {
     position: 'absolute',
     top: SPACING.md,
     right: SPACING.md,
   },
+  // Details sit BELOW the flyer so nothing covers the artwork.
   cardContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: SPACING.base,
     gap: 4,
   },
@@ -254,7 +244,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lineSubtle,
   },
-  gridCover: { height: 108, position: 'relative' },
+  gridCover: { width: '100%', aspectRatio: 1, position: 'relative' },
   gridDate: {
     position: 'absolute',
     top: SPACING.xs,
@@ -299,6 +289,29 @@ const styles = StyleSheet.create({
     borderRadius: RADII.md,
     backgroundColor: COLORS.surface1,
     marginBottom: SPACING.sm,
+  },
+  compactThumb: { borderRadius: RADII.sm },
+  compactDate: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    alignItems: 'center',
+  },
+  compactDateMonth: {
+    fontSize: 8,
+    letterSpacing: 0.6,
+    fontFamily: FONT_FAMILY.bodySemiBold,
+    color: COLORS.accent,
+  },
+  compactDateDay: {
+    fontSize: 13,
+    fontFamily: FONT_FAMILY.headingBold,
+    color: COLORS.ink,
+    marginTop: -2,
   },
   compactTitle: {
     ...TYPE_SCALE.bodyLg,

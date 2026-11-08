@@ -7,7 +7,6 @@ import {
   StatusBar,
   TextInput,
   TouchableOpacity,
-  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +18,7 @@ import {
   Button,
   Chip,
   ScreenHeader,
+  SquareFlyer,
 } from '../../../shared/components';
 import { useAlert } from '../../../shared/hooks';
 import { PRICE_TBA, TEASER } from '../../../shared/utils';
@@ -159,6 +159,9 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
   const [flyerPreview, setFlyerPreview] = useState(null);
   const [flyerUploading, setFlyerUploading] = useState(false);
   const [flyerProgress, setFlyerProgress] = useState(0);
+  // Whole percent, always 0–100 — the service already clamps, this is the
+  // belt to its braces so a bad value can never reach the layout.
+  const flyerPct = Math.round(Math.min(Math.max(Number(flyerProgress) || 0, 0), 1) * 100);
   const alert = useAlert();
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
@@ -433,15 +436,12 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         {/* Event flyer — upload a photo from the gallery or capture one.
-            This is the image guests see on the Timeline and event page. */}
+            This is the image guests see on the Timeline and event page.
+            Square preview showing the WHOLE flyer, same as guests see it. */}
         <Text style={styles.sectionLabel}>Event flyer</Text>
         <View style={styles.bannerWrap}>
           {flyerPreview || form.bannerUrl ? (
-            <ImageBackground
-              source={{ uri: flyerPreview || form.bannerUrl }}
-              style={styles.bannerBg}
-              resizeMode="cover"
-            />
+            <SquareFlyer uri={flyerPreview || form.bannerUrl} style={styles.bannerBg} />
           ) : (
             <LinearGradient
               colors={COVER_GRADIENTS[coverIdx]}
@@ -450,11 +450,17 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
               style={styles.bannerBg}
             />
           )}
-          <View style={styles.bannerOverlay}>
+          <View style={[styles.bannerOverlay, (flyerPreview || form.bannerUrl) && styles.bannerOverlayClear]}>
             {flyerUploading ? (
               <View style={styles.progressWrap}>
-                <View style={[styles.progressBar, { width: `${Math.round(flyerProgress * 100)}%` }]} />
-                <Text style={styles.progressText}>Uploading… {Math.round(flyerProgress * 100)}%</Text>
+                {/* Fixed-width track that clips the fill: whatever value
+                    comes in, the bar can never grow past its container. */}
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressBar, { width: `${flyerPct}%` }]} />
+                </View>
+                <Text style={styles.progressText}>
+                  {flyerPct >= 99 ? 'Finishing upload…' : `Uploading… ${flyerPct}%`}
+                </Text>
               </View>
             ) : null}
             {/* The title/date preview only shows on the gradient placeholder —
@@ -812,7 +818,7 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
                 </View>
               </View>
               <Field
-                label="Artist name"
+                label="Add Artist Name"
                 value={a.name}
                 onChange={(v) => updateArtist(idx, 'name', v)}
                 placeholder="e.g. Bathiya & Santhush"
@@ -1045,8 +1051,9 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.sm,
   },
   stripBar: { flexGrow: 0 },
+  // Square, like the flyer itself — the whole artwork fits (no crop).
   bannerWrap: {
-    height: 160,
+    aspectRatio: 1,
     marginHorizontal: SPACING.base,
     borderRadius: RADII.lg,
     overflow: 'hidden',
@@ -1060,6 +1067,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.25)',
   },
+  // No wash over a real flyer — the preview must match what guests see.
+  bannerOverlayClear: { backgroundColor: 'transparent' },
   bannerTitle: {
     ...TYPE_SCALE.h3,
     fontFamily: FONT_FAMILY.headingExtraBold,
@@ -1111,8 +1120,15 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     gap: 4,
   },
-  progressBar: {
+  progressTrack: {
+    alignSelf: 'stretch',
     height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  progressBar: {
+    height: '100%',
     borderRadius: 2,
     backgroundColor: COLORS.accent,
   },

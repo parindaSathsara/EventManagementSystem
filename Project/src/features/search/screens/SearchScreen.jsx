@@ -245,7 +245,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingVertical: 0,
   },
-  tabsBar: { flexGrow: 0 },
+  // flexShrink too: ScrollView defaults to 1, so a long result list below
+  // could still squeeze (and clip) the chip row.
+  tabsBar: { flexGrow: 0, flexShrink: 0 },
   tabs: {
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.md,

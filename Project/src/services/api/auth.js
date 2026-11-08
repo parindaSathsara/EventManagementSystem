@@ -73,7 +73,9 @@ export async function restoreSession() {
   if (!token) return null;
 
   try {
-    const fresh = await api.get('/auth/me');
+    // Runs during boot while the splash is up — short deadline. On timeout we
+    // fall through to the cached user below, exactly like a network error.
+    const fresh = await api.get('/auth/me', { timeoutMs: 8000 });
     if (fresh) {
       await setStoredUser(fresh);
       return fresh;

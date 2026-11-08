@@ -1,52 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, ImageBackground, TouchableOpacity, StatusBar, Platform, Dimensions } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ImageBackground, TouchableOpacity, StatusBar, Platform, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { SPACING } from '../../../theme';
+import SquareFlyer from '../../../shared/components/SquareFlyer';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-// Fallback height (16:9) used while the flyer's natural size loads or when
-// the event has no image at all.
+// Events without any flyer get a shorter 16:9 gradient instead of an empty square.
 const FALLBACK_HEIGHT = Math.round(SCREEN_W * 9 / 16);
-// Very tall flyers are capped so the page never opens on a wall of image;
-// within the cap the WHOLE flyer is shown (contain), never cropped.
-const MAX_HEIGHT = Math.round(SCREEN_W * 1.5);
 
 const TOP = Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + SPACING.sm;
 
 /**
- * Event page hero — shows the uploaded flyer IN FULL (natural aspect ratio,
- * no crop) with the company/detail card rendering directly below it.
+ * Event page hero — the uploaded flyer in a full-width SQUARE, shown in full
+ * (never cropped), with the company/detail card rendering directly below it.
  */
 export default function EventHero({ event, onBack, onShare }) {
   const banner =
     event.bannerImageUrl || event.coverImageUrl || (event.flyers && event.flyers[0]) || null;
-  const [ratio, setRatio] = useState(null); // natural height / width
-
-  useEffect(() => {
-    if (!banner) return undefined;
-    let alive = true;
-    Image.getSize(
-      banner,
-      (w, h) => { if (alive && w > 0) setRatio(h / w); },
-      () => { if (alive) setRatio(null); },
-    );
-    return () => { alive = false; };
-  }, [banner]);
-
-  const height = banner && ratio ? Math.min(Math.round(SCREEN_W * ratio), MAX_HEIGHT) : FALLBACK_HEIGHT;
-  // When the cap kicks in, letterbox (contain) so the full flyer stays visible.
-  const capped = banner && ratio && SCREEN_W * ratio > MAX_HEIGHT;
+  const height = banner ? SCREEN_W : FALLBACK_HEIGHT;
 
   return (
     <View style={[styles.heroWrap, { height }]}>
       {banner ? (
-        <ImageBackground
-          source={{ uri: banner }}
-          style={styles.bg}
-          resizeMode={capped ? 'contain' : 'cover'}
-        />
+        <SquareFlyer uri={banner} size={SCREEN_W} style={styles.bg} />
       ) : event.coverImage ? (
         <ImageBackground source={event.coverImage} style={styles.bg} resizeMode="cover" />
       ) : (

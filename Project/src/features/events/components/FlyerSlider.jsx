@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,16 +13,17 @@ import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY, TYPE_SCALE } from '../../../theme';
 import { venueLine } from '../../../shared/utils';
+import SquareFlyer from '../../../shared/components/SquareFlyer';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const H_PAD = SPACING.base;
 const BANNER_W = SCREEN_W - H_PAD * 2;
-// Landscape banner (~16:9).
-const BANNER_H = Math.round(BANNER_W * 9 / 16);
+// Square, like the flyers themselves — the whole flyer is visible.
+const BANNER_H = BANNER_W;
 const GAP = SPACING.sm;
 
 /**
- * Swipeable, full-width **landscape** banner carousel for an event manager.
+ * Swipeable, full-width **square** flyer carousel for an event manager.
  * One banner per event; swipe left/right, page dots track position. Tapping a
  * banner fires `onPressFlyer(eventId)` (the booking CTA).
  */
@@ -61,9 +61,9 @@ export default function FlyerSlider({ events, onPressFlyer, onIndexChange }) {
               onPress={() => onPressFlyer && onPressFlyer(ev.id)}
             >
               {img ? (
-                <ImageBackground source={{ uri: img }} style={styles.bg} imageStyle={styles.bgImage} resizeMode="cover">
+                <SquareFlyer uri={img} style={styles.bg}>
                   <Overlay ev={ev} />
-                </ImageBackground>
+                </SquareFlyer>
               ) : (
                 <LinearGradient colors={[ev.coverColor || '#1a0a2e', '#000']} style={styles.bg}>
                   <Overlay ev={ev} />
@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.lineSubtle,
   },
   bg: { flex: 1, justifyContent: 'flex-end' },
-  bgImage: { borderRadius: RADII.lg },
   cta: {
     position: 'absolute',
     top: SPACING.sm,

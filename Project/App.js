@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   useFonts,
@@ -15,7 +15,6 @@ import {
   Manrope_700Bold,
   Manrope_800ExtraBold,
 } from '@expo-google-fonts/manrope';
-import * as SplashScreenModule from 'expo-splash-screen';
 import {
   SplashScreen,
   WelcomeScreen,
@@ -30,13 +29,28 @@ import { AlertProvider, UserProvider, useUser } from './src/shared/providers';
 import { useAlert } from './src/shared/hooks';
 import { hydrateAll, clearAll, push } from './src/services';
 import { auth as authApi } from './src/services/api';
+import AppErrorBoundary from './src/shared/components/AppErrorBoundary';
+import { holdNativeSplash, hideNativeSplash } from './src/shared/utils/nativeSplash';
 
-SplashScreenModule.preventAutoHideAsync();
+// Hold the OS launch screen while we boot. It is released by the effect in
+// AppContent as soon as fonts + boot are done — on EVERY route, not just the
+// animated splash — and by a failsafe timer if anything at all goes wrong.
+holdNativeSplash();
+
+// The boot sequence (session restore + artist lookup) may never keep the user
+// waiting longer than this. Whatever hasn't answered by then is abandoned and
+// the app opens as a guest; a late session still signs the user in quietly.
+const BOOT_MAX_MS = 9000;
 
 // Module scope on purpose: a notification tap can launch the app, and the
 // foreground handler + Android channels must exist before React mounts or the
-// first alert of the session is silently dropped.
-push.configure();
+// first alert of the session is silently dropped. Guarded: a throw here would
+// kill the bundle before React mounts — a permanent launch screen.
+try {
+  push.configure();
+} catch (e) {
+  console.warn('[boot] push.configure failed', e);
+}
 
 /**
  * Boot sequence (guest-first)
@@ -67,7 +81,7 @@ function AppContent() {
   const { user, artist, setUser, logout } = useUser();
   const alert = useAlert();
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Sora_400Regular,
     Sora_500Medium,
     Sora_600SemiBold,
@@ -80,10 +94,35 @@ function AppContent() {
     Manrope_800ExtraBold,
   });
 
-  // On boot: restore the session (if a JWT is on disk), then hydrate the
-  // repos from the backend. Both calls are tolerant of network failure so
-  // we never block the splash screen waiting on a dead server.
+  // A font that fails to load must not hold the app hostage: carry on with
+  // the system font rather than rendering nothing forever.
+  const fontsReady = fontsLoaded || !!fontError;
   useEffect(() => {
+    if (fontError) console.warn('[boot] fonts failed to load', fontError);
+  }, [fontError]);
+
+  // Set once boot has been given up on (BOOT_MAX_MS) — a late answer may
+  // still sign the user in, but must not yank them off the screen they're on.
+  const bootAbandoned = useRef(false);
+
+  // On boot: restore the session (if a JWT is on disk), then hydrate the
+  // repos from the backend. Every step is tolerant of network failure AND
+  // bounded in time, so the splash never waits on a dead server.
+  useEffect(() => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      setBootReady(true);
+    };
+
+    const watchdog = setTimeout(() => {
+      if (finished) return;
+      console.warn(`[boot] gave up waiting after ${BOOT_MAX_MS}ms — opening as guest`);
+      bootAbandoned.current = true;
+      finish();
+    }, BOOT_MAX_MS);
+
     (async () => {
       try {
         const restored = await authApi.restoreSession();
@@ -93,22 +132,35 @@ function AppContent() {
         hydrateAll().catch(() => {});
         if (restored) {
           await setUser(restored);
-          if (isManager(restored)) {
-            // A returning manager resumes in the publishing app.
-            setStage(restored.phone ? 'roleSelect' : 'completeProfile');
-          } else {
-            setStage('guest');
+          if (!bootAbandoned.current) {
+            if (isManager(restored)) {
+              // A returning manager resumes in the publishing app.
+              setStage(restored.phone ? 'roleSelect' : 'completeProfile');
+            } else {
+              setStage('guest');
+            }
           }
         }
         // No session → stay on splash; SplashScreen.onFinish drops into guest.
       } catch (e) {
         console.warn('[boot] session restore failed', e);
       } finally {
-        setBootReady(true);
+        clearTimeout(watchdog);
+        finish();
       }
     })();
+
+    return () => clearTimeout(watchdog);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Release the OS launch screen the moment we can draw — whichever screen
+  // boot landed on (splash, guest tabs, role select, …). It used to be tied
+  // to the animated splash's onLayout, so returning users, who skip that
+  // screen, were left stuck behind the launch screen forever.
+  useEffect(() => {
+    if (fontsReady && bootReady) hideNativeSplash();
+  }, [fontsReady, bootReady]);
 
   // Tapping an alert — from the tray or from the lock screen, warm or cold —
   // opens that event. Registered once, high up, so the target survives the
@@ -121,12 +173,6 @@ function AppContent() {
       setStage((current) => (current === 'splash' ? 'guest' : current));
     });
   }, []);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded && bootReady) {
-      await SplashScreenModule.hideAsync();
-    }
-  }, [fontsLoaded, bootReady]);
 
   async function handleLogout() {
     await logout();
@@ -169,11 +215,12 @@ function AppContent() {
     setStage('roleSelect');
   }
 
-  if (!fontsLoaded || !bootReady) return null;
+  // The OS launch screen covers this blank frame until both are ready.
+  if (!fontsReady || !bootReady) return null;
 
   if (stage === 'splash') {
     return (
-      <View style={styles.root} onLayout={onLayoutRootView}>
+      <View style={styles.root}>
         <SplashScreen onFinish={() => setStage('guest')} />
       </View>
     );
@@ -297,11 +344,13 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AlertProvider>
-      <UserProvider>
-        <AppContent />
-      </UserProvider>
-    </AlertProvider>
+    <AppErrorBoundary>
+      <AlertProvider>
+        <UserProvider>
+          <AppContent />
+        </UserProvider>
+      </AlertProvider>
+    </AppErrorBoundary>
   );
 }
 

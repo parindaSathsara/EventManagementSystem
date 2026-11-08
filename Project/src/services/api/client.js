@@ -76,7 +76,15 @@ export async function setStoredUser(user) {
   }
 }
 
-async function request(path, { method = 'GET', body, auth = true, headers = {} } = {}) {
+// Every request gets a deadline. A bare `fetch` on a half-dead connection
+// (captive Wi-Fi, weak mobile data, a stalled server) can hang for minutes —
+// and anything awaiting it, including the boot sequence, hangs with it.
+export const DEFAULT_TIMEOUT_MS = 15000;
+
+async function request(
+  path,
+  { method = 'GET', body, auth = true, headers = {}, timeoutMs = DEFAULT_TIMEOUT_MS } = {},
+) {
   const url = `${baseUrl}${path}`;
   const finalHeaders = { 'Content-Type': 'application/json', ...headers };
   if (auth) {
@@ -84,22 +92,55 @@ async function request(path, { method = 'GET', body, auth = true, headers = {} }
     if (token) finalHeaders.Authorization = `Bearer ${token}`;
   }
 
-  let res;
-  try {
-    res = await fetch(url, {
-      method,
-      headers: finalHeaders,
-      body: body != null ? JSON.stringify(body) : undefined,
-    });
-  } catch (e) {
-    // Network / DNS / CORS — surface as a typed error the UI can branch on.
-    throw new ApiError('Could not reach the server. Check your connection.', {
-      status: 0,
-      code: 'NETWORK',
-      details: e?.message,
-    });
-  }
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  let timedOut = false;
+  const timer = controller
+    ? setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs)
+    : null;
 
+  try {
+    let res;
+    try {
+      res = await fetch(url, {
+        method,
+        headers: finalHeaders,
+        body: body != null ? JSON.stringify(body) : undefined,
+        signal: controller ? controller.signal : undefined,
+      });
+    } catch (e) {
+      if (timedOut) {
+        throw new ApiError('The server is taking too long to respond. Please try again.', {
+          status: 0,
+          code: 'TIMEOUT',
+        });
+      }
+      // Network / DNS / CORS — surface as a typed error the UI can branch on.
+      throw new ApiError('Could not reach the server. Check your connection.', {
+        status: 0,
+        code: 'NETWORK',
+        details: e?.message,
+      });
+    }
+
+    return await readResponse(res);
+  } catch (e) {
+    // The body read can stall too — same deadline, same typed error.
+    if (timedOut && !(e instanceof ApiError && e.code === 'TIMEOUT')) {
+      throw new ApiError('The server is taking too long to respond. Please try again.', {
+        status: 0,
+        code: 'TIMEOUT',
+      });
+    }
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function readResponse(res) {
   // 204 No Content
   if (res.status === 204) return null;
 

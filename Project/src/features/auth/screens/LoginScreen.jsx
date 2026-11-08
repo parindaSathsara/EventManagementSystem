@@ -83,7 +83,7 @@ export default function LoginScreen({ onBack, onLogin, onGoToSignup, onGoToForgo
             {/* Heading */}
             <Text style={styles.heading}>Welcome Back</Text>
             <Text style={styles.subtitle}>
-              Sign in to continue discovering events
+              Sign in to create events & keep discovering
             </Text>
 
             {/* Form card */}

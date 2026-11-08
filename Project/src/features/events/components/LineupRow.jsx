@@ -30,7 +30,7 @@ function normalize(entry) {
   };
 }
 
-export default function LineupRow({ lineup, onArtistPress }) {
+export default function LineupRow({ lineup, onArtistPress, glass = false, avatarSize = 56 }) {
   if (!lineup || lineup.length === 0) return null;
   const items = lineup.map(normalize);
   return (
@@ -42,11 +42,11 @@ export default function LineupRow({ lineup, onArtistPress }) {
       {items.map((a, idx) => (
         <TouchableOpacity
           key={`${idx}-${a.name || a.id}`}
-          style={styles.card}
+          style={[styles.card, glass && styles.cardGlass]}
           activeOpacity={0.8}
           onPress={() => onArtistPress && onArtistPress(a)}
         >
-          <Avatar uri={a.avatarUrl} name={a.name} size={56} />
+          <Avatar uri={a.avatarUrl} name={a.name} size={avatarSize} />
           <Text style={styles.name} numberOfLines={1}>{a.name}</Text>
           {a.socials ? <SocialRow socials={a.socials} size={15} bare style={styles.social} /> : null}
         </TouchableOpacity>
@@ -58,6 +58,9 @@ export default function LineupRow({ lineup, onArtistPress }) {
 LineupRow.propTypes = {
   lineup: PropTypes.array,
   onArtistPress: PropTypes.func,
+  /** Translucent tiles for use over artwork (the Timeline card). */
+  glass: PropTypes.bool,
+  avatarSize: PropTypes.number,
 };
 
 const styles = StyleSheet.create({
@@ -74,6 +77,10 @@ const styles = StyleSheet.create({
     borderRadius: RADII.md,
     borderWidth: 1,
     borderColor: COLORS.lineSubtle,
+  },
+  cardGlass: {
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderColor: 'rgba(255,255,255,0.14)',
   },
   name: {
     ...TYPE_SCALE.bodySm,

@@ -212,6 +212,7 @@ export default function NotificationsScreen({ onOpenEvent }) {
       ) : null}
 
       <ScrollView
+        style={styles.feed}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -465,12 +466,21 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   pushToggleTextOn: { color: '#000' },
-  filterBar: { flexGrow: 0, marginBottom: SPACING.xs },
+  // A ScrollView defaults to flexShrink: 1 — horizontal ones too. Sitting in
+  // a fixed-height column above a long feed, the strip was being squeezed
+  // below the chips' 32px (clipping them top and bottom), and by a different
+  // amount every time a filter changed the feed length (so the chips seemed
+  // to resize on tap). Never grow, never shrink: always its natural height.
+  filterBar: { flexGrow: 0, flexShrink: 0, marginBottom: SPACING.xs },
   filterStrip: {
     paddingHorizontal: SPACING.base,
+    // Room so the chip borders are never cut by the scroll viewport edge.
+    paddingVertical: 2,
     gap: SPACING.sm,
     alignItems: 'center',
   },
+  // The feed takes whatever height is left below the header and filters.
+  feed: { flex: 1 },
   scroll: { paddingHorizontal: SPACING.base, paddingTop: SPACING.sm },
   sectionLabel: {
     ...TYPE_SCALE.caption,

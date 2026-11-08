@@ -56,13 +56,35 @@ async function uploadFile(path, { uri, mimeType, filename }, { onProgress } = {}
     if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // Don't set Content-Type — the runtime fills in the multipart boundary.
 
+    // Progress is normalised here, once, for every upload in the app:
+    //   - Android's network stack can write the request body more than once
+    //     (retry / interceptor), and `loaded` keeps counting — raw progress
+    //     ran to ~200%. Clamp it.
+    //   - It must never go backwards, so a second pass can't make the bar
+    //     jump back to 0.
+    //   - "All bytes sent" is not "done": the server still has to store the
+    //     file. Hold at 99% until the response arrives, then report 100%.
+    let reported = 0;
+    const report = (p) => {
+      if (!onProgress) return;
+      const next = Math.min(Math.max(p, 0), 1);
+      if (next <= reported && next !== 1) return;
+      reported = next;
+      try {
+        onProgress(next);
+      } catch {
+        // A UI callback must never break the upload itself.
+      }
+    };
+
     if (onProgress && xhr.upload) {
       xhr.upload.onprogress = (evt) => {
-        if (evt.lengthComputable) onProgress(evt.loaded / evt.total);
+        if (evt.lengthComputable && evt.total > 0) report(Math.min(evt.loaded / evt.total, 0.99));
       };
     }
 
     xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) report(1);
       let payload = null;
       try {
         payload = xhr.responseText ? JSON.parse(xhr.responseText) : null;
