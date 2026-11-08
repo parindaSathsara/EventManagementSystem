@@ -51,30 +51,43 @@ fi
 
 cd "$APP_DIR"
 
-CHANGED=$(git -C "$REPO_ROOT" diff --name-only "$BEFORE" "$AFTER" 2>/dev/null || true)
-changed_match() { printf '%s\n' "$CHANGED" | grep -qE "$1"; }
-
-SCHEMA_CHANGED=0
-changed_match "backend/prisma/schema\.prisma$" && SCHEMA_CHANGED=1
-
 # ---- 2. Dependencies + Prisma client ---------------------------------------
-if [ "${SKIP_INSTALL:-0}" != "1" ] && changed_match "backend/package(-lock)?\.json$"; then
-  echo "→ package files changed — npm ci…"
-  npm ci
+# What needs doing is decided from the STATE ON DISK, never from "what did
+# this run's git pull change": if the code was pulled by hand first, the pull
+# here sees no change — and the 2026-11-08 deploy then skipped generate + db
+# push and reloaded new code against a database without its tables.
+
+# npm ci only when the lockfile differs from the one last installed here.
+LOCK_HASH="$(sha1sum package-lock.json 2>/dev/null | cut -c1-40)"
+LOCK_STAMP="node_modules/.deploy-lock-hash"
+if [ "${SKIP_INSTALL:-0}" = "1" ]; then
+  echo "→ SKIP_INSTALL=1 — not touching node_modules"
+elif [ ! -d node_modules ]; then
+  echo "→ no node_modules — npm ci…"
+  npm ci && echo "$LOCK_HASH" > "$LOCK_STAMP"
+elif [ ! -f "$LOCK_STAMP" ]; then
+  # First run with this check: trust what's installed and start tracking it.
+  echo "$LOCK_HASH" > "$LOCK_STAMP"
+  echo "→ dependencies: now tracking package-lock.json"
+elif [ "$(cat "$LOCK_STAMP")" != "$LOCK_HASH" ]; then
+  echo "→ package-lock.json changed since the last install — npm ci…"
+  npm ci && echo "$LOCK_HASH" > "$LOCK_STAMP"
+else
+  echo "→ dependencies up to date"
 fi
 
-# Code generation, never a database write. Must happen whenever the schema
-# moved, even with SKIP_INSTALL=1, or the client won't know the new models.
-if [ "$SCHEMA_CHANGED" = "1" ] || changed_match "backend/package(-lock)?\.json$"; then
-  echo "→ prisma generate…"
-  npx --no-install prisma generate
-fi
+# Always regenerate the client: a couple of seconds, never a database write,
+# and the client must know every model in the schema on disk.
+echo "→ prisma generate…"
+npx --no-install prisma generate
 
 # ---- 3. Schema sync ---------------------------------------------------------
-# Before the restart: the new process must not boot against a database that
-# is missing the tables its queries name.
-if [ "$SCHEMA_CHANGED" = "1" ] && [ "${SKIP_DB:-0}" != "1" ]; then
-  echo "→ schema changed — prisma db push…"
+# Always, before the restart: the new process must not boot against a database
+# that is missing the tables its queries name. `db push` is a no-op when the
+# database already matches. No --accept-data-loss: an additive change (new
+# table / nullable column) applies, anything destructive aborts the deploy.
+if [ "${SKIP_DB:-0}" != "1" ]; then
+  echo "→ prisma db push (syncs only if the schema moved)…"
   if ! npx --no-install prisma db push --skip-generate; then
     echo ""
     echo "✗ db push failed. If it refused because the change would drop data,"
@@ -83,8 +96,8 @@ if [ "$SCHEMA_CHANGED" = "1" ] && [ "${SKIP_DB:-0}" != "1" ]; then
     echo "  The old code is still running and healthy; nothing was restarted."
     exit 1
   fi
-elif [ "$SCHEMA_CHANGED" = "1" ]; then
-  echo "→ schema changed but SKIP_DB=1 — NOT syncing (you're on your own)"
+else
+  echo "→ SKIP_DB=1 — NOT syncing the schema (you're on your own)"
 fi
 
 # ---- 4. Restart under PM2 ---------------------------------------------------

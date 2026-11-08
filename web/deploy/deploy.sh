@@ -142,14 +142,18 @@ if [ "${SKIP_PULL:-0}" != "1" ]; then
 fi
 AFTER="$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
 [ "$BEFORE" = "$AFTER" ] && ok "at $AFTER (no new commits)" || ok "$BEFORE → $AFTER"
-CHANGED="$(git -C "$REPO_ROOT" diff --name-only "$BEFORE" "$AFTER" 2>/dev/null || true)"
-
 # ---- 3. Dependencies ---------------------------------------------------------------
-if [ "${FORCE_INSTALL:-0}" = "1" ] || [ ! -d node_modules/next ] || printf '%s\n' "$CHANGED" | grep -qE '^web/package(-lock)?\.json$'; then
+# Decided from disk, not from this run's pull (the code may have been pulled by
+# hand first — that's what bit the API deploy on 2026-11-08): install when
+# node_modules is missing or the lockfile differs from the one last installed.
+LOCK_HASH="$(sha1sum package-lock.json 2>/dev/null | cut -c1-40)"
+LOCK_STAMP="node_modules/.deploy-lock-hash"
+if [ "${FORCE_INSTALL:-0}" = "1" ] || [ ! -d node_modules/next ] || [ "$(cat "$LOCK_STAMP" 2>/dev/null)" != "$LOCK_HASH" ]; then
   step "npm ci"
   # Dev dependencies are build tools (TypeScript) — install them even if the
   # shell has NODE_ENV=production.
   npm ci --include=dev --no-audit --no-fund
+  echo "$LOCK_HASH" > "$LOCK_STAMP"
 else
   ok "dependencies unchanged — skipping npm ci"
 fi
