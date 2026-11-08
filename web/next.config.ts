@@ -4,6 +4,10 @@ const apiBaseUrl = (process.env.API_BASE_URL || 'https://events-api.aahaas.com/a
 const backendOrigin = new URL(apiBaseUrl).origin;
 
 const nextConfig: NextConfig = {
+  // The server deploy (deploy/deploy.sh) builds into a side folder while the
+  // live site keeps serving `.next`, then swaps the folders — so a failed
+  // build never takes the site down. Unset everywhere else.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
   reactStrictMode: true,
   allowedDevOrigins: ['127.0.0.1'],

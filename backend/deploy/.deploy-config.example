@@ -24,3 +24,7 @@ BRANCH=main
 # verifies the path a phone actually takes (Cloudflare → nginx → node) rather
 # than only the loopback check the server does for itself.
 PUBLIC_URL=https://events-api.aahaas.com
+
+# Public URL of the WEBSITE (web/). ./deploy-web.sh checks it after deploying.
+# Leave empty until the website's domain is pointed at the server.
+WEB_PUBLIC_URL=

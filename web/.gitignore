@@ -8,3 +8,9 @@ playwright-report/
 test-results/
 
 .vercel
+
+# Server deploy (deploy/deploy.sh)
+.env.production
+.next-build/
+.next-prev/
+.next-failed/
