@@ -2,6 +2,7 @@
 Build every Stage app icon from the master artwork.
 
     python Project/scripts/build-icons.py [path/to/master.png] [--preview out.png]
+    python Project/scripts/build-icons.py --plain [--preview out.png]   # no-border master (current app icon)
 
 Master: assets/Logo/StagewithBorder.png (2000x2000 — white Stage mark on a red
 radial gradient, white rounded-square rim near the edge).
@@ -294,6 +295,92 @@ def superellipse_mask(size, n=4.0):
     return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((size, size), Image.LANCZOS)) / 255.0
 
 
+# ---------------------------------------------------------------------------
+# No-border master (--plain): STAGE_Primary_No_Border - the mark on the red
+# radial gradient, no white frame. With nothing at the edges to lose, the
+# composition is kept exactly as designed: the master's full canvas maps onto
+# the 72dp a launcher shows, the gradient becomes the adaptive BACKGROUND
+# (extended past the edges by its own profile), and the mark + shadow become
+# the FOREGROUND. The mark's furthest pixel sits at ~0.78 of the half-width
+# = ~28dp from centre, inside the 33dp circle every launcher keeps.
+# ---------------------------------------------------------------------------
+
+VISIBLE_HALF_DP = 36.0  # half of the 72dp viewport launchers display
+
+
+def analyse_plain_master(path):
+    img = np.asarray(Image.open(path).convert("RGB")).astype(np.float64)
+    h, w, _ = img.shape
+    R, G = img[..., 0], img[..., 1]
+    cx, cy = w / 2.0, h / 2.0
+    yy, xx = np.mgrid[0:h, 0:w]
+    dist = np.hypot(xx - cx, yy - cy)
+
+    markish = G > 60
+    near = np.asarray(
+        Image.fromarray((markish * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(41))
+    ) > 0
+
+    sel = (~near) & (G < 20)
+    step = 6
+    bins = (dist[sel] // step).astype(int)
+    vals = R[sel]
+    nb = int(dist.max() // step) + 1
+    prof = np.full(nb, np.nan)
+    for b in range(nb):
+        v = vals[bins == b]
+        if len(v) > 30:
+            prof[b] = np.median(v)
+    good = ~np.isnan(prof)
+    centres = (np.arange(nb) + 0.5) * step
+    prof = np.interp(centres, centres[good], prof[good])
+    k = np.ones(9) / 9.0
+    prof = np.convolve(np.pad(prof, 4, mode="edge"), k, mode="valid")
+
+    bg_at = np.interp(dist, centres, prof)
+    mark_a = np.clip((G - 4) / 247.0, 0, 1)
+    mark_a[~near] = 0
+    shadow_a = np.clip(1.0 - R / np.maximum(bg_at, 1.0), 0, 1)
+    shadow_a[(~near) | (mark_a > 0.02)] = 0
+    shadow_a[shadow_a < 0.06] = 0
+    a = mark_a + shadow_a * (1 - mark_a)
+    # White mark over a black shadow, as straight-alpha RGB (3 channels).
+    rgb = np.repeat((mark_a[..., None] * 255.0) / np.maximum(a[..., None], 1e-6), 3, axis=2)
+    layer = np.dstack([np.clip(rgb, 0, 255), np.clip(a * 255, 0, 255)]).astype(np.uint8)
+
+    ys, xs = np.where(mark_a > 0.5)
+    reach = float(np.hypot(xs - cx, ys - cy).max()) / (w / 2.0)
+    return {
+        "size": (w, h),
+        "centre": (cx, cy),
+        "rim_half": w / 2.0,      # reference length: the master's half-width
+        "profile": (centres, prof),
+        "mark": Image.fromarray(layer, "RGBA"),
+        "image": Image.open(path).convert("RGB"),
+        "reach": reach,
+    }
+
+
+def adaptive_layers_plain(px, master):
+    half = VISIBLE_HALF_DP * px / ADAPTIVE_DP
+    return to_image(gradient(px, master, half)), to_image(mark_layer(px, master, half))
+
+
+def ios_icon_plain(px, master):
+    # Full bleed, exactly the artwork - iOS applies its own rounded mask.
+    return master["image"].resize((px, px), Image.LANCZOS)
+
+
+def legacy_icons_plain(px, master):
+    big = px * 4
+    art = np.asarray(master["image"].resize((big, big), Image.LANCZOS).convert("RGBA")).astype(np.float64)
+    sq = art.copy()
+    sq[..., 3] *= rounded_square_mask(big, big / 2.0, big * 0.2)
+    rnd = art.copy()
+    rnd[..., 3] *= circle_mask(big, big / 2.0)
+    return (to_image(sq).resize((px, px), Image.LANCZOS), to_image(rnd).resize((px, px), Image.LANCZOS))
+
+
 def teardrop_mask(size):
     yy, xx = np.mgrid[0:size * SS, 0:size * SS] + 0.5
     n = size * SS
@@ -304,10 +391,11 @@ def teardrop_mask(size):
     return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((size, size), Image.LANCZOS)) / 255.0
 
 
-def preview(master, out_path):
+def preview(master, out_path, layers=None, ios=None, legacy=None):
+    layers, ios, legacy = layers or adaptive_layers, ios or ios_icon, legacy or legacy_icons
     shown = 240  # px for the 72dp visible viewport
     px = int(round(shown * ADAPTIVE_DP / 72.0))
-    bg, fg = adaptive_layers(px, master)
+    bg, fg = layers(px, master)
     full = Image.alpha_composite(bg, fg)
     off = (px - shown) // 2
     view = np.asarray(full.crop((off, off, off + shown, off + shown))).astype(np.float64)
@@ -318,13 +406,13 @@ def preview(master, out_path):
         ("Rounded square", rounded_square_mask(shown, shown / 2.0, shown * 0.18)),
         ("Teardrop", teardrop_mask(shown)),
     ]
-    ios = ios_icon(1024, master).resize((shown, shown), Image.LANCZOS)
+    ios = ios(1024, master).resize((shown, shown), Image.LANCZOS)
     ios_arr = np.asarray(ios.convert("RGBA")).astype(np.float64)
     ios_arr[..., 3] *= superellipse_mask(shown, 5.0)
 
     tiles = [(name, to_image(np.dstack([view[..., :3], view[..., 3] * m]))) for name, m in masks]
     tiles.append(("iOS", to_image(ios_arr)))
-    sq, rnd = legacy_icons(192, master)
+    sq, rnd = legacy(192, master)
     tiles.append(("Android 7 square", sq.resize((shown, shown), Image.LANCZOS)))
     tiles.append(("Android 7 round", rnd.resize((shown, shown), Image.LANCZOS)))
 
@@ -361,18 +449,30 @@ def main():
         i = args.index("--preview")
         prev = args[i + 1]
         del args[i:i + 2]
-    master_path = args[0] if args else os.path.join(LOGO, "StagewithBorder.png")
-    master = analyse_master(master_path)
-    print(
-        f"master: rim half {master['rim_half']:.0f}px, thick {master['rim_thick']}px; "
-        f"adaptive rim {RIM_HALF_DP * 2:.1f}dp of 72dp visible"
-    )
+    plain = "--plain" in args
+    if plain:
+        args.remove("--plain")
+        master_path = args[0] if args else os.path.join(LOGO, "STAGE_Primary_No_Border.png")
+        master = analyse_plain_master(master_path)
+        layers_fn, ios_fn, legacy_fn = adaptive_layers_plain, ios_icon_plain, legacy_icons_plain
+        reach_dp = master["reach"] * VISIBLE_HALF_DP
+        print(f"plain master: mark reaches {reach_dp:.1f}dp from centre (safe circle 33dp)")
+        if reach_dp > 32.5:
+            sys.exit("the mark would be clipped by round launcher masks - shrink it in the artwork")
+    else:
+        master_path = args[0] if args else os.path.join(LOGO, "StagewithBorder.png")
+        master = analyse_master(master_path)
+        layers_fn, ios_fn, legacy_fn = adaptive_layers, ios_icon, legacy_icons
+        print(
+            f"master: rim half {master['rim_half']:.0f}px, thick {master['rim_thick']}px; "
+            f"adaptive rim {RIM_HALF_DP * 2:.1f}dp of 72dp visible"
+        )
 
     # Expo / EAS sources (used if android/ is ever regenerated by prebuild).
-    bg, fg = adaptive_layers(1024, master)
+    bg, fg = layers_fn(1024, master)
     bg.save(os.path.join(LOGO, "adaptive-background.png"))
     fg.save(os.path.join(LOGO, "adaptive-foreground.png"))
-    ios_icon(1024, master).save(os.path.join(LOGO, "app-icon.png"))
+    ios_fn(1024, master).save(os.path.join(LOGO, "app-icon.png"))
 
     # Native Android mipmaps — written directly (no prebuild: it would
     # clobber the hand-edited android/ tree).
@@ -380,10 +480,10 @@ def main():
         for name, scale in DENSITIES.items():
             d = os.path.join(RES, f"mipmap-{name}")
             os.makedirs(d, exist_ok=True)
-            bg, fg = adaptive_layers(int(round(108 * scale)), master)
+            bg, fg = layers_fn(int(round(108 * scale)), master)
             bg.save(os.path.join(d, "ic_launcher_background.webp"), "WEBP", quality=95, method=6)
             fg.save(os.path.join(d, "ic_launcher_foreground.webp"), "WEBP", quality=95, method=6)
-            sq, rnd = legacy_icons(int(round(48 * scale)), master)
+            sq, rnd = legacy_fn(int(round(48 * scale)), master)
             sq.save(os.path.join(d, "ic_launcher.webp"), "WEBP", quality=95, method=6)
             rnd.save(os.path.join(d, "ic_launcher_round.webp"), "WEBP", quality=95, method=6)
         print("android mipmaps written")
@@ -392,14 +492,16 @@ def main():
     # transparent corners (reads on light AND dark tab strips); Apple touch
     # icon = the full-bleed iOS render (iOS rounds it itself).
     web_brand = os.path.join(os.path.dirname(PROJECT), "web", "public", "brand")
-    if os.path.isdir(web_brand):
+    if plain:
+        print("web icons left unchanged (app icon only)")
+    elif os.path.isdir(web_brand):
         sq, _ = legacy_icons(512, master)
         sq.save(os.path.join(web_brand, "app-icon.png"))
         ios_icon(1024, master).resize((180, 180), Image.LANCZOS).save(os.path.join(web_brand, "apple-icon.png"))
         print("web icons written")
 
     if prev:
-        preview(master, prev)
+        preview(master, prev, layers_fn, ios_fn, legacy_fn)
         print("preview:", prev)
 
 
