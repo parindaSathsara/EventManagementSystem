@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.10.ogg",
+  "si": "බ්‍රදර් මේ ඩිස්කවර් ඉවෙන්ට් වල තියෙන ටිකට් ප්‍රයිස් එක ටිකක් හයිඩ් කරමු.",
+  "en": "Bro, let’s hide the ticket price a bit on the Discover events.",
+  "translation_model": "gpt-5",
+  "duration_s": 34.1,
+  "whisper_si": "బ్రాదర్, మి మి ధిస్కాబా ఇవింట వల తియన ఆరణా టికెట పొరిస్తే కంపింది ఇవింట సివల మే మి టికెట పొరిస్తే కంపింది ఇవింట సివల మే మి టికెట పొరిస్తే కంపింది",
+  "si_noprompt": "බ්රදර් මී එක event වල තියෙන ticket price එක තියෙනව. Ticket price එක තියෙනව. අන්න ඒක අපි පොඩ්ඩක් hide කරමු. අපි දැන් ticket category තුනක් දාම්මොත් තෙහෙම ඒ තුනම පෙන්න්නෙ නැහැ නේ. අපි ඒක hide කරමු නැත්නම් ticket category දාන්න දාන්න ඒක update වෙනව. දැනට දෙකක් දාම්මොත් ticket category දෙකක්ම පෙන්න්න. නැත්නම් අපි ticket price එක hide කරමු.",
+  "en_reconciled": "Brother, on the Discover events, the ticket price is there. The ticket price is there. Let’s hide that a bit. Now, if we add three ticket categories, it still doesn’t show all three, right? Either hide it, or make it update as we keep adding ticket categories. For now, if we add two, show both ticket categories. Otherwise, let’s hide the ticket price.",
+  "coverage_note": "A mentions Discover and hiding the ticket price but is brief. B adds the details about three categories not showing, the option to have it update as categories are added, and showing two categories for now. C did not add usable content beyond A/B.",
+  "confidence": "high"
+}

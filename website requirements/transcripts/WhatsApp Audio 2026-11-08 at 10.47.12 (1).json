@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.12 (1).ogg",
+  "si": "අප්පෙ එකා අපි කරපු විදිහටම කරමු.",
+  "en": "For the app, let’s do it exactly the way we did.",
+  "translation_model": "gpt-5",
+  "duration_s": 13.9,
+  "whisper_si": "ಅನಿತದಗರ ಬಾದದ ದನಿ ಅಲಟಸವಲನ ಅರಾ ಅಪಪಾಗಿ ಆಪಿ ಕರಬಿ ವಿದಿರಮಾ ಕರಮು ಏಕಾಣನಇ ಫಾಲಭಾಕರಣ ಇವನಸವಲನ �",
+  "si_noprompt": "අනිත් ඒවාද Alert වල අපි කරපු විදියටම කරමු. ඒක App එකේ විදියටම පොඩ්ඩක් සෙට් කරන්න බලමු.",
+  "en_reconciled": "For the others too, let’s do it the same way we did in Alerts. Let’s try to set it up a bit like it is in the app.",
+  "coverage_note": "Transcript A was shorter/truncated. Transcript B adds the references to doing the others the same as Alerts and setting it up like in the app. Transcript C was garbled and did not provide additional reliable content.",
+  "confidence": "high"
+}

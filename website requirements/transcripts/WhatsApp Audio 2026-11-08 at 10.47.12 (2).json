@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.12 (2).ogg",
+  "si": "අනිත් එකර් පස්සේ හෙඩේකේ තියෙනවා tickets option එකක්. ඒක අපි දැනට remove කරමු. ඒ කියන්නේ දැනට අපිට tickets අවශ්‍යවෙන්නෑ. ඒක ඔයා set කරේ, ඒ කියන්නේ user ගිණි ticket එකක් third-party platform එකෙන් buy කරාම ඒ QR එක මෙතනට එන විදියට නං set කරලා තියෙන්නේ, ඒක okay. නැත්තම් බඩ් නිකං ඒ විදියට නං ඒක අවුලක් නෑ. ඒහෙම නැත්තුනොත් අපි එක පොඩ්ඩක් දැනට අයින් කරලා තියමු.",
+  "en": "Also, next, in the header there’s a Tickets option. Let’s remove that for now. That means we don’t need Tickets right now. The way you’ve set it up—i.e., when a user buys a ticket from a third-party platform, the QR comes here—that’s okay. If it’s like that, it’s not an issue. If not, let’s remove it for now.",
+  "translation_model": "gpt-5",
+  "duration_s": 36.6,
+  "whisper_si": "ಅನಿತತಗರ ಬದದ ಹಇಡಇಯಕಇ ತಿಯನಮಾ ಟಿಕಟಸ ಉಪಷಣನಗಾಗ ಏಕಾ ಆಪಿ ದನನಟರ ರಿಮಓಗರಮನಮನಮನ ಏಕಿಯನನಗರಮನಮ� ಇದಿದಿಯರನಾಂ ಏಕಾ ಆಹಲಾಕನನನನನ ಇಹಿಮ ನಾತಿಊನಾದ ಆಪಿ ಏಕಾ ಪಟದದ ದನಟರ ಆಯಿಂಗಾಲಲ ಧಿಯಮನಂ",
+  "si_noprompt": "අනිත් එකර්බාද හෙඩේකේ තියෙනවා ටිකෙට්ස් ඔප්ෂන් එකක්. ඒක අපි දැන්ට රිමූ කරමු. එක කියන්නී දැන්ට අපිට ටිකෙට්ස් මේ අවශ්‍ය වෙන්නෑනේ. ඒක ඔයා සෙට් කරේ එක කියන්නී යූසර් ගිණි ටිකෙට් එකක් අර මේ තර්ඩ් පාටී ප්ලට්ෆෝමයකින් බයි කරාම ඒ කියුආර් එක මෙතන්ට එන විදියට නං සෙට් කරලා තියෙනේ. ඒක ඔකේ. නැත්තම් බදා නිකං ඕව විදියට නං ඒක අව්ලක් නෑ. එහෙම නැතිඋනොත් අපි ඒක පොඩ්ඩක් දැන්ට ආයින් කලලා තියෙමු.",
+  "en_reconciled": "Another thing: there’s a Tickets option in the header. Let’s remove it for now—we don’t need Tickets at the moment. The way you’ve set it up—i.e., when a user buys a ticket on a third‑party platform and the QR comes here—that’s okay; even left like that, it’s not a problem. If that’s not the case, let’s just take it out for now.",
+  "coverage_note": "A and B match closely and appear complete; C doesn’t add new material but confirms the final \"if not, let’s remove it for now\" line.",
+  "confidence": "high"
+}

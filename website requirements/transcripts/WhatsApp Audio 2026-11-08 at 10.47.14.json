@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.14.ogg",
+  "si": "ආයේක් දාන්නැතිවුණත් ඔටෝමා ඕගනයිසා event එකක් කියනකියලා පබ්ලිශ් කරද්දී ටිකට් ඩීටේල්ස් දම්මේ නැතිවුණත්, ආදන්ට තියෙනමා General Admission කියලා එක ඔටෝමා අදන්ට පබ්ලිශ් වෙනවා. අපි එක අපි ඇප්පේ ටිකට් ඉස්ටේටියුන් ටිකට් කමින් සුන් වගේ කප්ෂන් එකක් දෙමු අපි ටිකට්වෙල්ට. අනෙත් තිකර් ෆ්ලයර් එක දම්මේ නැතිවුණත් ඔටෝමා මේකියෙ තියෙන ෆ්ලයර් එකක් එනවා. ඒකත් අපි පොඩ්ඩක් හරියට හදමු.",
+  "en": "Even if they don’t add anything else, when an organizer publishes an event without ticket details, a General Admission ticket gets published automatically by default. Let’s add a “Tickets coming soon” type caption in our app’s Tickets section, on the ticket wells. Also, even if the flyer hasn’t been added, a flyer from what’s already here appears automatically. Let’s tidy that up a bit as well.",
+  "translation_model": "gpt-5",
+  "duration_s": 39.5,
+  "whisper_si": "டர஦ா நஷற்துள, ஆஙிறாஜந்ற ஓரணாஹ്யத்தக இவேநட்காக, ஏகனநி கிறேட்கலல்ல, ப஭஬லிஸ்கர஬்஦ி, டி� ஆநிறத்தேக ஫லாயேய்கர் ஦ிம்மே நிர்தியுணா஦, ஒட்டோமாரமே, மேகே திய்ந ஫லாயேய்காக கேனவ�",
+  "si_noprompt": "රදා අනිත්තේක organize event කක් create කරල publish කරද්දී ticket details දම්මනැති උනත් අදන්ට තියනම general admission කියලා ඔටෝම අදන්ට publish වෙනව. අපි ඇප්පෙකෙ ticket Stay tuned ticket coming soon වගේ කැප්ෂනේකත් දීම අපි ටිකට්පොල්ට. අනිතෙක flyer එක දම්මනැති උනත් ඔටෝම මෙකේ තියන flyer එකක් එනව. ඒකත් රදා අපි පොඩ්ඩක් හරියට හදමු.",
+  "en_reconciled": "Even if the organizer creates an event and publishes it without adding ticket details, a default \"General Admission\" gets published automatically. In our app, for the tickets, let’s show a caption like \"Stay tuned\" or \"Ticket coming soon\" on the ticket section. Another thing: even if they haven’t added a flyer, it automatically pulls in an existing flyer from here—let’s fix/tidy that up a bit as well.",
+  "coverage_note": "Transcripts A and B align and appear complete; C is garbled but reiterates the flyer point and adds no new content.",
+  "confidence": "medium"
+}

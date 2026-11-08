@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.14 (2).ogg",
+  "si": "අනිත් තෙක් බ්‍රදර් ඔගනයිසර් සෙක්ෂන් එකේ වර්ක්ස්පේස් එකේ තියෙන්නවා නිව් රීල් කියලා එකක්. අනික් එකක් පොඩ්ඩක් රිමූව් කරමු. අනිත් තෙක් ඒකේම තියෙන්නවා වීව් ඇස් කස්ටමර් කියන එක අපි ඒක චේන්ජ් කරමු වීව් ඇස් යූසර් කියලා.",
+  "en": "Another thing, brother: in the Organizer section, in the workspace, there’s an item called “New Reel.” Let’s remove that. Also, in there, there’s “View as Customer”; let’s change it to “View as User.”",
+  "translation_model": "gpt-5",
+  "duration_s": 17.0,
+  "whisper_si": "වඩු තොන්න2 ඖබන් Drputhෙපි නැට්න මිසිටු ඇතින් කාලුවผාරී ඉවරා භාවාමින්න රේඋඛා පහාන අපි ප෈ළඔ මිසිටු දැක් මමා! ග්‍රීමින් වනු මිසිටු භාවාමින් පෙති බවට අපි ගාවීමට පෙති බාන්න.",
+  "si_noprompt": "අනිත් එකේ brother organizer section එකේ තියනවා new reel කියල එකක්.",
+  "en_reconciled": "Another thing, brother—inside the Organizer section, in the Workspace, there’s an item called “New reel.” Let’s remove the other one for now. Also, in that same place it says “View as Customer”; let’s change it to “View as User.”",
+  "coverage_note": "Transcript B is truncated; Transcript A includes the full requests about removing the other item and changing “View as Customer” to “View as User.” Transcript C did not add any reliable content.",
+  "confidence": "medium"
+}

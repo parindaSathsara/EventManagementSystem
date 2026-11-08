@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.14 (3).ogg",
+  "si": "අනිත් එක brother, මේ footer එකේ තියෙනවා your stage කියන එකේ my tickets කියන එක අපි remove කරමු. ඒකේ මේ අනිත් එක footer එකේ discover එකේ තියෙනවා reels කියන එක අන්නේ එකත් පොඩ්ඩක් අපි remove කරමු brother ඩැනට.",
+  "en": "Also, brother, in the footer under “Your Stage,” let’s remove “My Tickets.” And in the footer under “Discover,” there’s “Reels”—let’s remove that as well for now, brother.",
+  "translation_model": "gpt-5",
+  "duration_s": 18.0,
+  "whisper_si": "අවස්඲ යේ රත් වන නොර කල්ලිනක දන්ද ස්තෝම් ස්තිසල් කරන්නදන්ස්තීම ස්තින්ස්තිසල් ක්රීමට ප්‍රුද්‍ර්‍රහියක් කිරිය දින කිරි ස්තින්ද ස්තින්ද මෙම ම්‍රමාම්‍රවන්‍රයේ් මේදා ස්තියක් ප්‍රුද්‍රවන්ද මේදා ප්‍රුද්‍රවන්ද",
+  "si_noprompt": "අනිතෙක ප්‍රොදර් හුටයේ තියනවා, මයි ටිකට්ස් කියනෙක අපි රිමූ කරමු. ඒකෙ මේ අනිතෙක හුටයේ තියනවා රීල්ස් කියනෙක, අන්න ඒකත් පොඩ්ඩක් අපි රිමූ කරමු.",
+  "en_reconciled": "Another thing, brother: in the footer, under 'Your Stage', please remove 'My Tickets'. Also, in the footer, under 'Discover', please remove 'Reels' as well—for now, brother.",
+  "coverage_note": "A and B agree on removing 'My Tickets' from the 'Your Stage' section of the footer and removing 'Reels' from the 'Discover' section of the footer. A explicitly names 'Your Stage' and 'Discover'; B mentions the footer but not those labels. C was unintelligible and added no new content. No signs that A/B were truncated beyond this.",
+  "confidence": "high"
+}

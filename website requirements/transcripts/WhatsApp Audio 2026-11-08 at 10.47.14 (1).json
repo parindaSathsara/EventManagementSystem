@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.14 (1).ogg",
+  "si": "අපි අප්පෙකෙකර ආරගෙ පේස්බුක් ඊකනනෙකක් පිටික්ටොක් ඊකනනෙකක් ඉන්ස්ටග්‍රෑම් ඊකනනෙකක් ක්ලික් කරාම කෙලිමම එගොල්ලා ඒ ඒ සෝෂල් මීඩියා ප්ලැට්ෆෝම්වල්ට යන්නදි.",
+  "en": "On the app, include a Facebook icon, a TikTok icon, and an Instagram icon; when clicked, it should directly take them to the respective social media platforms.",
+  "translation_model": "gpt-5",
+  "duration_s": 43.8,
+  "whisper_si": "ಅನಿತದದರಬರದ, ಅರರಾ ಊಗನಾಈಸರ ಆಟಕರಣ ಆರಟಿಸಗಿ ಪಏಸಬರನ ಇಂಸಟರ ಟಿಕಟರಮ ಲಿಂಗ, ಅರರಾ ಉಯಊಸರಸತದ ಪನನನ� ಭರಿದಲಿಂದದ ಸಬರದಿರಿರನಸರ ಕರಣ ಅರರಾ ಅರರಾ ಸಬರಿದರಿರನಸರ ಚರಚಾರಿತಿ ಆಪಟಾನವಾಗಿ ಸಬರದಿರಿರನಸರ ಚರಚಾರಿತಿ ಆಪಟಾನವಾಗಿ",
+  "si_noprompt": "අනිත් තේක බ්‍රද අර ඔර්ගනයිසේ ඇඩ්කරන ආටිස්ට්ගේ පේස්බුක් ඉන්ස්ටා ටික්ටොක් ලිංක් අර යූසස්ට පෙන්නන්න, අපි ඇප්පේකරේ අර මේ කියන්නෙ ප්‍රහ, පේස්බුක් එකේ අයිකනේක අයි, ටික්ටොක් එකේ අයිකනේක අයි, ඉන්ස්ටග්‍රම් එකේ අයිකනේක අයි ක්ලික් කරාම කෙලින්ම අර ඒගොල්ල අපි මේ සෝෂල් මීඩියා ප්ලට්ෆෝම්වල්ට යන්න ති, අන්නේ වාගේ බ්‍රද අපි මේකේ, ඩිස්කවයිකේ ඉවෙන්ටක් ඇතුලට ගියාහම, දැන් ලයිනප්පේකේදි තියෙනවැනි, ලයිනප්පේකේ දැන් නමට මෙහා පැත්තෙන් ඒ අයිකන් තුන දේමො, ඒ අයිකන් එක ක්ලික්කරහම කෙලින්ම ලිංක් පෙන්නේ ඒගොල්ලා ඒ කියන්නේ ඒ කියන්නේ ඒ සෝෂල් මීඩියා ප්ලට්ෆෝම්වල්ට. අරහරේ අපි ඇප්පේකේ කරා වාගේ. ඒ විදිර බ්‍රද අන්න එකත් අපි සෙට්කරන්න.",
+  "en_reconciled": "One more thing, bro: show users the Facebook, Instagram, and TikTok links for the artists that the organizer adds. On the website, when we go into an event from Discover, in the lineup, display those three icons next to the artist’s name. When someone clicks an icon, take them straight to that social media platform — same as we did in the app. Let’s set that up as well.",
+  "coverage_note": "Transcript A was brief/truncated. Transcript B provided the full request (organizer-added artist links, Discover > event > lineup, three icons next to the name, click goes straight to the social platforms, same as in the app). Transcript C did not add any clear additional content.",
+  "confidence": "high"
+}

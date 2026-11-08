@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.10 (2).ogg",
+  "si": "අනිත් එක බ්‍රදර්, මේ browser buy කියන එකේ ඒ set එක තියෙන පිළිවෙලක් තියෙනවද? ඒ පිළිවෙල එන්නේ, මේ විදිහට අපි වෙනස් කරමු. All, festival, EDM, live event, concert, hip hop, අනිතෙක් අද. එයා පිළිවෙලට set කරමු බ්‍රදර්.",
+  "en": "Another thing, brother: in this “Browse by” section, is there a set order? If so, let’s change the order to this: All, Festival, EDM, Live Event, Concert, Hip Hop, and the rest. Let’s set it to that order, brother.",
+  "translation_model": "gpt-5",
+  "duration_s": 22.6,
+  "whisper_si": "ಅನಿತತಗರ ಬರಧದ, ಬರಾಊಸರ ಬಾಇಯಕಿಯನಇಕಇ ಇನ ಸಿಟಟರಕಾ ತಿಯನ ಪಿಳಿವಲಾತ ತಿಯನ ಇನ ಪಿಳಿವಲ ಎಣಣನಇ ಅನಿತತಗರ ಬರಧದ, ಬರಾಊಸರ ಬಾಇಯಕಿಯನಇಕಿ ಇನ ಸಿಟಟರಕಾ ತಿಳಿವಾತ ತಿಳಿವಾತ ಇನ ಸಿಟಟರಕಾ ತಿಳಿವಾತ",
+  "si_noprompt": "අනිත් එක බ්‍රදෙර් මේ බ්‍රවුසර බායි කියන එකේ ඒ සෙට්ට්ට තියෙන පිලිවෙලත් තියෙනවා. ඒ පිලිවෙල එන්න ඕනේ මෙන්න මේ විදියට අපි වෙනස් කරමු. All Festival, EDM, Live Event, Concert, Hip Hop. අනිතෙක අද ඒ පිලිවෙලට සෙට් කරනව බ්‍රදෙර්.",
+  "en_reconciled": "Another thing, brother: in the 'Browse by' section, let’s change the order to this: All, Festival, EDM, Live Event, Concert, Hip Hop, [unclear]. Set it to that order, brother.",
+  "coverage_note": "A and B align and provide the content. After 'Hip Hop' there’s a brief unclear fragment in both (transcribed as 'anithek ada/anitheka ada'); C is unusable gibberish and does not add new material.",
+  "confidence": "medium"
+}

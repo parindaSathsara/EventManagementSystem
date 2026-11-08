@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.11.ogg",
+  "si": "බ්‍රදර් අනිත් එක මේ Logo එක change වෙනවෙන්නේ අපේ Logo එක නෙමේ. මේ වෙන්නැසකුරත් තියනව. මං ඒ Logo එක ඩානන්ගෙයි Logo එක.",
+  "en": "Bro, the other one—the logo that’s changing—is not our logo. This has also been changed. That logo is Danan’s logo.",
+  "translation_model": "gpt-5",
+  "duration_s": 8.9,
+  "whisper_si": "বா஦ा ஆணித்தேக மே லோக்கே஗ே சேஞ்சியுன்ணுவோணே ஆபே இலோக்கே஗ே நே மேயே இலோக்கே஗ே மேயே இலோக்கே஗ே",
+  "si_noprompt": "බ්‍රද අනිත්තේ මෙම ලෝගෝවෙක් වෙනස් කරන්න ඕනෙ. අපේ ලෝගෝවෙ නෙමේ. මේ සකුරනවෙ තියෙන වෙනස්වෙන්න තියෙනවා. මං ඒක ඔයාට දාන්නං ඒ ලෝගෝයෙ.",
+  "en_reconciled": "Brother, the other one: the logo that’s changing isn’t our logo. [unclear: it’s showing as changing there]. I’ll send you that logo — Danan’s logo.",
+  "coverage_note": "Used A and B as primary. A suggests it’s Danan’s logo; B adds that he will send/put the logo. Both have a garbled middle clause, kept as [unclear]. C did not add new substantive content beyond repeating that the logo is changing and not theirs.",
+  "confidence": "medium"
+}

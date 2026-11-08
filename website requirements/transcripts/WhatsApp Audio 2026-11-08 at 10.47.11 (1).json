@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.11 (1).ogg",
+  "si": "අනත්තෙක බ්‍රදේ. හෙඩේකේ ආටිස්ට් කියනෙකට මේ ආටිස්ට් එන් ඔගනයිසස් කියලා දාන්න විදියක් එක පොඩ්ඩක් අපි එක පොඩ්ඩක් කල්පනා කරමුද? මේ ආටිස්ට්ලන් විතරක් නෙමේනේ ඔගනයිසස්ලාත් තියනවානේ? ඒක පොඩ්ඩක් කල්පනා කරමුද? ඒකෙට දාන්න වචනෙක් මොකක්කරි එතනට දාමුද නැත්තන් දිකම දාන්නන් කියලා පොඩ්ඩක් බලලා ඒක සෙට් කරමුද?",
+  "en": "Another thing, bro. In the header, where it says “Artists,” is there a way to put it as “Artists & Organizers”? Shall we think about that a bit? It’s not only artists; there are organizers too, right? Shall we think about that a bit? What word should we put there—should we put something there, or put both? Let’s have a quick look and set it.",
+  "translation_model": "gpt-5",
+  "duration_s": 25.6,
+  "whisper_si": "ಅಣಿತ್ತಗರ ಭರದ, ಹೇಡೆಯಕಿ ಆಟಿಸ್​ ಕೀಯನೆಗಿಟ್ಟ ಆಟಿಸ್​ ಆನ್ನ ಓಗನಾಯಸ್​ ಕೀಯಲ್ಲ ದಾನ್ನ ವಿದಿಯಾಕ್ತಿಮೇನೆ ಪಡ್ಡಾಕ್ಕಾಪಿದ್ದೇ ಇಕೆ ಪಡ್ಡಾಕ್ಕಾಲ್ಪನಾಗಾ�",
+  "si_noprompt": "අනිත් එකෙන් බ්‍රාදේ හිඩේ එක artist කියන එකට artist and organizers කියලා දාන්න විදියක්.",
+  "en_reconciled": "Another thing, bro. In the header, for the item called 'Artists', can we make it 'Artists & Organizers'? Let's think about that a bit. It's not just artists; there are organizers too, right? Let's think about that a bit. Should we put some wording there for it, or just put both? Let's take a look and get it set.",
+  "coverage_note": "Transcript A contained the full request; B was a shorter/truncated version of the same idea. C was largely garbled and did not add new content. The phrase interpreted as 'both' comes from A ('දෙකම').",
+  "confidence": "high"
+}

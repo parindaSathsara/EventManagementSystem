@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.10 (1).ogg",
+  "si": "අනිත් එක බ්‍රද මේ ඉස්කවර්වල, ඉවෙන්ට් වල ෆ්ලයර් වල බාගයක් කැපිල පෙනින්නි.",
+  "en": "Another thing, bro: on Discover, a part of the event flyers looks cut off.",
+  "translation_model": "gpt-5",
+  "duration_s": 22.0,
+  "whisper_si": "‪ ‪ Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu Manu",
+  "si_noprompt": "අනිත් බ්‍රදර් මේ ඊවෙන්ට් වල ෆ්ලයර් වල භාගයක් කැපිලා පේන්නී. සමහරක් බෙල්ලගාවින් කැපිලා තියෙනවා. අපිට ඇප් එකත් ආවෙ හම කේස් එක. ඒක නිසා බ්‍රදර් උඩ කොටසින්ග් එල යටට ෆ්ලයර් එක සෙට් වෙනවා හදමු කොඩක්. අපි ඇප් එකත් හැදුවේ ඒම.",
+  "en_reconciled": "Another thing, brother: on Discover, parts of the event flyers are showing up cropped. Some are even cut around the neck area. We had the same issue on the app as well. So, brother, let’s write code so the flyer [unclear: aligns from the top/settles downward] and is set accordingly—we built the app that way too.",
+  "coverage_note": "A was shorter but added that this is on Discover. B continued with more detail (neck area cropping, same issue on the app, and a request to implement code like in the app). C contained no usable content beyond A/B.",
+  "confidence": "medium"
+}

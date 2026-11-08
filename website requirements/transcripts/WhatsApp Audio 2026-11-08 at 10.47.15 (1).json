@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.15 (1).ogg",
+  "si": "මං වාඩේ ඇප්පෙකදිත් අපිට මේ එකේස් එක ආවා.",
+  "en": "At work, even in the app, we had this case come up.",
+  "translation_model": "gpt-5",
+  "duration_s": 23.1,
+  "whisper_si": "అనితర ప్రాదన్, ములియబిండ్ ఏకరియాడ్ కరాదది, టీకడ్ టేకడ్ ఏకర్డ్గ్ అద్భాదది, జన్నల్ అద్ముషం క్యం ఏక ఇరిరిస్ కెర్లు దమే టిప",
+  "si_noprompt": "අනිත් එකක් බ්‍රදර්, මම මුලින්ම event එකක් create කරද්දී, ටිකට් එකක් add කරද්දී general admission කියන එක erase කරලා තමයි type කරන්න ඕනේ. මම ඔයාට app එකේදීත් අපිට මේ case එක ආවා. ඒක erase කරලා තමයි ඉතුරු ටික type කරන්න ඕනේ. ඒහෙම නැතුව ගෙලින්ම click කරලා type කරන්න set කරමුද අපි?",
+  "en_reconciled": "Another thing, brother: when I first create an event, when adding a ticket, you have to erase the 'General Admission' before you can type. I told you that in the app too we had this same case. You have to erase it first and then type the rest. Instead of that, shall we set it so you can just click and type directly?",
+  "coverage_note": "A was truncated. B provided the full content, including that the same issue happened in the app. C did not add any usable content.",
+  "confidence": "high"
+}

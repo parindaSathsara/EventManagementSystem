@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.13.ogg",
+  "si": "Brother, මෙය කැරම දේකැප්ෂන් එකේ තියෙන 'Find your next night out' කියලා.",
+  "en": "Brother, in this [unclear] description it says “Find your next night out.”",
+  "translation_model": "gpt-5",
+  "duration_s": 23.8,
+  "whisper_si": "ಬಲದದ ಮಇ ಕಿಯಾರಮಇ ಡಿಸಕಾಹಿಯಾರಕೇ ಕಪಶನನಿಯರಲನಾ ತಿಯನ ಫಾಯಂದ ಉಯರ ನಿಕಸನನನನಾಪಿ ಅಯಟಾಉಟ ಕೀಯಲನ ಅಗಿಯಾರಮಇ ಅತನಗಟಾರಮಇ ಅತನಗಟಾರಮಇ ಆರಾಇಬಿಯನಟಿಕ ಪಟಟಾಕ ಹರಮಿ ಪಟಟಾಕ ಸಿಮಾ ವಿನ ವಾಗಿ ವಿನ ಅನಇ ಇಹ�",
+  "si_noprompt": "බ්‍රදර් මේකේ ඩිස්කවර් කේ කැප්ෂන් එකේ තියෙනවා Find your next night out කියලා.",
+  "en_reconciled": "Brother, the Discover caption says 'Find your next night out'.",
+  "coverage_note": "A and B align on the message about the Discover caption. C is garbled and does not add any clear additional content.",
+  "confidence": "high"
+}

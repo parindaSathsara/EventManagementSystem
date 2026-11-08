@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.15.ogg",
+  "si": "මේ පොඩි කවුන්ටෙක් අපි මේටිකට්ස් බුක් කියනේකෙන් චේන්ජ්කරමු අර ෆලෝ කවුන්ට් කියනේකට.",
+  "en": "Let’s change this small counter from “Tickets Book” to “Follow count.”",
+  "translation_model": "gpt-5",
+  "duration_s": 65.5,
+  "whisper_si": "அ஭ஂ.org. இதகுட்ட பலலோ காஉந்டே ஆக்கே நமா, இவேந் ஸேயுவுகாக்கே நமா, ஡ே காஉந்டே காக்கே நம். பலலோ காஉந்டே நமா",
+  "si_noprompt": "අනිත්තෙක් බද්දේ, ඔගනයිසර් සෙක්ශනේගි Overview එකේ තියෙනවා Tickets Book කියලා මේ පොඩි චාට් එකක්. චාට් සීන්ග කරා, මේ පොඩි කාවුන්ට් එකක්. අන්න ඒක බ්‍රදර් අපි එතන තියෙන කෑල්ල චේන්ජ් කරල දැන් අපි අතන්ට, දැන් යුසර්ට follow option එකක් දුන්නොත්, ඔගනයිසර්ව follow කරන follow කවුන්ට් එක set වෙන්න මෙතනට අපි මේ කෑල්ලට දාම්, මේ Tickets Book කියන එක චේන්ජ් කරමු හර follow කවුන්ට් කියන එකට. එහෙමම බ්‍රදර් අපිට මේ මෙතන තියෙනවා Overview එකේ අර වගෙ කෑල්ල තුන Upcoming Events, මේ දැනට තියෙන Tickets Book, Events Save කියලා. අපිට පුළුවන් නම් මේ Day Count එකකුත් දෙන්න මේ කෑලි තුන පොඩිකල්ල, කෑලි හතරක් වෙන Set කරලා. අපි එක පොඩක් ඒ විදියට Set කරන් Try යද්දමු. එක්කොට එන්නේ Upcoming Events, එක්කොට Follow Count එකක් එනවා, Events Save එකක් එනවා, Day Count එකක් එනවා. පුළුවන් නම් බ්‍රදේ විදියට Set කරන්.",
+  "en_reconciled": "Another thing, brother: in the Organizer section’s Overview, there’s that small chart/counter labeled “Tickets Book.” Please change that piece so that, if we give users a Follow option, the organizer’s Follow count is shown there—i.e., change “Tickets Book” to “Follow Count.” Also, in the Overview we currently have three items: Upcoming Events, Tickets Book, and Events Saved. If possible, make it four by adding a Day Count. Let’s try setting it up like that: Upcoming Events, Follow Count, Events Saved, and Day Count. Please set it up that way if you can.",
+  "coverage_note": "Transcript A was brief. Transcript B contained the full set of requests (replace “Tickets Book” with “Follow Count” and add a fourth tile for Day Count alongside Upcoming Events and Events Saved). Transcript C didn’t add new instructions but confirmed the list (Follow Count, Events Saved, Day Count).",
+  "confidence": "high"
+}

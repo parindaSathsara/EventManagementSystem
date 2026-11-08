@@ -1,0 +1,12 @@
+{
+  "file": "WhatsApp Audio 2026-11-08 at 10.47.13 (2).ogg",
+  "si": "අනිත් තෑකට බ්‍රදේ මී ඇලට් ඔප්ෂන් එක එකෙන් මේ වෙබ්සයිට් එකේ පෙන්නන්නේ එයනේ ඔර්ගනයිසර් සයින් උනොත් විතරද? එහෙම නැතුව අප්පේ ඉවිධියටනේ අර ෆලෝ කරන්න තියලා ඒකම්පැනිවෙල වෙන අප්ඩේට් අරම් ඇලට්ස්වල පෙන්නන්න අප්පේ ඉවිධියරම අපි මෙතන සෙට් කරමු.",
+  "en": "Another thing, bro: with this alert option, does it show on the website only if the organizer has signed in? If not, let’s set it up our way—have the Follow option, and show the updates happening from that company as alerts; we’ll configure it here on our side.",
+  "translation_model": "gpt-5",
+  "duration_s": 28.5,
+  "whisper_si": "ස්තුරක් හොඳින් ස්තුරක් Danlo",
+  "si_noprompt": "අනිත්තක බ්‍රදේ, මී ඇලට් ඔප්ෂන් එක එය කියාන්නේ මේ වෙබ්සයිට් එකේ පෙන්න්නේ ඒකෙනුයි ඔර්ගනයිසර් සයින් උනොත් විතරද? එහෙම නැතුව අප්පෙකේ විධියටම මී අර ෆලෝ කරන නෑතිඉලා, එය කියන්නේ යුසර්ට ෆලෝ කරන, මී ඉවෙන්ට්ස් කම්බැනි ෆලෝ කරන නෑතිඉලා, ඒ කම්බැනිවල වෙන අප්ඩේට් අර මී ඇලට්ස්වල පෙන්න්නේ අප්පෙකේ විධියටම අපි මෙතන සෙට් කරමු?",
+  "en_reconciled": "Another thing, bro: this Alerts option—are we showing it on the website only if an organizer signs in? Or, instead, like in the app, should we have the Follow option so the user can follow companies, and then show updates from those companies under Alerts—same as in the app? [unclear]",
+  "coverage_note": "A and B align on the full request but may be truncated; C adds an unintelligible tail at the end, which I’ve reflected as [unclear]. No additional clear content beyond A/B.",
+  "confidence": "medium"
+}
