@@ -12,8 +12,12 @@ const manrope = Manrope({ subsets: ['latin'], variable: '--font-body' });
 export const metadata: Metadata = {
   title: { default: 'Stage — Your next stage is waiting', template: '%s · Stage' },
   description: "Sri Lanka's home for live events — festivals, EDM nights, live concerts and hip hop. Follow the companies you love and never miss a drop.",
-  // Built by Project/scripts/build-icons.py from the same master as the app icon.
-  icons: { icon: '/brand/app-icon.png', apple: '/brand/apple-icon.png' },
+  // Vector badge first (Project/scripts/build-brand-svg.py); PNGs from
+  // Project/scripts/build-icons.py as the fallback + Apple touch icon.
+  icons: {
+    icon: [{ url: '/brand/stage-badge.svg', type: 'image/svg+xml' }, { url: '/brand/app-icon.png', type: 'image/png' }],
+    apple: '/brand/apple-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

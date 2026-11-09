@@ -1255,20 +1255,24 @@ body::after { opacity: 0; }
   .studio-page .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Brand lockup — the client's own mark + STAGE (2026-11-08) ---------------- */
-.brand-lockup { display: inline-flex; align-items: center; gap: 11px; color: #fff; line-height: 1; }
-.brand-lockup-name { font: 800 21px/1 var(--font-heading), sans-serif; letter-spacing: .2em; transform: skewX(-9deg); padding-right: .1em; }
-.brand .brand-lockup-badge .brand-lockup-icon { width: 36px; height: 36px; border-radius: 9px; object-fit: contain; filter: drop-shadow(0 0 14px rgba(255,59,59,.35)); }
-.footer-wordmark .brand-lockup .brand-lockup-icon { width: 46px; height: 46px; border-radius: 11px; }
+/* Brand lockup — the client's own mark + STAGE wordmark, all vector
+   (components/brand-logo.tsx; 2026-11-09). The wordmark's size is set with
+   font-size: its height is the cap height, .73em. ------------------------- */
+.brand-lockup { display: inline-flex; align-items: center; gap: 12px; color: #fff; line-height: 1; }
+.brand-lockup svg { display: block; flex: none; overflow: visible; }
+.brand-lockup-name { font-size: 21px; height: .73em; width: auto; }
+.brand .brand-lockup-badge .brand-lockup-icon { width: 36px; height: 36px; filter: drop-shadow(0 0 10px rgba(255,59,59,.22)); }
+.footer-wordmark .brand-lockup .brand-lockup-icon { width: 46px; height: 46px; }
 .footer-wordmark .brand-lockup .brand-lockup-name { font-size: 26px; }
 .stage-hero-copy .stage-hero-wordmark { width: auto; margin: 0 0 30px; font-size: inherit; letter-spacing: 0; }
-.stage-hero-wordmark .brand-lockup { gap: 22px; }
+.stage-hero-wordmark .brand-lockup { gap: 26px; }
 .stage-hero-wordmark .brand-lockup-icon { width: auto; height: 92px; filter: drop-shadow(0 0 30px rgba(255,59,59,.35)); }
-.stage-hero-wordmark .brand-lockup-name { font-size: 76px; letter-spacing: .14em; text-shadow: 0 0 40px rgba(255,59,59,.25); }
+.stage-hero-wordmark .brand-lockup-name { font-size: 76px; filter: drop-shadow(0 0 40px rgba(255,59,59,.25)); }
 @media (max-width: 760px) {
   .brand .brand-lockup-badge .brand-lockup-icon { width: 32px; height: 32px; }
+  .brand-lockup { gap: 10px; }
   .brand-lockup-name { font-size: 18px; }
-  .stage-hero-wordmark .brand-lockup { gap: 14px; }
+  .stage-hero-wordmark .brand-lockup { gap: 16px; }
   .stage-hero-wordmark .brand-lockup-icon { height: 58px; }
   .stage-hero-wordmark .brand-lockup-name { font-size: 46px; }
   .footer-wordmark .brand-lockup .brand-lockup-icon { width: 40px; height: 40px; }

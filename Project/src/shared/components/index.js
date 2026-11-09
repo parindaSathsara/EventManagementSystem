@@ -19,3 +19,4 @@ export { default as EmptyState } from './EmptyState';
 export { default as ComingSoon } from './ComingSoon';
 export { default as TopBar } from './TopBar';
 export { default as ConnectionError } from './ConnectionError';
+export { default as BrandLogo, StageMark, StageBadge, StageWordmark } from './brand/BrandLogo';

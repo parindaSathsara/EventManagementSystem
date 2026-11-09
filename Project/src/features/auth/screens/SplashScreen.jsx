@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Animated,
   Easing,
@@ -11,11 +10,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
-import { COLORS, SPACING } from '../../../theme';
+import { SPACING } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
-import { BrushedGlow } from '../../../shared/components';
+import { BrushedGlow, StageMark, StageWordmark } from '../../../shared/components';
 
 const { width, height } = Dimensions.get('window');
+// Mark height: about 40% of the screen width (the old PNG's visual size).
+const LOGO_H = Math.round(width * 0.4);
 
 // Reds sampled from the logo artwork itself (STAGE_Primary.png) so the splash
 // glow is the same family as the mark, not an approximation.
@@ -204,15 +205,13 @@ export default function SplashScreen({ onFinish }) {
             transform: [{ scale: logoScale }, { translateY: logoLift }],
           }}
         >
-          <Image
-            source={require('../../../../assets/Logo/stage.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          {/* Vector mark + wordmark (shared/components/brand) — crisp at
+              any screen density, identical to the website's logo. */}
+          <StageMark height={LOGO_H} />
         </Animated.View>
 
         <Animated.View style={{ opacity: wordOpacity, alignItems: 'center' }}>
-          <Text style={styles.wordmark}>STAGE</Text>
+          <StageWordmark height={26} style={styles.wordmark} />
           <Text style={styles.tagline}>EVERY SHOW. ONE PLACE.</Text>
 
           <View style={styles.barTrack}>
@@ -263,20 +262,8 @@ const styles = StyleSheet.create({
     top: height * 0.5 - RING / 2 - height * 0.045,
   },
   center: { alignItems: 'center', zIndex: 2 },
-  logo: {
-    width: width * 0.52,
-    height: width * 0.46,
-  },
   wordmark: {
-    fontSize: 34,
-    fontFamily: FONT_FAMILY.headingExtraBold,
-    color: COLORS.textPrimary,
-    letterSpacing: 10,
-    marginTop: SPACING.lg,
-    // Red bloom under the wordmark, echoing the logo's glow.
-    textShadowColor: 'rgba(247,0,0,0.85)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 18,
+    marginTop: SPACING.xl,
   },
   tagline: {
     fontSize: 10,

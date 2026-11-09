@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   Dimensions,
-  Image,
   Animated,
   Platform,
 } from 'react-native';
@@ -16,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
 import { COLORS, SPACING, RADII } from '../theme';
 import { FONT_FAMILY } from '../theme';
-import { BackgroundOverlay, BrushedGlow } from '../shared/components';
+import { BackgroundOverlay, BrushedGlow, BrandLogo } from '../shared/components';
 
 const { width } = Dimensions.get('window');
 const TOP_INSET = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 44;
@@ -80,14 +79,7 @@ export default function RoleSelectScreen({ onPickCustomer, onPickArtist }) {
         bounces={false}
       >
         <Animated.View style={[styles.header, enter]}>
-          <View style={styles.brand}>
-            <Image
-              source={require('../../assets/Logo/app-icon.png')}
-              style={styles.brandIcon}
-              resizeMode="cover"
-            />
-            <Text style={styles.brandName}>STAGE</Text>
-          </View>
+          <BrandLogo size={38} style={styles.brand} />
 
           <Text style={styles.kicker}>CHOOSE YOUR EXPERIENCE</Text>
           <Text style={styles.title}>How will you use Stage?</Text>
@@ -179,14 +171,7 @@ const styles = StyleSheet.create({
   },
 
   header: { marginBottom: SPACING.xl },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: SPACING.xl },
-  brandIcon: { width: 36, height: 36, borderRadius: 10 },
-  brandName: {
-    fontSize: 18,
-    letterSpacing: 3,
-    fontFamily: FONT_FAMILY.headingExtraBold,
-    color: COLORS.textPrimary,
-  },
+  brand: { marginBottom: SPACING.xl },
   kicker: {
     fontSize: 11,
     letterSpacing: 1.6,

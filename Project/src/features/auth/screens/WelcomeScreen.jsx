@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Dimensions,
   Animated,
@@ -12,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADII } from '../../../theme';
 import { FONT_FAMILY } from '../../../theme';
-import { Button, BackgroundOverlay, BrushedGlow, AnimatedGradient } from '../../../shared/components';
+import { Button, BackgroundOverlay, BrushedGlow, AnimatedGradient, BrandLogo } from '../../../shared/components';
 import { useAlert } from '../../../shared/hooks';
 
 const { width, height } = Dimensions.get('window');
@@ -134,11 +133,7 @@ export default function WelcomeScreen({ onJoinNow, onLogIn }) {
           { opacity: fadeIn, transform: [{ translateY: slideUp }] },
         ]}
       >
-        <Image
-          source={require('../../../../assets/Logo/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <BrandLogo size={44} style={styles.logo} />
         <Text style={styles.headline}>Discover Live.{'\n'}Feel the Vibe.</Text>
         <Text style={styles.subtitle}>
           Find events, connect with artists, and experience moments that move you.
@@ -209,8 +204,6 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.max,
   },
   logo: {
-    width: 160,
-    height: 70,
     marginBottom: SPACING.xl,
   },
   headline: {

@@ -74,7 +74,7 @@ export function FlyerPlaceholder({ seed, compact = false }: { seed?: string; com
   return (
     <span className={`flyer-placeholder${compact ? ' is-compact' : ''}`} style={{ '--glow': glow, '--base': base } as React.CSSProperties}>
       <span className="flyer-placeholder-beams" aria-hidden />
-      <img src="/brand/stage-mark-trim.png" alt="" aria-hidden />
+      <img src="/brand/stage-mark.svg" alt="" aria-hidden />
       {!compact && <small>Flyer drops soon</small>}
     </span>
   );
