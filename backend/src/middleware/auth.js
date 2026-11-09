@@ -31,10 +31,14 @@ async function loadUser(token) {
       avatarUrl: true,
       role: true,
       createdAt: true,
+      disabledAt: true,
     },
   });
   if (!user) throw new Unauthorized('User no longer exists');
-  return user;
+  // A suspended account loses access immediately, even mid-session.
+  if (user.disabledAt) throw new Unauthorized('This account has been disabled.');
+  const { disabledAt: _disabled, ...publicUser } = user;
+  return publicUser;
 }
 
 async function requireAuth(req, _res, next) {

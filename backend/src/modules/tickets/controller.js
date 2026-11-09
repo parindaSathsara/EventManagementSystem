@@ -1,4 +1,5 @@
 const service = require('./service');
+const activity = require('../../lib/activity');
 
 async function list(req, res) {
   const result = await service.listMine(req.user.id);
@@ -25,6 +26,14 @@ async function reserve(req, res) {
     },
     req.user ? req.user.id : null,
   );
+  activity.record(req, {
+    action: 'ticket.reserve',
+    actor: req.user || null,
+    targetType: 'event',
+    targetId: eventId,
+    summary: `${holderName} reserved a ticket`,
+    meta: { ticketId: ticket?.id, ticketTypeId },
+  });
   res.status(201).json(ticket);
 }
 async function updateStatus(req, res) {

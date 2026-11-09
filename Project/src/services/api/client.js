@@ -86,7 +86,8 @@ async function request(
   { method = 'GET', body, auth = true, headers = {}, timeoutMs = DEFAULT_TIMEOUT_MS } = {},
 ) {
   const url = `${baseUrl}${path}`;
-  const finalHeaders = { 'Content-Type': 'application/json', ...headers };
+  // X-Client lets the admin console tell app activity from website activity.
+  const finalHeaders = { 'Content-Type': 'application/json', 'X-Client': 'app', ...headers };
   if (auth) {
     const token = await loadToken();
     if (token) finalHeaders.Authorization = `Bearer ${token}`;

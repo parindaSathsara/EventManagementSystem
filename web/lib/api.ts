@@ -52,6 +52,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     ...rest,
     headers: {
       ...(!isForm ? { 'Content-Type': 'application/json' } : {}),
+      // Lets the admin console tell website activity from app activity.
+      'X-Client': 'web',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },

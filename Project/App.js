@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { AppState, View, StyleSheet } from 'react-native';
 import {
   useFonts,
   Sora_400Regular,
@@ -27,7 +27,7 @@ import { BecomeArtistScreen } from './src/features/artistApp';
 import { GuestTabs, CustomerTabs, ArtistTabs, RoleSelectScreen } from './src/navigation';
 import { AlertProvider, UserProvider, useUser } from './src/shared/providers';
 import { useAlert } from './src/shared/hooks';
-import { hydrateAll, clearAll, push } from './src/services';
+import { hydrateAll, clearAll, push, analytics } from './src/services';
 import { auth as authApi } from './src/services/api';
 import AppErrorBoundary from './src/shared/components/AppErrorBoundary';
 import { holdNativeSplash, hideNativeSplash } from './src/shared/utils/nativeSplash';
@@ -153,6 +153,16 @@ function AppContent() {
 
     return () => clearTimeout(watchdog);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // App opens for the admin console: one on launch, one per return to the
+  // foreground (the backend collapses repeats within 30 minutes).
+  useEffect(() => {
+    analytics.trackAppOpen();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') analytics.trackAppOpen();
+    });
+    return () => sub.remove();
   }, []);
 
   // Release the OS launch screen the moment we can draw — whichever screen

@@ -1,7 +1,7 @@
 const prisma = require('../../prisma');
 const { hash, compare } = require('../../lib/password');
 const { sign } = require('../../lib/jwt');
-const { Unauthorized, Conflict } = require('../../lib/errors');
+const { Unauthorized, Conflict, Forbidden } = require('../../lib/errors');
 
 const PUBLIC_USER_SELECT = {
   id: true,
@@ -41,9 +41,17 @@ async function login({ email, password }) {
 
   const ok = await compare(password, user.passwordHash);
   if (!ok) throw new Unauthorized('Invalid email or password.');
+  // Checked only after the password, so probing emails can't reveal which
+  // accounts are suspended.
+  if (user.disabledAt) {
+    throw new Forbidden('This account has been disabled. Contact the Stage team.', {
+      code: 'ACCOUNT_DISABLED',
+    });
+  }
 
-  const publicUser = await prisma.user.findUnique({
+  const publicUser = await prisma.user.update({
     where: { id: user.id },
+    data: { lastLoginAt: new Date(), loginCount: { increment: 1 } },
     select: PUBLIC_USER_SELECT,
   });
   return { user: publicUser, token: tokenFor(publicUser) };

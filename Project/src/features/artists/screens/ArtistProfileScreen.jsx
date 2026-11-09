@@ -21,6 +21,7 @@ import { ConnectionError } from '../../../shared/components';
 import { useReelsData } from '../../../shared/hooks';
 import { reelsRepo } from '../../../services';
 import { artists as artistsApi, ApiError } from '../../../services/api';
+import { trackArtistView } from '../../../services/analytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = SPACING.xs;
@@ -72,6 +73,10 @@ export default function ArtistProfileScreen({ artistId, onBack, onReelPress }) {
   useEffect(() => {
     fetchArtist();
   }, [fetchArtist]);
+
+  useEffect(() => {
+    trackArtistView(artistId);
+  }, [artistId]);
 
   if (loading && !artist) {
     return (

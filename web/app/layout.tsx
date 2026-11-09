@@ -5,6 +5,7 @@ import { AuthProvider } from '@/components/auth-provider';
 import { MobileDock, SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { Reveal } from '@/components/reveal';
+import { AnalyticsTracker } from '@/components/analytics-tracker';
 
 const sora = Sora({ subsets: ['latin'], variable: '--font-heading' });
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-body' });
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SiteFooter />
           <MobileDock />
           <Reveal />
+          <AnalyticsTracker />
         </AuthProvider>
       </body>
     </html>

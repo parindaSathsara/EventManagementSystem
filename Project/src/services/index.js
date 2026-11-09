@@ -15,6 +15,7 @@ import * as pushService from './notifications';
 export { reelsRepo, eventsRepo, ticketsRepo, notificationsRepo, followRepo, alertsSeenRepo };
 export { subscribe, emit, CHANNELS } from './store';
 export { ensureDeviceId } from './deviceId';
+export * as analytics from './analytics';
 /**
  * `push` is the notification service: OS permission, the Expo push token, and
  * the on-device reminder schedule. Exported under the old

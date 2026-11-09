@@ -38,6 +38,15 @@ model User {
   city         String?
   avatarUrl    String?
   role         UserRole @default(customer)
+  // Sign-in bookkeeping for the super-admin console. Bumped on every
+  // successful login; failures are counted from the ActivityLog instead.
+  lastLoginAt  DateTime?
+  loginCount   Int      @default(0)
+  // Suspended by a super admin. A disabled account can't log in and any
+  // token it still holds is rejected by the auth middleware.
+  disabledAt   DateTime?
+  // Which admin created this account from the console (null = self signup).
+  createdById  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -48,6 +57,7 @@ model User {
   reactions       ReelReaction[]
   reposts         ReelRepost[]
   follows         Follow[]
+  activities      ActivityLog[]
 
   @@index([role])
 }
@@ -405,4 +415,64 @@ model NotificationDelivery {
   @@unique([deviceId, dedupeKey])
   @@index([sentAt])
   @@index([ticketId])
+}
+
+// -----------------------------------------------------------------------------
+// Super-admin console: audit trail + traffic analytics
+// -----------------------------------------------------------------------------
+
+// Everything a person *did*: sign-ins (and failed attempts), sign-ups, event
+// and profile changes, follows, reservations and every admin action. Written
+// fire-and-forget by `lib/activity.js` — a logging hiccup never fails the
+// request it describes.
+//
+// `action` is a dotted key ("auth.login", "event.update", "admin.user_create")
+// so the console can filter by prefix. `actorEmail` is a snapshot: it survives
+// the user being deleted and is the only identity a failed login has.
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   @db.VarChar(64)
+  actorUserId String?
+  actorEmail  String?  @db.VarChar(191)
+  actorRole   String?  @db.VarChar(16)
+  targetType  String?  @db.VarChar(32)
+  targetId    String?  @db.VarChar(64)
+  // Human sentence shown in the feed: "Created event “Sunset Sessions”".
+  summary     String?  @db.VarChar(255)
+  metaJson    String?  @db.Text
+  ip          String?  @db.VarChar(64)
+  userAgent   String?  @db.VarChar(255)
+  source      String?  @db.VarChar(16) // web | app | api
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+// One row per view, written by POST /analytics/track from both clients.
+//   kind = page     a website route was opened            (path set)
+//        = event    an event page/screen was opened        (targetId = event id)
+//        = artist   an organizer/artist profile was opened (targetId = artist id)
+//        = app_open the mobile app was launched/resumed
+// `visitorId` is the anonymous per-browser / per-install id, which is what
+// makes "unique visitors" countable without accounts. Repeat views from the
+// same visitor are collapsed server-side (see analytics/service.js).
+model ViewEvent {
+  id        String   @id @default(cuid())
+  kind      String   @db.VarChar(16)
+  targetId  String?  @db.VarChar(64)
+  path      String?  @db.VarChar(255)
+  visitorId String   @db.VarChar(80)
+  userId    String?
+  source    String   @db.VarChar(8) // web | app
+  referrer  String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([kind, createdAt])
+  @@index([kind, targetId, createdAt])
+  @@index([visitorId, createdAt])
 }

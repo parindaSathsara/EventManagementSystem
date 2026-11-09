@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import SocialRow from '../components/SocialRow';
 import TicketTypeRow from '../components/TicketTypeRow';
 import ProfileSheet from '../components/ProfileSheet';
 import { eventsByArtistName, eventsByOrganizer } from '../utils/eventDates';
+import { trackEventView } from '../../../services/analytics';
 
 function fmtDate(iso) {
   const d = new Date(iso);
@@ -50,6 +51,9 @@ export default function EventDetailScreen({ eventId, onBack, onOpenEvent }) {
   const [descExpanded, setDescExpanded] = useState(false);
   const alert = useAlert();
   const { isFollowing, toggle } = useFollows();
+
+  // Counts toward the event's views in the admin console.
+  useEffect(() => { trackEventView(eventId); }, [eventId]);
 
   function openArtist(artist) {
     // Surprise slot — show the coming-soon note + this company's upcoming

@@ -5,6 +5,7 @@ import { BadgeCheck, CalendarDays, ExternalLink, Instagram, Music2, UsersRound }
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import type { Artist, EventItem, Paginated } from '@/lib/types';
 import { compactNumber } from '@/lib/format';
 import { EventCard } from '@/components/event-card';
@@ -14,6 +15,7 @@ import { FollowButton } from '@/components/follow-button';
 
 export default function ArtistPage() {
   const { id } = useParams<{ id: string }>();
+  useEffect(() => { if (id) track({ kind: 'artist', targetId: id }); }, [id]);
   const [artist, setArtist] = useState<Artist | null>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);

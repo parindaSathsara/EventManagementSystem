@@ -127,7 +127,7 @@ async function setGuestFollow(artistId, deviceId, follow) {
         data: { followerCount: { increment: 1 } },
         select: { followerCount: true },
       });
-      return { following: true, followerCount: updated.followerCount };
+      return { following: true, followerCount: updated.followerCount, changed: true };
     }
     if (!follow && existing) {
       await tx.guestFollow.delete({ where: key });
@@ -136,13 +136,13 @@ async function setGuestFollow(artistId, deviceId, follow) {
         data: { followerCount: { decrement: 1 } },
         select: { followerCount: true },
       });
-      return { following: false, followerCount: Math.max(0, updated.followerCount) };
+      return { following: false, followerCount: Math.max(0, updated.followerCount), changed: true };
     }
     const current = await tx.artist.findUnique({
       where: { id: artistId },
       select: { followerCount: true },
     });
-    return { following: !!follow, followerCount: current.followerCount };
+    return { following: !!follow, followerCount: current.followerCount, changed: false };
   });
 }
 

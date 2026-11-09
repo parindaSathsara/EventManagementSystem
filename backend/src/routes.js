@@ -12,6 +12,8 @@ const ticketsRoutes = require('./modules/tickets/routes');
 const artistsRoutes = require('./modules/artists/routes');
 const uploadsRoutes = require('./modules/uploads/routes');
 const notificationsRoutes = require('./modules/notifications/routes');
+const analyticsRoutes = require('./modules/analytics/routes');
+const adminRoutes = require('./modules/admin/routes');
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.use('/tickets', ticketsRoutes);
 router.use('/artists', artistsRoutes);
 router.use('/uploads', uploadsRoutes);
 router.use('/notifications', notificationsRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

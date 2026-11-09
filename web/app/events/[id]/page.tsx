@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, Bell, Bookmark, CalendarDays, CalendarPlus, Che
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import type { EventItem, Paginated, TicketType } from '@/lib/types';
 import { eventDate, eventTime, getImage } from '@/lib/format';
 import { countdownLabel, directionsUrl, downloadIcs, googleCalendarUrl } from '@/lib/calendar';
@@ -54,6 +55,7 @@ export default function EventDetailPage() {
     finally { setLoading(false); }
   }
   useEffect(() => { load(); }, [id]);
+  useEffect(() => { if (id) track({ kind: 'event', targetId: id }); }, [id]);
   useEffect(() => { if (!notice) return; const t = setTimeout(() => setNotice(''), 3200); return () => clearTimeout(t); }, [notice]);
 
   async function toggleSave() {
