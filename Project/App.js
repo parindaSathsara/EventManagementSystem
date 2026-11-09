@@ -63,6 +63,10 @@ try {
  *
  *   guest → login|signup → completeProfile → roleSelect → artist (manager app)
  *
+ * A relaunch with a saved session always opens on the guest feed (Timeline),
+ * never on roleSelect; a signed-in manager re-enters their app from the feed
+ * without logging in again (openManagerApp).
+ *
  * The dormant customer experience (`CustomerTabs`, the role chooser's customer
  * branch) is kept for reversibility — see docs/REWORK-2026-06-guest-mode.md.
  * No mock data anywhere; everything renders from the backend.
@@ -132,14 +136,11 @@ function AppContent() {
         hydrateAll().catch(() => {});
         if (restored) {
           await setUser(restored);
-          if (!bootAbandoned.current) {
-            if (isManager(restored)) {
-              // A returning manager resumes in the publishing app.
-              setStage(restored.phone ? 'roleSelect' : 'completeProfile');
-            } else {
-              setStage('guest');
-            }
-          }
+          // Every returning user — manager or not — opens on the feed
+          // (Timeline). The Discover/Create chooser is only shown right after
+          // logging in, never on a relaunch (client feedback 2026-11-09).
+          // Managers reach their app from the feed via openManagerApp().
+          if (!bootAbandoned.current) setStage('guest');
         }
         // No session → stay on splash; SplashScreen.onFinish drops into guest.
       } catch (e) {
@@ -173,6 +174,19 @@ function AppContent() {
       setStage((current) => (current === 'splash' ? 'guest' : current));
     });
   }, []);
+
+  // Organizer entry points on the feed (Timeline "+", Calendar CTA). A
+  // manager who is already signed in goes straight to their app instead of
+  // being asked to log in again; everyone else goes to login.
+  function openManagerApp() {
+    if (!isManager(user)) {
+      setStage('login');
+    } else if (!user.phone) {
+      setStage('completeProfile');
+    } else {
+      setStage(artist ? 'artist' : 'becomeArtist');
+    }
+  }
 
   async function handleLogout() {
     await logout();
@@ -335,7 +349,7 @@ function AppContent() {
   // Default: guest experience (Reels · Events · Notifications).
   return (
     <GuestTabs
-      onManagerLogin={() => setStage('login')}
+      onManagerLogin={openManagerApp}
       openEvent={pushTarget}
       onOpenEventHandled={() => setPushTarget(null)}
     />

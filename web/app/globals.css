@@ -49,7 +49,9 @@ main { min-height: 70vh; overflow: hidden; }
 .nav-actions { display: flex; align-items: center; gap: 10px; }
 .icon-link, .menu-button { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; background: transparent; }
 .icon-link:hover { background: var(--surface-2); border-color: var(--line-light); }
-.account-link { display: flex; align-items: center; gap: 9px; margin-left: 4px; font-weight: 700; font-size: 14px; }
+.account-link { display: flex; align-items: center; gap: 9px; margin-left: 4px; font-weight: 700; font-size: 14px; min-width: 0; }
+/* Full name in the header; only a very long one is trimmed (hover shows it all). */
+.account-name { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu-button { display: none; cursor: pointer; }
 .mobile-only, .mobile-dock { display: none; }
 
@@ -1148,9 +1150,13 @@ body::after { opacity: 0; }
 /* Calendar agenda thumbnails. */
 .agenda-event-image.flyer-frame { width: 76px; height: 76px; }
 
-/* Editor upload preview: a square showing the flyer as guests will see it. */
+/* Editor upload preview: the card takes the flyer's own shape so the WHOLE
+   flyer is visible, never cropped (client feedback 2026-11-09). A very tall
+   flyer is capped and shown whole over its blurred backdrop. */
 .upload-zone.has-media.flyer-frame { width: min(100%, 460px); min-height: 0; height: auto; display: block; }
 .upload-zone.has-media.flyer-frame > .upload-overlay { z-index: 1; }
+.flyer-frame.flyer-fit { aspect-ratio: auto; }
+.upload-zone.has-media.flyer-fit > img.flyer-img { position: relative; display: block; width: 100%; height: auto; min-height: 0; max-height: 720px; object-fit: contain; background: transparent; }
 
 /* Studio event list thumbnails: square, flyer top first. */
 .data-row img, .data-row-image { width: 58px; height: 58px; object-fit: cover; object-position: top center; }

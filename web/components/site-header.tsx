@@ -50,7 +50,7 @@ export function SiteHeader() {
           <Link className="button button-ghost desktop-only" href="/studio">For organizers</Link>
           <Link className="account-link desktop-only" href={user ? '/account' : '/auth'}>
             {user ? <Avatar name={user.name} src={user.avatarUrl} size="small" /> : <span className="avatar avatar-small"><UserRound size={17} /></span>}
-            <span>{user ? user.name.split(' ')[0] : 'Sign in'}</span>
+            <span className="account-name" title={user?.name}>{user ? user.name : 'Sign in'}</span>
           </Link>
           <button className="menu-button" type="button" onClick={() => setOpen((value) => !value)} aria-label="Toggle menu" aria-expanded={open}>
             {open ? <X /> : <Menu />}

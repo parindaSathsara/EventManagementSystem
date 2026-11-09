@@ -93,7 +93,7 @@ export default function HomePage() {
 
       <section className="section journey-section">
         <div className="section-inner">
-          <div className="section-head"><div><p className="eyebrow">The Stage experience</p><h2>One rhythm, everywhere.</h2><p>The same simple flow as the mobile app—from discovery to calendar to the night itself.</p></div></div>
+          <div className="section-head"><div><p className="eyebrow">The Stage experience</p><h2>One rhythm, everywhere.</h2><p>The same simple flow as the mobile app—from discovery to calendar to the event itself.</p></div></div>
           <div className="journey-grid">
             <Link href="/events" className="journey-card"><span>01</span><MapPin /><h3>Discover every scene</h3><p>Browse by date, genre or location with the details you need up front.</p><strong>Explore events <ArrowRight size={16} /></strong></Link>
             <Link href="/calendar" className="journey-card"><span>02</span><CalendarDays /><h3>Plan without the noise</h3><p>Scan the month, compare options and keep every weekend easy to understand.</p><strong>Open calendar <ArrowRight size={16} /></strong></Link>

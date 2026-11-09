@@ -18,7 +18,7 @@ import {
   Button,
   Chip,
   ScreenHeader,
-  SquareFlyer,
+  FitFlyer,
 } from '../../../shared/components';
 import { useAlert } from '../../../shared/hooks';
 import { PRICE_TBA, TEASER } from '../../../shared/utils';
@@ -437,11 +437,12 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         {/* Event flyer — upload a photo from the gallery or capture one.
             This is the image guests see on the Timeline and event page.
-            Square preview showing the WHOLE flyer, same as guests see it. */}
+            The card takes the flyer's own shape so the WHOLE flyer shows,
+            never cropped (client feedback 2026-11-09). */}
         <Text style={styles.sectionLabel}>Event flyer</Text>
-        <View style={styles.bannerWrap}>
+        <View style={[styles.bannerWrap, !(flyerPreview || form.bannerUrl) && styles.bannerSquare]}>
           {flyerPreview || form.bannerUrl ? (
-            <SquareFlyer uri={flyerPreview || form.bannerUrl} style={styles.bannerBg} />
+            <FitFlyer uri={flyerPreview || form.bannerUrl} />
           ) : (
             <LinearGradient
               colors={COVER_GRADIENTS[coverIdx]}
@@ -821,7 +822,7 @@ export default function EventCreatorScreen({ onBack, onSubmit, event }) {
                 label="Add Artist Name"
                 value={a.name}
                 onChange={(v) => updateArtist(idx, 'name', v)}
-                placeholder="e.g. Bathiya & Santhush"
+                placeholder="Enter artist name"
               />
               {a.name.trim() === REVEALED_SOON ? (
                 <View style={styles.hintRow}>
@@ -1052,17 +1053,19 @@ const styles = StyleSheet.create({
   },
   stripBar: { flexGrow: 0 },
   // Square, like the flyer itself — the whole artwork fits (no crop).
+  // Height comes from the flyer (FitFlyer); only the colour placeholder is square.
   bannerWrap: {
-    aspectRatio: 1,
     marginHorizontal: SPACING.base,
     borderRadius: RADII.lg,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.lineSubtle,
   },
+  bannerSquare: { aspectRatio: 1 },
   bannerBg: { ...StyleSheet.absoluteFillObject },
+  // Drawn over the artwork — never sizes the card.
   bannerOverlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     padding: SPACING.base,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.25)',

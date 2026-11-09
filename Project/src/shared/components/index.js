@@ -10,6 +10,7 @@ export { default as Chip } from './Chip';
 export { default as EventCard } from './EventCard';
 export { default as TopCropImage } from './TopCropImage';
 export { default as SquareFlyer } from './SquareFlyer';
+export { default as FitFlyer } from './FitFlyer';
 export { default as Avatar } from './Avatar';
 export { default as AvatarPicker } from './AvatarPicker';
 export { default as StatPill } from './StatPill';

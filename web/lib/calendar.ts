@@ -78,7 +78,7 @@ export function directionsUrl(event: EventItem) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(where(event))}`;
 }
 
-/** "Tonight", "Tomorrow", "In 16 days", "Happening now", "Ended". */
+/** "Today"/"Tonight", "Tomorrow", "In 16 days", "Happening now", "Ended". */
 export function countdownLabel(event: EventItem, now = new Date()) {
   const start = new Date(event.startsAt);
   const end = event.endsAt ? new Date(event.endsAt) : new Date(start.getTime() + 4 * 3600 * 1000);
@@ -86,7 +86,8 @@ export function countdownLabel(event: EventItem, now = new Date()) {
   if (start <= now) return { label: 'Happening now', tone: 'live' as const };
   const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const days = Math.round((day(start) - day(now)) / 86400000);
-  if (days === 0) return { label: event.startTimeTba ? 'Today' : 'Tonight', tone: 'hot' as const };
+  // Not every event is a night event — only say "Tonight" when it starts in the evening.
+  if (days === 0) return { label: !event.startTimeTba && start.getHours() >= 17 ? 'Tonight' : 'Today', tone: 'hot' as const };
   if (days === 1) return { label: 'Tomorrow', tone: 'hot' as const };
   if (days <= 7) return { label: `In ${days} days`, tone: 'hot' as const };
   return { label: `In ${days} days`, tone: 'calm' as const };

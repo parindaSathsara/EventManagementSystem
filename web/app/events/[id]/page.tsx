@@ -145,7 +145,7 @@ export default function EventDetailPage() {
           </div>
 
           <section className="detail-section">
-            <p className="eyebrow">About the night</p>
+            <p className="eyebrow">About the event</p>
             {description ? (
               <>
                 <p className={`detail-description${longDescription && !readMore ? ' is-clamped' : ''}`}>{description}</p>

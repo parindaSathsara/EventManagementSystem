@@ -76,7 +76,7 @@ export default function AlertsPage() {
 
   return (
     <div className="narrow-shell alerts-page">
-      <div className="page-heading"><p className="eyebrow">Stay in the loop</p><h1>Alerts.</h1><p>Reminders for nights that are getting close, and new events from the companies you follow.</p></div>
+      <div className="page-heading"><p className="eyebrow">Stay in the loop</p><h1>Alerts.</h1><p>Reminders for events that are getting close, and new events from the companies you follow.</p></div>
       {loading ? <LoadingState label="Checking your alerts" /> : error ? <ErrorState message={error} retry={load} /> : (
         <>
           <div className="filter-row alerts-filters">
