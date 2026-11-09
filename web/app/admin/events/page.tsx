@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarDays, ExternalLink, Link2, PencilLine, Search, Trash2 } from 'lucide-react';
+import { CalendarDays, ExternalLink, Link2, PencilLine, Plus, Search, Trash2 } from 'lucide-react';
 import { type AdminEvent, type EventList, adminApi, full, shortDate } from '@/lib/admin';
 import { mediaUrl } from '@/lib/format';
 import { ConfirmDialog, Empty, Pager, useToast } from '@/components/admin/ui';
@@ -29,6 +29,18 @@ export default function AdminEventsPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setQuery(q.trim()), 250); return () => clearTimeout(t); }, [q]);
+
+  // Back from the editor: confirm the save, then tidy the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const saved = params.get('saved');
+    if (!saved) return;
+    const title = params.get('title') || 'Event';
+    toast.show(saved === 'created' ? `“${title}” created` : `“${title}” saved`);
+    if (saved === 'created') setWhen('all');
+    window.history.replaceState(null, '', '/admin/events');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => { setSkip(0); }, [when, status, query]);
 
   const load = useCallback(async () => {
@@ -62,7 +74,10 @@ export default function AdminEventsPage() {
         <div>
           <div className="adm-eyebrow">Content</div>
           <h1>Events</h1>
-          <p>Every event on Stage with its traffic. Change visibility, edit, or take an event down.</p>
+          <p>Every event on Stage with its traffic. Create one for any organizer, edit, change visibility or take an event down.</p>
+        </div>
+        <div className="adm-head-actions">
+          <Link className="adm-btn adm-btn-primary" href="/admin/events/new"><Plus size={16} />Create event</Link>
         </div>
       </div>
 
@@ -110,7 +125,7 @@ export default function AdminEventsPage() {
                   <td>
                     <div className="adm-row-actions">
                       <Link className="adm-btn adm-btn-ghost adm-icon-btn" href={`/events/${e.id}`} target="_blank" title="View on the website" aria-label={`View ${e.title}`}><ExternalLink size={15} /></Link>
-                      <Link className="adm-btn adm-btn-ghost adm-icon-btn" href={`/studio/events/${e.id}/edit`} title="Edit in the studio" aria-label={`Edit ${e.title}`}><PencilLine size={15} /></Link>
+                      <Link className="adm-btn adm-btn-ghost adm-icon-btn" href={`/admin/events/${e.id}/edit`} title="Edit event" aria-label={`Edit ${e.title}`}><PencilLine size={15} /></Link>
                       <button type="button" className="adm-btn adm-btn-ghost adm-icon-btn" title="Delete" aria-label={`Delete ${e.title}`} onClick={() => setConfirm({ kind: 'delete', event: e })}><Trash2 size={15} /></button>
                     </div>
                   </td>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AlertTriangle, ArrowDownRight, ArrowUpRight, BadgeCheck, Ban, CalendarDays, CheckCircle2, Crown, Heart, Inbox,
   KeyRound, LogIn, Minus, PencilLine, ShieldAlert, Ticket, Trash2, UserPlus, UserRound, X,
@@ -116,7 +117,10 @@ export function Modal({ title, subtitle, onClose, children, footer, size }: {
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
   }, [onClose]);
-  return (
+  // Portal: dialogs open from inside other forms (the event editor), and a
+  // <form> nested in a <form> is invalid HTML. Into the console root, not
+  // <body>, so the dialog keeps the console's colour tokens.
+  return createPortal(
     <div className="adm-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={ref} className={`adm-modal${size === 'sm' ? ' adm-modal-sm' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="adm-modal-head">
@@ -126,7 +130,8 @@ export function Modal({ title, subtitle, onClose, children, footer, size }: {
         <div className="adm-modal-body">{children}</div>
         {footer && <div className="adm-modal-foot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.querySelector('.adm-root') ?? document.body,
   );
 }
 

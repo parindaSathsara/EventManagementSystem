@@ -65,6 +65,10 @@ const createEventBody = z.object({
   lineupArtistIds: z.array(id).default([]),
   // Free-form lineup (name + their socials), stored as lineupJson.
   lineup: z.array(lineupArtistInput).max(30).optional(),
+  // Super admins only: publish for (or move the event to) another organizer.
+  // Organizers always publish under their own profile; the controller rejects
+  // this field from anyone else.
+  organizerArtistId: id.optional(),
 });
 
 const updateEventBody = createEventBody.partial();

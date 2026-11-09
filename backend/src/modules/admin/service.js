@@ -38,11 +38,28 @@ const USER_SELECT = {
       isVerified: true,
       isPreferred: true,
       followerCount: true,
+      socialsJson: true,
       _count: { select: { events: true, reels: true } },
     },
   },
   _count: { select: { tickets: true, follows: true } },
 };
+
+/** `{ facebook, instagram, tiktok }` to stored JSON, dropping blanks. */
+function socialsJsonOf(socials) {
+  if (!socials) return null;
+  const clean = Object.fromEntries(Object.entries(socials).filter(([, v]) => typeof v === 'string' && v.trim()));
+  return Object.keys(clean).length ? JSON.stringify(clean) : null;
+}
+
+/** Shape the console reads: socialsJson parsed into `socials`. */
+function shapeUser(user) {
+  if (!user?.artist) return user;
+  const { socialsJson, ...artist } = user.artist;
+  let socials = null;
+  try { socials = socialsJson ? JSON.parse(socialsJson) : null; } catch { socials = null; }
+  return { ...user, artist: { ...artist, socials } };
+}
 
 // --- users -------------------------------------------------------------------
 
@@ -83,7 +100,7 @@ async function listUsers(query) {
     prisma.user.groupBy({ by: ['role'], _count: { _all: true } }),
   ]);
   return {
-    items,
+    items: items.map(shapeUser),
     total,
     counts: Object.fromEntries(roleCounts.map((r) => [r.role, r._count._all])),
   };
@@ -118,7 +135,7 @@ async function getUser(id) {
   ]);
   const views = await reports.viewsForEvents(events.map((e) => e.id));
   return {
-    user,
+    user: shapeUser(user),
     createdBy,
     failedLoginsLast30d: failedLogins,
     activity,
@@ -145,6 +162,7 @@ async function createUser(input, adminId) {
         passwordHash,
         name: input.name,
         phone: input.phone || null,
+        avatarUrl: input.avatarUrl || null,
         role: input.role,
         createdById: adminId,
       },
@@ -158,12 +176,13 @@ async function createUser(input, adminId) {
           bio: organizer.bio || null,
           isVerified: !!organizer.isVerified,
           isPreferred: !!organizer.isPreferred,
+          socialsJson: socialsJsonOf(organizer.socials),
         },
       });
     }
     return user;
   });
-  return prisma.user.findUnique({ where: { id: created.id }, select: USER_SELECT });
+  return shapeUser(await prisma.user.findUnique({ where: { id: created.id }, select: USER_SELECT }));
 }
 
 async function activeAdminCount() {
@@ -208,7 +227,7 @@ async function updateUser(id, input, adminId) {
 
   const changed = [];
   const data = {};
-  for (const key of ['name', 'email', 'phone', 'role']) {
+  for (const key of ['name', 'email', 'phone', 'avatarUrl', 'role']) {
     if (input[key] !== undefined && input[key] !== target[key]) {
       data[key] = input[key];
       changed.push(key);
@@ -226,11 +245,12 @@ async function updateUser(id, input, adminId) {
       for (const key of ['handle', 'category', 'bio', 'isVerified', 'isPreferred']) {
         if (org[key] !== undefined) orgData[key] = org[key];
       }
+      if (org.socials !== undefined) orgData.socialsJson = socialsJsonOf(org.socials);
       if (target.artist) {
-        const diff = Object.keys(orgData).filter((k) => orgData[k] !== target.artist[k]);
+        const diff = Object.keys(orgData).filter((k) => (orgData[k] ?? null) !== (target.artist[k] ?? null));
         if (diff.length) {
           await tx.artist.update({ where: { id: target.artist.id }, data: orgData });
-          changed.push(...diff.map((k) => `organizer.${k}`));
+          changed.push(...diff.map((k) => `organizer.${k === 'socialsJson' ? 'socials' : k}`));
         }
       } else if (orgData.handle) {
         await tx.artist.create({ data: { userId: id, ...orgData } });
@@ -239,7 +259,7 @@ async function updateUser(id, input, adminId) {
     }
   });
 
-  const user = await prisma.user.findUnique({ where: { id }, select: USER_SELECT });
+  const user = shapeUser(await prisma.user.findUnique({ where: { id }, select: USER_SELECT }));
   return { user, changed, before: target };
 }
 
@@ -257,6 +277,44 @@ async function deleteUser(id, adminId) {
   // Cascades: organizer profile → their events, reels, follows.
   await prisma.user.delete({ where: { id } });
   return target;
+}
+
+// --- organizers ----------------------------------------------------------------
+
+/** Picker data for "publish this event as": small, searchable, newest first. */
+async function listOrganizers({ q, id, take }) {
+  const handle = q ? q.replace(/^@/, '') : null;
+  const rows = await prisma.artist.findMany({
+    where: id
+      ? { id }
+      : q
+        ? { OR: [{ handle: { contains: handle } }, { user: { name: { contains: q } } }, { user: { email: { contains: q } } }] }
+        : {},
+    orderBy: { createdAt: 'desc' },
+    take,
+    select: {
+      id: true,
+      handle: true,
+      category: true,
+      isVerified: true,
+      followerCount: true,
+      userId: true,
+      user: { select: { name: true, avatarUrl: true, disabledAt: true } },
+      _count: { select: { events: true } },
+    },
+  });
+  return rows.map((a) => ({
+    id: a.id,
+    userId: a.userId,
+    handle: a.handle,
+    name: a.user?.name || a.handle,
+    avatarUrl: a.user?.avatarUrl || null,
+    category: a.category,
+    isVerified: a.isVerified,
+    suspended: !!a.user?.disabledAt,
+    followerCount: a.followerCount,
+    events: a._count.events,
+  }));
 }
 
 // --- events -------------------------------------------------------------------
@@ -360,6 +418,7 @@ module.exports = {
   updateUser,
   resetPassword,
   deleteUser,
+  listOrganizers,
   listEvents,
   setEventStatus,
   deleteEvent,

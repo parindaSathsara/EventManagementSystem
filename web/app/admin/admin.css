@@ -350,6 +350,39 @@ main:has(> .adm-root) { overflow: visible; min-height: 0; }
 .adm-spin { animation: adm-rot .9s linear infinite; }
 @keyframes adm-rot { to { transform: rotate(360deg); } }
 
+/* --- event editor inside the console ------------------------------------------------------
+   The organizers' editor (globals.css) rendered in console mode. */
+.adm-editor .editor-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+/* Keep the form column from growing to its widest one-line text (organizer rows). */
+.adm-editor .editor-main { grid-template-columns: minmax(0, 1fr); }
+.adm-editor .editor-section, .adm-org, .adm-org-list { min-width: 0; }
+@media (max-width: 760px) { .adm-editor .form-grid { grid-template-columns: minmax(0, 1fr); } }
+.adm-editor .editor-preview { top: 24px; }
+.adm-editor .editor-actions { bottom: 14px; }
+@media (max-width: 1240px) { .adm-editor .editor-layout { grid-template-columns: minmax(0, 1fr); } .adm-editor .editor-preview { display: none; } }
+
+/* organizer picker (lives inside the editor, so it uses the site's .input) */
+.adm-org { display: flex; flex-direction: column; gap: 9px; position: relative; }
+.adm-org-selected { display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border: 1px solid var(--line, #292929); border-radius: 12px; background: #0b0b0b; flex-wrap: wrap; }
+.adm-org-selected .button { min-height: 38px; margin-left: auto; }
+.adm-org-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.adm-org-copy strong { display: flex; align-items: center; gap: 5px; font-size: 14.5px; color: #fff; }
+.adm-org-copy span { color: #8a8a90; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-org-search { display: flex; flex-direction: column; gap: 8px; }
+.adm-org-search .search-box { position: relative; }
+.adm-org-close { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: #8a8a90; cursor: pointer; }
+.adm-org-close:hover { background: #1c1c1c; color: #fff; }
+.adm-org-list { display: flex; flex-direction: column; max-height: 344px; overflow-y: auto; border: 1px solid var(--line, #292929); border-radius: 12px; background: #0b0b0b; padding: 4px; }
+.adm-org-row { display: flex; align-items: center; gap: 11px; width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.adm-org-row:hover, .adm-org-row:focus-visible { background: #181818; }
+.adm-org-row[aria-selected="true"] { background: rgba(255,59,59,.08); }
+.adm-org-row > svg { margin-left: auto; color: #ff3b3b; flex: none; }
+.adm-org-new { border-top: 1px solid var(--line, #292929); border-radius: 0 0 9px 9px; margin-top: 4px; }
+.adm-org-plus { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(255,59,59,.12); color: #ff3b3b; }
+.adm-org-note { display: flex; align-items: center; gap: 8px; padding: 12px; color: #8a8a90; font-size: 13px; }
+
+.adm-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
 /* --- responsive --------------------------------------------------------------------- */
 @media (max-width: 1240px) {
   .adm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }

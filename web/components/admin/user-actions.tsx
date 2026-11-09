@@ -1,10 +1,11 @@
 'use client';
 
 import { FormEvent, useCallback, useState } from 'react';
-import { CalendarDays, Copy, Crown, Dices, Eye, EyeOff, UserRound } from 'lucide-react';
+import { CalendarDays, Copy, Crown, Dices, Eye, EyeOff, ImagePlus, Trash2, UserRound } from 'lucide-react';
+import { api } from '@/lib/api';
 import { ApiError } from '@/lib/api';
 import { type AdminUser, type CreateUserInput, type Role, type UpdateUserInput, adminApi } from '@/lib/admin';
-import { ConfirmDialog, Modal } from './ui';
+import { AdminAvatar, ConfirmDialog, Modal } from './ui';
 
 const ROLE_OPTIONS: Array<{ value: Role; title: string; copy: string; icon: React.ReactNode }> = [
   { value: 'artist', title: 'Organizer', copy: 'Event company or artist. Publishes events from the studio and the app.', icon: <CalendarDays size={15} /> },
@@ -40,14 +41,20 @@ function PasswordInput({ id, value, onChange }: { id: string; value: string; onC
 
 // --- create / edit ----------------------------------------------------------------------
 
-export function UserFormModal({ user, onClose, onSaved }: { user?: AdminUser; onClose: () => void; onSaved: (u: AdminUser, created: boolean) => void }) {
+export function UserFormModal({ user, onClose, onSaved, initialRole, initialName }: {
+  user?: AdminUser;
+  onClose: () => void;
+  onSaved: (u: AdminUser, created: boolean) => void;
+  initialRole?: Role;
+  initialName?: string;
+}) {
   const editing = !!user;
   const [form, setForm] = useState({
-    name: user?.name || '',
+    name: user?.name || initialName || '',
     email: user?.email || '',
     phone: user?.phone || '',
     password: '',
-    role: (user?.role || 'artist') as Role,
+    role: (user?.role || initialRole || 'artist') as Role,
     handle: user?.artist?.handle || '',
     category: user?.artist?.category || '',
     isVerified: user?.artist?.isVerified ?? true,
@@ -61,6 +68,7 @@ export function UserFormModal({ user, onClose, onSaved }: { user?: AdminUser; on
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    e.stopPropagation(); // React bubbles through the portal into any outer form
     setBusy(true); setError(''); setErrors({});
     const organizer = showOrganizer && form.handle.trim()
       ? { handle: form.handle.trim().replace(/^@/, ''), category: form.category.trim() || null, isVerified: form.isVerified, isPreferred: form.isPreferred }
@@ -170,6 +178,7 @@ export function ResetPasswordModal({ user, onClose, onDone }: { user: AdminUser;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    e.stopPropagation();
     setBusy(true); setError('');
     try {
       await adminApi.resetPassword(user.id, password);
@@ -204,12 +213,119 @@ export function ResetPasswordModal({ user, onClose, onDone }: { user: AdminUser;
   );
 }
 
+// --- public profile (photo, bio, socials) ------------------------------------------------------
+
+const SOCIALS: Array<{ key: 'instagram' | 'facebook' | 'tiktok'; label: string; placeholder: string }> = [
+  { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/…' },
+  { key: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/…' },
+  { key: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@…' },
+];
+
+/**
+ * Everything an organizer can set on their own public page in the studio,
+ * editable by a super admin: photo, bio, category and social links. Guest
+ * and admin accounts just get the photo.
+ */
+export function ProfileModal({ user, onClose, onSaved }: { user: AdminUser; onClose: () => void; onSaved: (u: AdminUser) => void }) {
+  const org = user.artist;
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.avatarUrl);
+  const [bio, setBio] = useState(org?.bio || '');
+  const [category, setCategory] = useState(org?.category || '');
+  const [socials, setSocials] = useState({
+    instagram: org?.socials?.instagram || '',
+    facebook: org?.socials?.facebook || '',
+    tiktok: org?.socials?.tiktok || '',
+  });
+  const [uploading, setUploading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function upload(file?: File) {
+    if (!file) return;
+    setUploading(true); setError('');
+    try {
+      const result = await api.upload<{ url: string }>('/uploads/image', file);
+      setAvatarUrl(result.url);
+    } catch (err) { setError((err as Error).message); }
+    finally { setUploading(false); }
+  }
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setBusy(true); setError('');
+    try {
+      const patch: UpdateUserInput = {};
+      if (avatarUrl !== user.avatarUrl) patch.avatarUrl = avatarUrl;
+      if (org) {
+        patch.organizer = {
+          bio: bio.trim() || null,
+          category: category.trim() || null,
+          socials: { instagram: socials.instagram.trim(), facebook: socials.facebook.trim(), tiktok: socials.tiktok.trim() },
+        };
+      }
+      const saved = Object.keys(patch).length ? await adminApi.updateUser(user.id, patch) : user;
+      onSaved(saved);
+    } catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <Modal
+      title={org ? `${user.name}'s public profile` : `${user.name}'s photo`}
+      subtitle={org ? 'What guests see on the organizer page: on the website and in the app.' : 'Shown next to their name across Stage.'}
+      onClose={onClose}
+      footer={<>
+        <button type="button" className="adm-btn" onClick={onClose}>Cancel</button>
+        <button type="submit" form="adm-profile-form" className="adm-btn adm-btn-primary" disabled={busy || uploading}>{busy ? 'Saving…' : 'Save profile'}</button>
+      </>}
+    >
+      <form id="adm-profile-form" onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="adm-photo-row">
+          <AdminAvatar name={user.name} src={avatarUrl} size="lg" />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <label className="adm-btn" style={{ cursor: 'pointer' }}>
+              <ImagePlus size={15} />{uploading ? 'Uploading…' : avatarUrl ? 'Replace photo' : 'Upload photo'}
+              <input hidden type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => upload(e.target.files?.[0])} />
+            </label>
+            {avatarUrl && <button type="button" className="adm-btn adm-btn-ghost" onClick={() => setAvatarUrl(null)}><Trash2 size={15} />Remove</button>}
+          </div>
+          <span className="adm-field-hint" style={{ flexBasis: '100%' }}>Square images look best: JPG, PNG or WEBP.</span>
+        </div>
+        {org && (
+          <>
+            <div className="adm-field">
+              <label htmlFor="p-bio">Bio</label>
+              <textarea id="p-bio" className="adm-textarea" maxLength={2000} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Who they are, what kind of events they throw…" />
+              <span className="adm-field-hint">{bio.length}/2000</span>
+            </div>
+            <div className="adm-field">
+              <label htmlFor="p-category">Category</label>
+              <input id="p-category" className="adm-input" maxLength={40} value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Event company, DJ, Band…" />
+            </div>
+            <div className="adm-form-grid">
+              {SOCIALS.map((s) => (
+                <div className={`adm-field${s.key === 'tiktok' ? ' adm-span-2' : ''}`} key={s.key}>
+                  <label htmlFor={`p-${s.key}`}>{s.label}</label>
+                  <input id={`p-${s.key}`} className="adm-input" type="url" value={socials[s.key]} onChange={(e) => setSocials({ ...socials, [s.key]: e.target.value })} placeholder={s.placeholder} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        {error && <div className="adm-notice" role="alert">{error}</div>}
+      </form>
+    </Modal>
+  );
+}
+
 // --- one hook for every row/detail action -------------------------------------------------------
 
 type Dialog =
   | { kind: 'create' }
   | { kind: 'edit'; user: AdminUser }
   | { kind: 'reset'; user: AdminUser }
+  | { kind: 'profile'; user: AdminUser }
   | { kind: 'suspend'; user: AdminUser }
   | { kind: 'delete'; user: AdminUser };
 
@@ -232,6 +348,8 @@ export function useUserActions({ onChanged, onDeleted, notify }: {
   let node: React.ReactNode = null;
   if (dialog?.kind === 'create' || dialog?.kind === 'edit') {
     node = <UserFormModal user={dialog.kind === 'edit' ? dialog.user : undefined} onClose={close} onSaved={(u, created) => { setDialog(null); notify(created ? `${u.name} can now sign in` : 'Changes saved'); onChanged(u); }} />;
+  } else if (dialog?.kind === 'profile') {
+    node = <ProfileModal user={dialog.user} onClose={close} onSaved={(u) => { setDialog(null); notify('Profile saved'); onChanged(u); }} />;
   } else if (dialog?.kind === 'reset') {
     node = <ResetPasswordModal user={dialog.user} onClose={close} onDone={() => notify('Password reset')} />;
   } else if (dialog?.kind === 'suspend') {
@@ -279,6 +397,7 @@ export function useUserActions({ onChanged, onDeleted, notify }: {
     create: () => setDialog({ kind: 'create' }),
     edit: (user: AdminUser) => setDialog({ kind: 'edit', user }),
     reset: (user: AdminUser) => setDialog({ kind: 'reset', user }),
+    profile: (user: AdminUser) => setDialog({ kind: 'profile', user }),
     toggleSuspend: (user: AdminUser) => setDialog({ kind: 'suspend', user }),
     remove: (user: AdminUser) => setDialog({ kind: 'delete', user }),
   };

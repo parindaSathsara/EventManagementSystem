@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Ban, CalendarDays, CheckCircle2, ExternalLink, Eye, KeyRound, LogIn, PencilLine, ShieldAlert, Trash2 } from 'lucide-react';
+import { ArrowLeft, Ban, CalendarDays, CalendarPlus, CheckCircle2, ExternalLink, Eye, ImageUp, KeyRound, LogIn, PencilLine, ShieldAlert, Trash2 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { type UserDetail, adminApi, dateTime, full, shortDate, timeAgo } from '@/lib/admin';
 import { mediaUrl } from '@/lib/format';
@@ -50,7 +50,9 @@ export default function AdminUserDetailPage() {
             </div>
           </div>
           <div className="adm-head-actions">
+            {u.artist && <Link className="adm-btn adm-btn-primary" href={`/admin/events/new?organizer=${u.artist.id}`}><CalendarPlus size={15} />Create event</Link>}
             <button type="button" className="adm-btn" onClick={() => actions.edit(u)}><PencilLine size={15} />Edit</button>
+            <button type="button" className="adm-btn" onClick={() => actions.profile(u)}><ImageUp size={15} />{u.artist ? 'Public profile' : 'Photo'}</button>
             <button type="button" className="adm-btn" onClick={() => actions.reset(u)}><KeyRound size={15} />Reset password</button>
             {!self && <button type="button" className={`adm-btn${u.disabledAt ? '' : ' adm-btn-danger'}`} onClick={() => actions.toggleSuspend(u)}>{u.disabledAt ? <><CheckCircle2 size={15} />Reactivate</> : <><Ban size={15} />Suspend</>}</button>}
             {!self && <button type="button" className="adm-btn adm-btn-danger adm-icon-btn" aria-label="Delete account" title="Delete account" onClick={() => actions.remove(u)}><Trash2 size={15} /></button>}
@@ -93,6 +95,9 @@ export default function AdminUserDetailPage() {
                 <dt>Verified</dt><dd>{u.artist.isVerified ? <span className="adm-badge adm-badge-good">Verified</span> : <span className="adm-badge">Not verified</span>}</dd>
                 <dt>Approval</dt><dd>{u.artist.isPreferred ? 'Preferred — reels publish instantly' : 'Reels go through approval'}</dd>
                 {u.artist.bio && <><dt>Bio</dt><dd className="adm-text-2">{u.artist.bio}</dd></>}
+                <dt>Socials</dt><dd>{u.artist.socials && Object.values(u.artist.socials).some(Boolean)
+                  ? <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{(['instagram', 'facebook', 'tiktok'] as const).filter((k) => u.artist?.socials?.[k]).map((k) => <a key={k} href={u.artist!.socials![k]} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>{k.charAt(0).toUpperCase() + k.slice(1)}</a>)}</span>
+                  : <span className="adm-muted">None yet: add them under Public profile</span>}</dd>
               </dl>
             </section>
           )}
@@ -111,7 +116,7 @@ export default function AdminUserDetailPage() {
 
       {u.artist && (
         <section className="adm-card adm-card-flush">
-          <div className="adm-card-head"><div><h3>Their events</h3><p>Newest first, with all-time views</p></div></div>
+          <div className="adm-card-head"><div><h3>Their events</h3><p>Newest first, with all-time views</p></div><Link className="adm-card-link" href={`/admin/events/new?organizer=${u.artist.id}`}><CalendarPlus size={13} />New event</Link></div>
           {data.events.length === 0 ? <Empty title="No events yet" /> : (
             <div className="adm-table-wrap">
               <table className="adm-table">
@@ -129,7 +134,7 @@ export default function AdminUserDetailPage() {
                       <td><EventStatusBadge status={e.status} /></td>
                       <td className="adm-right">{full(e.views)}</td>
                       <td className="adm-right">{full(e.visitors)}</td>
-                      <td><div className="adm-row-actions"><Link className="adm-btn adm-btn-sm" href={`/events/${e.id}`} target="_blank">View</Link><Link className="adm-btn adm-btn-sm" href={`/studio/events/${e.id}/edit`}>Edit</Link></div></td>
+                      <td><div className="adm-row-actions"><Link className="adm-btn adm-btn-sm" href={`/events/${e.id}`} target="_blank">View</Link><Link className="adm-btn adm-btn-sm" href={`/admin/events/${e.id}/edit`}>Edit</Link></div></td>
                     </tr>
                   ))}
                 </tbody>

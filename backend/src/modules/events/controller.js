@@ -1,11 +1,29 @@
 const service = require('./service');
 const prisma = require('../../prisma');
-const { Forbidden } = require('../../lib/errors');
+const { BadRequest, Forbidden } = require('../../lib/errors');
 const activity = require('../../lib/activity');
 
 async function resolveArtistId(userId) {
   const artist = await prisma.artist.findUnique({ where: { userId }, select: { id: true } });
   return artist?.id || null;
+}
+
+/**
+ * `organizerArtistId` in the body lets a super admin publish for any
+ * organizer. Returns the organizer to act as (or null to keep the default),
+ * and strips the field so services only ever see a vetted value.
+ */
+async function adminOrganizerOverride(req) {
+  const { organizerArtistId, ...body } = req.body;
+  req.body = body;
+  if (!organizerArtistId) return null;
+  if (req.user.role !== 'admin') throw new Forbidden('Only super admins can publish for another organizer.');
+  const organizer = await prisma.artist.findUnique({
+    where: { id: organizerArtistId },
+    select: { id: true, handle: true },
+  });
+  if (!organizer) throw new BadRequest('That organizer no longer exists.');
+  return organizer;
 }
 
 async function list(req, res) {
@@ -19,28 +37,33 @@ async function getOne(req, res) {
 }
 
 async function create(req, res) {
-  const artistId = await resolveArtistId(req.user.id);
+  const onBehalf = await adminOrganizerOverride(req);
+  const artistId = onBehalf ? onBehalf.id : await resolveArtistId(req.user.id);
   if (!artistId) throw new Forbidden('You need an artist profile to create events.');
   const created = await service.create(req.body, artistId);
   activity.record(req, {
     action: 'event.create',
     targetType: 'event',
     targetId: created.id,
-    summary: `Created event “${created.title}”`,
-    meta: { status: created.status, startsAt: created.startsAt },
+    summary: onBehalf
+      ? `Created event “${created.title}” for @${onBehalf.handle}`
+      : `Created event “${created.title}”`,
+    meta: { status: created.status, startsAt: created.startsAt, organizerArtistId: artistId },
   });
   res.status(201).json(created);
 }
 
 async function update(req, res) {
+  const moveTo = await adminOrganizerOverride(req);
   const artistId = await resolveArtistId(req.user.id);
-  const updated = await service.update(req.params.id, req.body, artistId, req.user.role);
+  const input = moveTo ? { ...req.body, organizerArtistId: moveTo.id } : req.body;
+  const updated = await service.update(req.params.id, input, artistId, req.user.role);
   activity.record(req, {
     action: 'event.update',
     targetType: 'event',
     targetId: updated.id,
-    summary: `Updated event “${updated.title}”`,
-    meta: { fields: Object.keys(req.body || {}) },
+    summary: moveTo ? `Updated event “${updated.title}” (now under @${moveTo.handle})` : `Updated event “${updated.title}”`,
+    meta: { fields: Object.keys(input || {}) },
   });
   res.json(updated);
 }

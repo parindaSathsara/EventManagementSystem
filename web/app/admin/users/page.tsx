@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Ban, CheckCircle2, KeyRound, PencilLine, Plus, Search, Trash2, UsersRound } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { type Role, type UserList, adminApi, full, shortDate, timeAgo, dateTime } from '@/lib/admin';
@@ -16,7 +17,13 @@ const ROLE_TABS: Array<{ value: Role | ''; label: string }> = [
   { value: 'customer', label: 'Guest accounts' },
 ];
 
+// useSearchParams needs a Suspense boundary for the static build.
 export default function AdminUsersPage() {
+  return <Suspense fallback={null}><UsersScreen /></Suspense>;
+}
+
+function UsersScreen() {
+  const searchParams = useSearchParams();
   const { user: me } = useAuth();
   const toast = useToast();
   const [role, setRole] = useState<Role | ''>('');
@@ -33,12 +40,17 @@ export default function AdminUsersPage() {
   // Deep links from the dashboard (?role=artist, ?new=1).
   const [openCreate, setOpenCreate] = useState(false);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const r = params.get('role');
+    const r = searchParams.get('role');
     if (r === 'artist' || r === 'admin' || r === 'customer') setRole(r);
-    if (params.get('new') === '1') setOpenCreate(true);
     setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // "New account" from the sidebar works even when this page is already open.
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return;
+    setOpenCreate(true);
+    window.history.replaceState(null, '', '/admin/users');
+  }, [searchParams]);
 
   useEffect(() => { const t = setTimeout(() => setQuery(q.trim()), 250); return () => clearTimeout(t); }, [q]);
   useEffect(() => { setSkip(0); }, [role, status, sort, query]);

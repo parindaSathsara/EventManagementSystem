@@ -28,13 +28,23 @@ const overviewQuery = z.object({
   range: z.enum(RANGES).default('7d'),
 });
 
+// Same three networks organizers can set in the studio. Empty = removed.
+const socialUrl = z.string().trim().max(300).optional().nullable();
+const socialsInput = z
+  .object({ facebook: socialUrl, instagram: socialUrl, tiktok: socialUrl })
+  .partial();
+
 const organizerInput = z.object({
   handle,
   category: z.string().trim().max(40).optional().nullable(),
   bio: z.string().trim().max(2000).optional().nullable(),
   isVerified: z.boolean().optional(),
   isPreferred: z.boolean().optional(),
+  socials: socialsInput.optional().nullable(),
 });
+
+// Profile photo: an absolute URL from POST /uploads/image; null clears it.
+const avatarUrl = z.string().trim().url('Upload a valid image').max(500).optional().nullable();
 
 const listUsersQuery = z.object({
   q: z.string().trim().max(120).optional(),
@@ -51,6 +61,7 @@ const createUserBody = z
     email,
     password,
     phone: phone.optional().nullable().or(z.literal('').transform(() => null)),
+    avatarUrl,
     role: z.enum(ROLES).default('artist'),
     organizer: organizerInput.optional().nullable(),
   })
@@ -64,6 +75,7 @@ const updateUserBody = z
     name: name.optional(),
     email: email.optional(),
     phone: phone.optional().nullable().or(z.literal('').transform(() => null)),
+    avatarUrl,
     role: z.enum(ROLES).optional(),
     disabled: z.boolean().optional(),
     organizer: organizerInput.partial().optional().nullable(),
@@ -82,6 +94,12 @@ const listEventsQuery = z.object({
 });
 
 const eventStatusBody = z.object({ status: z.enum(EVENT_STATUSES) });
+
+const listOrganizersQuery = z.object({
+  q: z.string().trim().max(120).optional(),
+  id: id.optional(),
+  take: z.coerce.number().int().min(1).max(50).default(20),
+});
 
 const ACTIVITY_CATEGORIES = ['auth', 'admin', 'event', 'artist', 'profile', 'follow', 'ticket'];
 
@@ -104,6 +122,7 @@ module.exports = {
   resetPasswordBody,
   listEventsQuery,
   eventStatusBody,
+  listOrganizersQuery,
   listActivityQuery,
   RANGES,
 };

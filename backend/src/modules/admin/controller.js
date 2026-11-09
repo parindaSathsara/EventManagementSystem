@@ -44,7 +44,9 @@ async function updateUser(req, res) {
       'admin.user_suspend': `Suspended ${user.name}`,
       'admin.user_reactivate': `Reactivated ${user.name}`,
       'admin.user_role': `Changed ${user.name} from ${ROLE_LABEL[before.role]} to ${ROLE_LABEL[user.role]}`,
-      'admin.user_update': `Updated ${user.name}'s account`,
+      'admin.user_update': changed.every((c) => c === 'avatarUrl' || /^organizer\.(bio|category|socials)$/.test(c))
+        ? `Updated ${user.name}'s public profile`
+        : `Updated ${user.name}'s account`,
     }[action];
     activity.record(req, {
       action,
@@ -78,6 +80,10 @@ async function deleteUser(req, res) {
     meta: { email: target.email, role: target.role, handle: target.artist?.handle },
   });
   res.status(204).end();
+}
+
+async function listOrganizers(req, res) {
+  res.json(await service.listOrganizers(req.query));
 }
 
 // --- events -------------------------------------------------------------------
@@ -123,6 +129,7 @@ module.exports = {
   updateUser,
   resetPassword,
   deleteUser,
+  listOrganizers,
   listEvents,
   setEventStatus,
   deleteEvent,

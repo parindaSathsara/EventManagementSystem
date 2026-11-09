@@ -30,6 +30,8 @@ router.post(
 );
 router.delete('/users/:id', validate({ params: schema.idParams }), asyncHandler(ctrl.deleteUser));
 
+router.get('/organizers', validate({ query: schema.listOrganizersQuery }), asyncHandler(ctrl.listOrganizers));
+
 router.get('/events', validate({ query: schema.listEventsQuery }), asyncHandler(ctrl.listEvents));
 router.patch(
   '/events/:id/status',

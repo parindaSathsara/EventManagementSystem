@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, CalendarDays, Check, Clock3, ImagePlus, MapPin, Plus, Sparkles, Ticket, Trash2, Upload, UsersRound, X } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarDays, Check, Clock3, ImagePlus, MapPin, Plus, Sparkles, Ticket, Trash2, Upload, UsersRound, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -20,9 +20,30 @@ function timePart(value?: string) { if (!value) return ''; const date = new Date
 function digits(label = '') { return label.replace(/[^0-9]/g, ''); }
 function today() { const value = new Date(); return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`; }
 
-export function EventEditor({ event }: { event?: EventItem }) {
+/**
+ * Super-admin console mode (web/app/admin/events). The console renders its own
+ * header and organizer picker; the editor adds an "Organizer & visibility"
+ * section, allows past dates (back-filling old events), sends the chosen
+ * organizer + status, and hands the saved event back instead of going to the
+ * studio. Without it the editor behaves exactly as organizers know it.
+ */
+export type EditorAdminMode = {
+  organizerArtistId: string | null;
+  organizerSlot: React.ReactNode;
+  onSaved: (saved: EventItem, created: boolean) => void;
+};
+
+const adminStatuses = [
+  { value: 'published', label: 'Published: visible on the website and app' },
+  { value: 'draft', label: 'Draft: hidden until published' },
+  { value: 'live', label: 'Live: happening now' },
+  { value: 'cancelled', label: 'Cancelled: shown as cancelled' },
+  { value: 'ended', label: 'Ended' },
+];
+
+export function EventEditor({ event, admin }: { event?: EventItem; admin?: EditorAdminMode }) {
   const router = useRouter(); const editing = !!event;
-  const [form, setForm] = useState({ title: event?.title || '', description: event?.description || '', category: event?.category || 'Festival', date: datePart(event?.startsAt), startTime: event?.startTimeTba ? '' : timePart(event?.startsAt), endTime: event?.startTimeTba ? '' : timePart(event?.endsAt), timeTba: !!event?.startTimeTba, venueName: event?.venueName || '', cityName: event?.cityName || '', addressLine: event?.addressLine || '', ageRestriction: event?.ageRestriction || '18+', ticketUrl: event?.ticketUrl || '', bannerImageUrl: event?.bannerImageUrl || '' });
+  const [form, setForm] = useState({ status: event?.status || 'published', title: event?.title || '', description: event?.description || '', category: event?.category || 'Festival', date: datePart(event?.startsAt), startTime: event?.startTimeTba ? '' : timePart(event?.startsAt), endTime: event?.startTimeTba ? '' : timePart(event?.endsAt), timeTba: !!event?.startTimeTba, venueName: event?.venueName || '', cityName: event?.cityName || '', addressLine: event?.addressLine || '', ageRestriction: event?.ageRestriction || '18+', ticketUrl: event?.ticketUrl || '', bannerImageUrl: event?.bannerImageUrl || '' });
   const [tickets, setTickets] = useState<TicketDraft[]>(() => event?.ticketTypes?.length ? event.ticketTypes.map((ticket) => ({ name: ticket.name, price: digits(ticket.priceLabel), free: ticket.priceLabel.toLowerCase() === 'free' })) : [{ name: '', price: '', free: false }]);
   // ↑ Starts EMPTY (client feedback 2026-11-08): a pre-filled "General
   // admission" had to be deleted before typing, and when left alone it was
@@ -45,6 +66,7 @@ export function EventEditor({ event }: { event?: EventItem }) {
   async function submit(e: FormEvent) {
     e.preventDefault(); setBusy(true); setError('');
     try {
+      if (admin && !admin.organizerArtistId) throw new Error('Choose which organizer this event is published under.');
       const startsAt = new Date(`${form.date}T${form.timeTba ? '12:00' : form.startTime}`);
       let endsAt = new Date(`${form.date}T${form.timeTba ? '23:59' : form.endTime}`);
       if (Number.isNaN(startsAt.valueOf()) || Number.isNaN(endsAt.valueOf())) throw new Error('Choose a valid event date and time.');
@@ -54,11 +76,14 @@ export function EventEditor({ event }: { event?: EventItem }) {
         ...(form.bannerImageUrl ? { bannerImageUrl: form.bannerImageUrl, flyers: [form.bannerImageUrl] } : { flyers: [] }),
         ...(form.ticketUrl ? { ticketUrl: form.ticketUrl } : { ticketUrl: null }),
         startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString(), startTimeTba: form.timeTba, timezone: 'Asia/Colombo',
-        venueName: form.venueName.trim(), cityName: form.cityName.trim(), ...(form.addressLine ? { addressLine: form.addressLine.trim() } : {}), ageRestriction: form.ageRestriction, status: 'published',
+        venueName: form.venueName.trim(), cityName: form.cityName.trim(), ...(form.addressLine ? { addressLine: form.addressLine.trim() } : {}), ageRestriction: form.ageRestriction, status: admin ? form.status : 'published',
+        // Admins can publish for (or move the event to) any organizer.
+        ...(admin?.organizerArtistId && admin.organizerArtistId !== event?.organizerArtistId ? { organizerArtistId: admin.organizerArtistId } : {}),
         ticketTypes: tickets.filter((ticket) => ticket.name.trim()).map((ticket) => ({ name: ticket.name.trim(), priceLabel: ticket.free ? 'Free' : ticket.price ? `LKR ${Number(ticket.price).toLocaleString('en-LK')}` : 'Coming soon', priceCents: ticket.free || !ticket.price ? 0 : Math.round(Number(ticket.price) * 100), currency: 'LKR', total: 10000 })),
         lineupArtistIds: [], lineup: lineup.filter((artist) => artist.name.trim()).map((artist) => ({ name: artist.name.trim(), socials: { ...(artist.instagram ? { instagram: artist.instagram } : {}), ...(artist.facebook ? { facebook: artist.facebook } : {}), ...(artist.tiktok ? { tiktok: artist.tiktok } : {}) } })),
       };
-      if (editing) await api.patch(`/events/${event.id}`, payload); else await api.post('/events', payload);
+      const saved = editing ? await api.patch<EventItem>(`/events/${event.id}`, payload) : await api.post<EventItem>('/events', payload);
+      if (admin) { admin.onSaved(saved, !editing); return; }
       router.push('/studio'); router.refresh();
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
@@ -66,7 +91,15 @@ export function EventEditor({ event }: { event?: EventItem }) {
 
   return <form className="editor-layout" onSubmit={submit}>
     <div className="editor-main">
-      <div className="editor-heading"><Link href="/studio" className="text-link"><ArrowLeft size={16} /> Back to studio</Link><p className="eyebrow">{editing ? 'Update listing' : 'New event'}</p><h1>{editing ? 'Make your event shine.' : 'Bring your next event to life.'}</h1><p>Guide customers from “looks interesting” to “I&apos;m going” with a clear, complete listing.</p></div>
+      {admin ? (
+        <section className="editor-section">
+          <div className="editor-section-head"><span>00</span><div><h2>Organizer &amp; visibility</h2><p>Publish under any organizer on Stage. Their followers are alerted when it goes live.</p></div><Building2 /></div>
+          <div className="form-grid">
+            <div className="field field-full">{admin.organizerSlot}</div>
+            <div className="field field-full"><label htmlFor="event-status">Visibility</label><select id="event-status" className="select" value={form.status} onChange={(e) => set('status', e.target.value)}>{adminStatuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+          </div>
+        </section>
+      ) : <div className="editor-heading"><Link href="/studio" className="text-link"><ArrowLeft size={16} /> Back to studio</Link><p className="eyebrow">{editing ? 'Update listing' : 'New event'}</p><h1>{editing ? 'Make your event shine.' : 'Bring your next event to life.'}</h1><p>Guide customers from “looks interesting” to “I&apos;m going” with a clear, complete listing.</p></div>}
 
       <section className="editor-section">
         <div className="editor-section-head"><span>01</span><div><h2>Start with the story</h2><p>Give people a reason to stop scrolling.</p></div><Sparkles /></div>
@@ -81,7 +114,7 @@ export function EventEditor({ event }: { event?: EventItem }) {
       <section className="editor-section">
         <div className="editor-section-head"><span>02</span><div><h2>When and where</h2><p>Make arrival feel effortless.</p></div><CalendarDays /></div>
         <div className="form-grid">
-          <div className="field"><label htmlFor="event-date">Date <em>Required</em></label><input id="event-date" className="input" type="date" min={editing ? undefined : today()} required value={form.date} onChange={(e) => set('date', e.target.value)} /></div>
+          <div className="field"><label htmlFor="event-date">Date <em>Required</em></label><input id="event-date" className="input" type="date" min={editing || admin ? undefined : today()} required value={form.date} onChange={(e) => set('date', e.target.value)} /></div>
           <div className="field"><label>Timing</label><label className="choice-card"><input type="checkbox" checked={form.timeTba} onChange={(e) => set('timeTba', e.target.checked)} /><span><strong>Announce time later</strong><small>Customers will see “Time TBA”.</small></span></label></div>
           {!form.timeTba && <><div className="field"><label htmlFor="event-start">Doors / start <em>Required</em></label><input id="event-start" className="input" type="time" required value={form.startTime} onChange={(e) => set('startTime', e.target.value)} /></div><div className="field"><label htmlFor="event-end">Expected finish <em>Required</em></label><input id="event-end" className="input" type="time" required value={form.endTime} onChange={(e) => set('endTime', e.target.value)} /><span className="field-hint">After-midnight times are handled automatically.</span></div></>}
           <div className="field"><label htmlFor="event-venue">Venue</label><input id="event-venue" className="input" value={form.venueName} onChange={(e) => set('venueName', e.target.value)} placeholder="Venue name or “Secret location”" /></div>
@@ -117,7 +150,7 @@ export function EventEditor({ event }: { event?: EventItem }) {
       </section>
 
       {error && <div className="notice error-notice editor-error" role="alert">{error}</div>}
-      <div className="editor-actions"><button type="button" className="button button-ghost" onClick={() => router.back()}>Cancel</button><button className="button button-primary" disabled={busy || uploading}><Upload size={16} /> {busy ? 'Publishing…' : editing ? 'Save changes' : 'Publish event'}</button></div>
+      <div className="editor-actions"><button type="button" className="button button-ghost" onClick={() => router.back()}>Cancel</button><button className="button button-primary" disabled={busy || uploading}><Upload size={16} /> {busy ? 'Saving…' : admin && form.status === 'draft' ? 'Save as draft' : editing ? 'Save changes' : 'Publish event'}</button></div>
     </div>
 
     <aside className="editor-preview">
@@ -127,7 +160,7 @@ export function EventEditor({ event }: { event?: EventItem }) {
         <div><p>{form.date ? new Intl.DateTimeFormat('en-LK', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${form.date}T12:00`)) : 'Date to be announced'}</p><h3>{form.title || 'Your event title'}</h3><span><MapPin size={13} /> {form.venueName || 'Venue TBA'}{form.cityName ? `, ${form.cityName}` : ''}</span><span><Clock3 size={13} /> {form.timeTba ? 'Time TBA' : form.startTime || 'Start time'}</span></div>
       </div>
       <div className="publish-checklist"><h3>Ready to publish?</h3>{checklist.map((item) => <span className={item.done ? 'done' : ''} key={item.label}>{item.done ? <Check /> : <i />}{item.label}</span>)}</div>
-      <p className="preview-note">Your event publishes immediately. You can return to Studio and update any detail later.</p>
+      <p className="preview-note">{admin ? 'Changes go straight to the website and the app. Every save is recorded in the activity log.' : 'Your event publishes immediately. You can return to Studio and update any detail later.'}</p>
     </aside>
   </form>;
 }

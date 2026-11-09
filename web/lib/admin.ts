@@ -101,7 +101,24 @@ export type OrganizerProfile = {
   isVerified: boolean;
   isPreferred: boolean;
   followerCount: number;
+  socials: Socials | null;
   _count: { events: number; reels: number };
+};
+
+export type Socials = Partial<Record<'facebook' | 'instagram' | 'tiktok', string>>;
+
+/** One row of the "publish this event as…" picker. */
+export type OrganizerOption = {
+  id: string;
+  userId: string;
+  handle: string;
+  name: string;
+  avatarUrl: string | null;
+  category: string | null;
+  isVerified: boolean;
+  suspended: boolean;
+  followerCount: number;
+  events: number;
 };
 
 export type AdminUser = {
@@ -145,9 +162,9 @@ export type AdminEvent = EventSummary & {
 export type EventList = { items: AdminEvent[]; total: number; counts: Record<string, number> };
 export type ActivityList = { items: ActivityItem[]; total: number; facets: Record<string, number> };
 
-export type OrganizerInput = { handle?: string; category?: string | null; bio?: string | null; isVerified?: boolean; isPreferred?: boolean };
+export type OrganizerInput = { handle?: string; category?: string | null; bio?: string | null; isVerified?: boolean; isPreferred?: boolean; socials?: Socials | null };
 export type CreateUserInput = { name: string; email: string; password: string; phone?: string | null; role: Role; organizer?: OrganizerInput | null };
-export type UpdateUserInput = Partial<{ name: string; email: string; phone: string | null; role: Role; disabled: boolean; organizer: OrganizerInput | null }>;
+export type UpdateUserInput = Partial<{ name: string; email: string; phone: string | null; avatarUrl: string | null; role: Role; disabled: boolean; organizer: OrganizerInput | null }>;
 
 // --- API ------------------------------------------------------------------------
 
@@ -167,6 +184,7 @@ export const adminApi = {
   updateUser: (id: string, input: UpdateUserInput) => api.patch<AdminUser>(`/admin/users/${encodeURIComponent(id)}`, input),
   resetPassword: (id: string, password: string) => api.post<null>(`/admin/users/${encodeURIComponent(id)}/password`, { password }),
   deleteUser: (id: string) => api.delete<null>(`/admin/users/${encodeURIComponent(id)}`),
+  organizers: (params: { q?: string; id?: string; take?: number }) => api.get<OrganizerOption[]>(`/admin/organizers${qs(params)}`),
   events: (params: { q?: string; status?: string; when?: string; organizerId?: string; take?: number; skip?: number }) =>
     api.get<EventList>(`/admin/events${qs(params)}`),
   setEventStatus: (id: string, status: string) => api.patch<{ id: string; status: string }>(`/admin/events/${encodeURIComponent(id)}/status`, { status }),

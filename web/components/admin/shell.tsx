@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Activity, CalendarRange, ExternalLink, LayoutDashboard, LoaderCircle, LogOut, Menu, UsersRound, X } from 'lucide-react';
+import { Activity, CalendarPlus, CalendarRange, ExternalLink, LayoutDashboard, LoaderCircle, LogOut, Menu, UserPlus, UsersRound, X } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { StageBadge, StageWordmark } from '@/components/brand-logo';
 import { AdminAvatar } from './ui';
@@ -55,9 +55,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="adm-nav-label">Monitor</div>
         <nav className="adm-nav" aria-label="Admin navigation">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
-            const active = exact ? pathname === href : pathname.startsWith(href);
+            const active = exact ? pathname === href : pathname.startsWith(href) && pathname !== '/admin/events/new';
             return <Link key={href} href={href} className={active ? 'is-active' : ''} aria-current={active ? 'page' : undefined}><Icon size={17} />{label}</Link>;
           })}
+        </nav>
+        <div className="adm-nav-label">Create</div>
+        <nav className="adm-nav" aria-label="Create">
+          <Link href="/admin/events/new" className={pathname === '/admin/events/new' ? 'is-active' : ''}><CalendarPlus size={17} />New event</Link>
+          <Link href="/admin/users?new=1"><UserPlus size={17} />New account</Link>
         </nav>
         <div className="adm-nav-label">Shortcuts</div>
         <nav className="adm-nav" aria-label="Shortcuts">
